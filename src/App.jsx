@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 
+import Landing from './screens/Landing.jsx'
 import Splash from './screens/Splash.jsx'
 import Login from './screens/Login.jsx'
 import Register from './screens/Register.jsx'
@@ -49,8 +50,11 @@ import Support from './screens/Support.jsx'
 export default function App() {
   return (
     <Routes>
-      {/* auth + onboarding */}
-      <Route path="/" element={<Splash />} />
+      {/* public site */}
+      <Route path="/" element={<Landing />} />
+
+      {/* auth + onboarding — Splash is the app's own entry, not the public one */}
+      <Route path="/app" element={<Splash />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify" element={<Verify />} />

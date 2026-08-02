@@ -247,7 +247,7 @@ export function Drawer({ open, onClose }) {
             Settings
           </NavLink>
           <Link
-            to="/"
+            to="/app"
             className="tap flex items-center gap-3 rounded-xl px-4 text-title text-error transition-colors duration-fast hover:bg-error/10"
           >
             <Icon name="logout" className="text-[21px]" />

@@ -69,7 +69,7 @@ export default function More() {
       ))}
 
       <Link
-        to="/"
+        to="/app"
         className="tap flex items-center justify-center gap-2 rounded-xl border border-white/12 text-label-md text-error transition-colors duration-fast hover:bg-error/10"
       >
         <Icon name="logout" className="text-[18px]" />

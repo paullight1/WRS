@@ -52,6 +52,12 @@
     text-wrap: pretty;
   }
 
+  /* The landing page's FAQ uses native <details>; WebKit draws its own
+     triangle, which `list-style: none` alone does not remove. */
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
   /* Figures align in any column of numbers. */
   table,
   .tnum {

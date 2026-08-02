@@ -111,6 +111,16 @@ export default {
         'label-md': ['14px', { lineHeight: '18px', fontWeight: '600' }],
         'label-sm': ['12px', { lineHeight: '16px', letterSpacing: '0.01em', fontWeight: '600' }],
 
+        /* marketing scale — the landing page only. The product scale above is
+           a UI scale and tops out at 30px; a public page needs brand type.
+           Namespaced `site-*` so no app screen can inherit it by accident. */
+        'site-display': ['clamp(2.125rem, 3.9vw, 3.375rem)', { lineHeight: '1.14', letterSpacing: '-0.02em', fontWeight: '500' }],
+        'site-h2': ['clamp(1.625rem, 2.7vw, 2.75rem)', { lineHeight: '1.2', letterSpacing: '-0.015em', fontWeight: '500' }],
+        'site-h3': ['clamp(1.0625rem, 1.3vw, 1.25rem)', { lineHeight: '1.4', letterSpacing: '-0.01em', fontWeight: '600' }],
+        'site-lead': ['clamp(1.0625rem, 1.1vw, 1.1875rem)', { lineHeight: '1.7', fontWeight: '400' }],
+        'site-body': ['clamp(1rem, 1vw, 1.0625rem)', { lineHeight: '1.7', fontWeight: '400' }],
+        'site-eyebrow': ['13px', { lineHeight: '18px', letterSpacing: '0', fontWeight: '500' }],
+
         // data — JetBrains Mono for IDs, codes and figures
         'data-lg': ['19px', { lineHeight: '25px', letterSpacing: '0.03em', fontWeight: '500' }],
         'data-md': ['14px', { lineHeight: '19px', letterSpacing: '0.04em', fontWeight: '500' }],
