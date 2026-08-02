@@ -83,7 +83,7 @@ export default function RobotAvatar({ size = 120, className = '', glow = true, e
 export function RobotBadge({ size = 44, className = '' }) {
   return (
     <span
-      className={`grid shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-primary-container/30 to-secondary-container/20 ${className}`}
+      className={`grid shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-primary-container/25 ${className}`}
       style={{ width: size, height: size }}
     >
       <RobotAvatar size={size * 0.92} glow={false} />

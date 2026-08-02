@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Atmosphere } from '../components/AppShell.jsx'
-import RobotAvatar from '../components/RobotAvatar.jsx'
+import Robot3D from '../components/robot3d/Robot3D.jsx'
+import { defaultRobotConfig } from '../data/robotParts.js'
 import RobotFace from '../components/RobotFace.jsx'
 import { Button, Card, Icon, Progress } from '../components/ui.jsx'
 import { personalities, packages } from '../data/mock.js'
@@ -34,13 +35,19 @@ export default function Onboarding() {
           <div className="flex-1">
             <Progress value={((step + 1) / steps.length) * 100} height="h-1.5" />
           </div>
-          <span className="font-label-sm text-label-sm text-outline">
+          <span className="text-label-sm text-outline">
             {step + 1}/{steps.length}
           </span>
         </div>
 
         <div className="mb-8 flex justify-center">
-          <RobotAvatar size={170} eye={eye} className="animate-float" />
+          {/* The eye picker below drives the render directly. */}
+          <Robot3D
+            size={200}
+            config={{ ...defaultRobotConfig, colors: { emissive: eye, accent: eye } }}
+            interactive
+            label="Your robot"
+          />
         </div>
 
         {step === 0 && (
@@ -61,16 +68,16 @@ export default function Onboarding() {
                 <button
                   key={p.slug}
                   onClick={() => setPkg(p.slug)}
-                  className={`glass flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-all ${
+                  className={`surface flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-all ${
                     pkg === p.slug ? 'border-tertiary/50 bg-tertiary/5' : ''
                   }`}
                 >
                   <RobotFace tier={p.slug} size={44} className="shrink-0" />
                   <span className="flex-1">
                     <span className="block text-body-md text-on-surface">{p.name}</span>
-                    <span className="block text-label-sm font-label-sm text-outline">{p.robotClass}</span>
+                    <span className="block text-label-sm text-outline">{p.robotClass}</span>
                   </span>
-                  <span className="font-headline-md text-[18px] text-on-surface">${p.price}</span>
+                  <span className="text-title text-on-surface">${p.price}</span>
                 </button>
               ))}
             </div>
@@ -84,9 +91,9 @@ export default function Onboarding() {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-transparent text-center font-headline-md text-[24px] text-on-surface outline-none"
+                className="w-full bg-transparent text-center font-headline-lg-mobile text-headline-lg-mobile text-on-surface outline-none"
               />
-              <p className="mt-3 text-center text-label-sm font-label-sm text-outline">
+              <p className="mt-3 text-center text-label-sm text-outline">
                 You can rename it later from Robot Settings.
               </p>
             </Card>
@@ -97,7 +104,7 @@ export default function Onboarding() {
           <div>
             <h1 className="mb-4 font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Choose appearance</h1>
             <Card className="p-card-padding">
-              <p className="mb-4 text-label-sm font-label-sm uppercase tracking-widest text-outline">Optic colour</p>
+              <p className="mb-4 text-label-sm text-outline">Optic colour</p>
               <div className="flex justify-between gap-3">
                 {eyeColors.map((c) => (
                   <button
@@ -123,12 +130,12 @@ export default function Onboarding() {
                 <button
                   key={p.name}
                   onClick={() => setPers(p.name)}
-                  className={`glass flex flex-col items-center gap-2 rounded-2xl p-5 transition-all ${
+                  className={`surface flex flex-col items-center gap-2 rounded-2xl p-5 transition-all ${
                     pers === p.name ? 'border-primary/50 bg-primary-container/15' : ''
                   }`}
                 >
                   <Icon name={p.icon} className={pers === p.name ? 'text-primary' : 'text-outline'} />
-                  <span className="text-label-md font-label-md text-on-surface">{p.name}</span>
+                  <span className="text-label-md text-on-surface">{p.name}</span>
                 </button>
               ))}
             </div>
@@ -144,7 +151,7 @@ export default function Onboarding() {
             </p>
             <div className="mt-5 space-y-2 text-left">
               {['Robot ID issued', 'Robot Passport created', 'Wallet activated', 'Training unlocked'].map((t) => (
-                <div key={t} className="glass flex items-center gap-3 rounded-xl p-3">
+                <div key={t} className="surface flex items-center gap-3 rounded-xl p-3">
                   <Icon name="check_circle" className="text-tertiary text-[20px]" fill />
                   <span className="text-body-md text-on-surface-variant">{t}</span>
                 </div>

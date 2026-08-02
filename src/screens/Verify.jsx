@@ -38,11 +38,11 @@ export default function Verify() {
                 value={d}
                 onChange={(e) => setDigit(i, e.target.value)}
                 inputMode="numeric"
-                className="h-14 w-full rounded-xl border border-white/10 bg-black/30 text-center font-label-md text-[20px] text-on-surface outline-none transition-all focus:border-tertiary focus:shadow-[0_0_15px_rgba(0,219,231,.25)]"
+                className="h-14 w-full rounded-xl border border-white/10 bg-black/30 text-center font-data text-data-lg text-on-surface outline-none transition-all focus:border-tertiary focus:shadow-[0_0_15px_rgba(0,219,231,.25)]"
               />
             ))}
           </div>
-          <p className="text-center text-label-sm font-label-sm text-outline">
+          <p className="text-center text-label-sm text-outline">
             Didn't get it? <span className="text-primary">Resend in 0:42</span>
           </p>
           <Button full size="lg" onClick={() => nav('/onboarding')}>
@@ -52,7 +52,7 @@ export default function Verify() {
 
         <div className="mt-5 space-y-2">
           {steps.map((s) => (
-            <div key={s.title} className="glass flex items-center gap-3 rounded-2xl p-3.5">
+            <div key={s.title} className="surface flex items-center gap-3 rounded-2xl p-3.5">
               <span
                 className={`grid h-10 w-10 place-items-center rounded-xl border ${
                   s.state === 'done'
@@ -66,7 +66,7 @@ export default function Verify() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-body-md text-on-surface">{s.title}</p>
-                <p className="text-label-sm font-label-sm text-outline">{s.desc}</p>
+                <p className="text-label-sm text-outline">{s.desc}</p>
               </div>
               {s.state === 'done' && <Icon name="verified" className="text-tertiary" fill />}
             </div>

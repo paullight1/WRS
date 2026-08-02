@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
-import { Badge, Button, Card, Chip, Icon, Progress, SectionTitle, Stat } from '../components/ui.jsx'
+import { ChipBar, Badge, Button, Card, Icon, Progress, SectionTitle, Stat } from '../components/ui.jsx'
 import { courses } from '../data/mock.js'
 
 const cats = ['All', 'Robotics AI', 'Data', 'Hardware', 'Security', 'Business']
@@ -14,12 +14,11 @@ export default function Academy() {
     <AppShell title="Robot Academy" back avatar={false}>
       {/* ------------------------------------------------------------- hero */}
       <section>
-        <Card className="relative overflow-hidden p-card-padding glow-primary">
-          <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-primary-container/25 blur-[80px]" />
+        <Card className="relative overflow-hidden p-card-padding">
           <div className="relative">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 animate-breathe rounded-full bg-tertiary" />
-              <span className="text-label-sm font-label-sm uppercase tracking-widest text-tertiary">In Progress</span>
+              <span className="h-2 w-2 rounded-full bg-tertiary" />
+              <span className="text-label-sm text-tertiary">In Progress</span>
             </div>
             <h2 className="mt-3 font-headline-lg-mobile text-[24px] text-on-primary-container">{hero.title}</h2>
             <p className="mt-2 text-body-md leading-relaxed text-on-surface-variant">
@@ -27,7 +26,7 @@ export default function Academy() {
             </p>
 
             <div className="mt-5 space-y-2">
-              <div className="flex justify-between text-label-sm font-label-sm text-on-surface-variant">
+              <div className="flex justify-between text-label-sm text-on-surface-variant">
                 <span>Module completion</span>
                 <span>{hero.progress}%</span>
               </div>
@@ -41,13 +40,7 @@ export default function Academy() {
         </Card>
       </section>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-        {cats.map((c) => (
-          <Chip key={c} active={cat === c} onClick={() => setCat(c)}>
-            {c}
-          </Chip>
-        ))}
-      </div>
+      <ChipBar items={cats} value={cat} onChange={setCat} visible={3} />
 
       {/* ---------------------------------------------------------- courses */}
       <section>
@@ -56,13 +49,13 @@ export default function Academy() {
           {list.map((c) => (
             <Card key={c.title} className="flex flex-col p-5">
               <div className="flex items-start justify-between gap-3">
-                <h3 className="font-headline-md text-[17px] leading-snug text-on-surface">{c.title}</h3>
+                <h3 className="text-title leading-snug text-on-surface">{c.title}</h3>
                 <Badge t={c.progress === 100 ? 'tertiary' : c.progress ? 'primary' : 'outline'}>
                   {c.progress === 100 ? 'Complete' : c.progress ? 'Active' : 'New'}
                 </Badge>
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-label-sm font-label-sm text-outline">
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-label-sm text-outline">
                 <span className="flex items-center gap-1">
                   <Icon name="workspace_premium" className="text-[15px]" /> {c.level}
                 </span>

@@ -29,10 +29,10 @@ export default function Community() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-body-md font-medium text-on-surface">{e.title}</p>
-                      <p className="text-label-sm font-label-sm text-outline">{e.when}</p>
+                      <p className="text-label-sm text-outline">{e.when}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <Badge t="tertiary">{e.type}</Badge>
-                        <span className="text-label-sm font-label-sm text-outline">
+                        <span className="text-label-sm text-outline">
                           {e.attendees.toLocaleString()} attending
                         </span>
                       </div>
@@ -67,7 +67,7 @@ export default function Community() {
               <Card key={a.title} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-body-md font-medium text-on-surface">{a.title}</p>
-                  <span className="shrink-0 text-label-sm font-label-sm text-outline">{a.time}</span>
+                  <span className="shrink-0 text-label-sm text-outline">{a.time}</span>
                 </div>
                 <p className="mt-1 text-body-md text-on-surface-variant">{a.body}</p>
               </Card>
@@ -79,20 +79,20 @@ export default function Community() {
       {tab === 'Leaderboard' && (
         <section>
           <SectionTitle action="All time">Top members</SectionTitle>
-          <Card className="divide-y divide-white/5">
+          <Card className="divide-y divide-white/8">
             {leaderboard.map((m) => {
               const c = tone(m.tone)
               return (
                 <div key={m.rank} className={`flex items-center gap-4 px-5 py-4 ${m.you ? 'bg-primary-container/10' : ''}`}>
                   <span
-                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border font-label-md text-label-sm ${c.bg} ${c.border} ${c.text}`}
+                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border text-label-sm ${c.bg} ${c.border} ${c.text}`}
                   >
                     {m.rank}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-body-md text-on-surface">
                     {m.name} {m.you && <span className="text-label-sm text-primary">(you)</span>}
                   </span>
-                  <span className="shrink-0 font-label-md text-label-md text-tertiary">
+                  <span className="shrink-0 text-label-md text-tertiary">
                     {m.xp.toLocaleString()} XP
                   </span>
                 </div>

@@ -19,7 +19,7 @@ export default function DataRevenue() {
 
       <section>
         <SectionTitle>Distribution breakdown</SectionTitle>
-        <Card className="divide-y divide-white/5">
+        <Card className="divide-y divide-white/8">
           {[
             ['Gross dataset revenue', '$8,420.00', 'text-on-surface'],
             ['Platform fees', '-$2,105.00', 'text-error'],
@@ -28,7 +28,7 @@ export default function DataRevenue() {
           ].map(([k, v, cls]) => (
             <div key={k} className="flex items-center justify-between px-5 py-3.5">
               <span className="text-body-md text-on-surface-variant">{k}</span>
-              <span className={`font-label-md text-label-md ${cls}`}>{v}</span>
+              <span className={`text-label-md ${cls}`}>{v}</span>
             </div>
           ))}
         </Card>
@@ -39,12 +39,12 @@ export default function DataRevenue() {
         <Card className="space-y-4 p-card-padding">
           {weights.map((w) => (
             <div key={w.label}>
-              <div className="mb-1.5 flex justify-between text-label-sm font-label-sm">
+              <div className="mb-1.5 flex justify-between text-label-sm">
                 <span className="text-on-surface-variant">{w.label}</span>
                 <span className="text-tertiary">{w.value}%</span>
               </div>
               <Progress value={w.value} height="h-1.5" showShimmer={false} />
-              <p className="mt-1 text-[11px] font-label-sm text-outline">{w.note}</p>
+              <p className="mt-1 text-[11px] text-outline">{w.note}</p>
             </div>
           ))}
         </Card>

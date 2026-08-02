@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
-import {
-  Badge, Button, Card, Chip, Disclosure, Icon, Progress, SectionTitle, Stat, Toast, Toggle, tone,
+import { ChipBar,
+  Badge, Button, Card, Disclosure, GradIcon, Icon, Progress, SectionTitle, Stat, Toast, Toggle,
 } from '../components/ui.jsx'
-import { trainingModules, languages } from '../data/mock.js'
+import { trainingModules, trainingTiles, languages } from '../data/mock.js'
 
 /* ------------------------------------------------------------------- voice */
 function VoiceTraining({ onSubmit }) {
@@ -24,8 +24,8 @@ function VoiceTraining({ onSubmit }) {
     <>
       <section>
         <Card className="flex flex-col items-center p-card-padding">
-          <p className="text-label-sm font-label-sm uppercase tracking-widest text-outline">Read the prompt aloud</p>
-          <p className="mt-3 text-center font-headline-md text-[19px] leading-relaxed text-on-surface">
+          <p className="text-label-sm text-outline">Read the prompt aloud</p>
+          <p className="mt-3 text-center font-headline-md text-headline-md leading-relaxed text-on-surface">
             "Good morning. Please prepare the delivery manifest for aisle four."
           </p>
 
@@ -36,15 +36,15 @@ function VoiceTraining({ onSubmit }) {
             <button
               onClick={() => setRecording(!recording)}
               className={`relative grid h-24 w-24 place-items-center rounded-full transition-all active:scale-95 ${
-                recording ? 'bg-error/20 border-2 border-error' : 'grad-primary glow-primary'
+                recording ? 'bg-error/20 border-2 border-error' : 'grad-primary'
               }`}
             >
               <Icon name={recording ? 'stop' : 'mic'} className="text-[36px] text-white" fill />
             </button>
           </div>
 
-          <p className="font-label-md text-[24px] tracking-widest text-tertiary">{mmss}</p>
-          <p className="mt-1 text-label-sm font-label-sm text-outline">
+          <p className=" text-[24px] text-tertiary">{mmss}</p>
+          <p className="mt-1 text-label-sm text-outline">
             {recording ? 'Recording — speak clearly' : 'Tap to start recording'}
           </p>
 
@@ -66,13 +66,12 @@ function VoiceTraining({ onSubmit }) {
 
       <section>
         <SectionTitle>Language</SectionTitle>
-        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-          {['English', 'Yoruba', 'Hausa', 'Igbo', 'Swahili', 'French'].map((l) => (
-            <Chip key={l} active={lang === l} onClick={() => setLang(l)}>
-              {l}
-            </Chip>
-          ))}
-        </div>
+        <ChipBar
+          items={['English', 'Yoruba', 'Hausa', 'Igbo', 'Swahili', 'French']}
+          value={lang}
+          onChange={setLang}
+          visible={3}
+        />
       </section>
 
       <section className="grid grid-cols-3 gap-3">
@@ -83,7 +82,7 @@ function VoiceTraining({ onSubmit }) {
 
       <section>
         <SectionTitle>Activities</SectionTitle>
-        <Card className="divide-y divide-white/5">
+        <Card className="divide-y divide-white/8">
           {[
             ['Speak a sentence', 'done'],
             ['Read a story', 'done'],
@@ -97,7 +96,7 @@ function VoiceTraining({ onSubmit }) {
               <Icon
                 name={state === 'done' ? 'check_circle' : state === 'active' ? 'radio_button_checked' : 'circle'}
                 className={`text-[20px] ${
-                  state === 'done' ? 'text-tertiary' : state === 'active' ? 'text-primary' : 'text-outline/40'
+                  state === 'done' ? 'text-tertiary' : state === 'active' ? 'text-primary' : 'text-outline'
                 }`}
                 fill={state === 'done'}
               />
@@ -137,14 +136,14 @@ function LanguageTraining({ onSubmit }) {
                 key={l.name}
                 disabled={locked}
                 onClick={() => setSel(l.name)}
-                className={`glass block w-full rounded-2xl p-4 text-left transition-all ${
+                className={`surface block w-full rounded-2xl p-4 text-left transition-all ${
                   sel === l.name ? 'border-tertiary/40 bg-tertiary/5' : ''
                 } ${locked ? 'opacity-45' : 'hover:border-white/25'}`}
               >
                 <div className="flex items-center gap-3">
                   <Icon name={locked ? 'lock' : 'translate'} className="text-[20px] text-primary" />
                   <span className="flex-1 text-body-md text-on-surface">{l.name}</span>
-                  <span className="text-label-sm font-label-sm text-outline">{l.level}</span>
+                  <span className="text-label-sm text-outline">{l.level}</span>
                 </div>
                 <Progress value={l.progress} className="mt-3" height="h-1.5" showShimmer={false} />
               </button>
@@ -166,7 +165,7 @@ function LanguageTraining({ onSubmit }) {
           ].map(([label, icon]) => (
             <Card key={label} className="flex flex-col items-center gap-2 p-4 text-center">
               <Icon name={icon} className="text-[22px] text-tertiary" />
-              <span className="text-label-sm font-label-sm text-on-surface-variant">{label}</span>
+              <span className="text-label-sm text-on-surface-variant">{label}</span>
             </Card>
           ))}
         </div>
@@ -191,12 +190,12 @@ function CaptureTraining({ kind, onSubmit }) {
     <>
       <section>
         <Card className="relative grid aspect-video place-items-center overflow-hidden p-card-padding">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary-container/10 to-transparent" />
+          <div className="absolute inset-0 bg-primary-container/[.06]" />
           <div className="absolute inset-x-6 top-0 h-[2px] animate-scan bg-tertiary/60 shadow-[0_0_12px_#00dbe7]" />
           <div className="absolute inset-6 rounded-xl border border-dashed border-tertiary/30" />
           <div className="relative text-center">
             <Icon name={isFace ? 'face' : 'directions_walk'} className="text-[54px] text-tertiary/70" />
-            <p className="mt-2 text-label-sm font-label-sm text-outline">
+            <p className="mt-2 text-label-sm text-outline">
               {isFace ? 'Align your face inside the frame' : 'Ensure full-body visibility'}
             </p>
           </div>
@@ -209,7 +208,7 @@ function CaptureTraining({ kind, onSubmit }) {
           {cats.map((c) => (
             <span
               key={c}
-              className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-label-sm font-label-sm text-on-surface-variant"
+              className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-label-sm text-on-surface-variant"
             >
               {c}
             </span>
@@ -270,7 +269,7 @@ function UploadTraining({ onSubmit }) {
           <span className="grid h-16 w-16 place-items-center rounded-2xl border border-white/10 bg-white/5">
             <Icon name="cloud_upload" className="text-[30px] text-primary" />
           </span>
-          <p className="font-headline-md text-[17px] text-on-surface">Drop files or browse</p>
+          <p className="text-title text-on-surface">Drop files or browse</p>
           <p className="max-w-xs text-body-md text-outline">
             Workflows, procedures, product knowledge, documents. PDF, DOCX, CSV, TXT up to 50 MB.
           </p>
@@ -282,7 +281,7 @@ function UploadTraining({ onSubmit }) {
 
       <section>
         <SectionTitle>Recently uploaded</SectionTitle>
-        <Card className="divide-y divide-white/5">
+        <Card className="divide-y divide-white/8">
           {[
             ['Warehouse SOP v3.pdf', 'Approved', 'tertiary'],
             ['Customer greeting script.docx', 'In review', 'primary'],
@@ -305,9 +304,23 @@ function UploadTraining({ onSubmit }) {
 }
 
 /* ------------------------------------------------------------------- shell */
+/* Each tile resolves to the capture surface that fits its data type. */
+const BODIES = {
+  voice: 'voice',
+  language: 'language',
+  'text-translation': 'language',
+  movement: 'capture',
+  facial: 'capture',
+  'image-labeling': 'capture',
+  'video-labeling': 'capture',
+  skill: 'upload',
+  custom: 'upload',
+  conversation: 'upload',
+}
+
 export default function TrainingModule() {
   const { slug } = useParams()
-  const mod = trainingModules.find((m) => m.slug === slug)
+  const mod = trainingTiles.find((m) => m.slug === slug) || trainingModules.find((m) => m.slug === slug)
   const [toast, setToast] = useState(false)
   if (!mod) return <Navigate to="/training" replace />
 
@@ -316,29 +329,27 @@ export default function TrainingModule() {
     setTimeout(() => setToast(false), 2200)
   }
 
-  const c = tone(mod.tone)
+  const body = BODIES[slug] || 'upload'
 
   return (
     <AppShell title={mod.title} back avatar={false}>
       <section>
         <Card className="flex items-center gap-4 p-card-padding">
-          <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl border ${c.bg} ${c.border}`}>
-            <Icon name={mod.icon} className={`${c.text} text-[26px]`} fill />
-          </span>
+          <GradIcon icon={mod.icon} from={mod.from || '#2d5bff'} to={mod.to || '#6f00be'} size={56} radius={18} />
           <div className="min-w-0 flex-1">
             <p className="text-body-md text-on-surface">{mod.desc}</p>
             <div className="mt-2 flex items-center gap-3">
               <Progress value={mod.progress} height="h-1.5" />
-              <span className={`shrink-0 text-label-sm font-label-sm ${c.text}`}>{mod.progress}%</span>
+              <span className="shrink-0 text-label-sm text-tertiary">{mod.progress}%</span>
             </div>
           </div>
         </Card>
       </section>
 
-      {slug === 'voice' && <VoiceTraining onSubmit={submit} />}
-      {slug === 'language' && <LanguageTraining onSubmit={submit} />}
-      {(slug === 'movement' || slug === 'facial') && <CaptureTraining kind={slug} onSubmit={submit} />}
-      {(slug === 'skill' || slug === 'custom') && <UploadTraining onSubmit={submit} />}
+      {body === 'voice' && <VoiceTraining onSubmit={submit} />}
+      {body === 'language' && <LanguageTraining onSubmit={submit} />}
+      {body === 'capture' && <CaptureTraining kind={slug === 'facial' ? 'facial' : 'movement'} onSubmit={submit} />}
+      {body === 'upload' && <UploadTraining onSubmit={submit} />}
 
       <Toast show={toast} message="Training data submitted for review" />
     </AppShell>

@@ -9,7 +9,7 @@ function List({ title, items, icon, t }) {
   return (
     <section>
       <SectionTitle>{title}</SectionTitle>
-      <Card className="divide-y divide-white/5">
+      <Card className="divide-y divide-white/8">
         {items.map((f) => (
           <div key={f} className="flex items-center gap-3 px-5 py-3.5">
             <Icon name={icon} className={`${c.text} text-[20px]`} fill />
@@ -31,7 +31,6 @@ export default function PackageDetail() {
     <AppShell title={`${p.name} Package`} back avatar={false}>
       <section>
         <Card className="relative overflow-hidden p-card-padding">
-          <div className={`pointer-events-none absolute -right-14 -top-16 h-48 w-48 rounded-full blur-[70px] ${c.bg}`} />
           {p.badge && (
             <Badge t={p.tone} className="relative mb-3">
               {p.badge}
@@ -39,8 +38,9 @@ export default function PackageDetail() {
           )}
           <div className="relative flex items-start justify-between gap-4">
             <div>
-              <p className="font-headline-lg text-[38px] font-bold text-on-surface">${p.price.toLocaleString()}</p>
-              <p className="text-body-md text-on-surface-variant">{p.robotClass}</p>
+              <p className="font-headline-lg text-headline-lg font-bold text-on-surface">${p.price.toLocaleString()}</p>
+              <p className="text-body-md text-on-surface-variant">Own more. Achieve more.</p>
+              <p className={`text-label-md ${c.text}`}>{p.robotClass}</p>
               <p className="mt-3 max-w-xs text-body-md leading-relaxed text-outline">{p.bestFor}</p>
             </div>
             <RobotFace tier={p.slug} size={116} animate className="shrink-0" />
@@ -54,7 +54,7 @@ export default function PackageDetail() {
 
       <section>
         <SectionTitle>Estimated Benefits</SectionTitle>
-        <Card className="divide-y divide-white/5">
+        <Card className="divide-y divide-white/8">
           {[
             ['Deployment Opportunities', p.benefits.deployment],
             ['Platform Rewards', p.benefits.rewards],
@@ -63,14 +63,14 @@ export default function PackageDetail() {
           ].map(([k, v]) => (
             <div key={k} className="flex items-center justify-between px-5 py-3.5">
               <span className="text-body-md text-on-surface">{k}</span>
-              <span className={`text-label-md font-label-md ${c.text}`}>{v}</span>
+              <span className={`text-label-md ${c.text}`}>{v}</span>
             </div>
           ))}
         </Card>
       </section>
 
       <div className="space-y-3">
-        <Button full size="lg">
+        <Button to={`/packages/${p.slug}/checkout`} full size="lg" trailingIcon="arrow_forward">
           Get Started with ${p.price.toLocaleString()}
         </Button>
         <Button to="/packages" variant="ghost" full size="lg">

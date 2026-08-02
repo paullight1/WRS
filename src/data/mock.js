@@ -13,14 +13,18 @@ export const user = {
 }
 
 export const robot = {
-  name: 'WRS-Pro-001',
+  name: 'Atlas',
+  unit: 'WR-1007',
   id: 'WRS-785432',
   package: 'Professional Package',
   robotClass: 'Professional Robot',
-  status: 'Online',
-  level: 10,
+  status: 'Active',
+  battery: 85,
+  lastActive: '2 min ago',
+  currentDeployment: 'Warehouse Assistant',
+  level: 28,
   levelTitle: 'Professional',
-  xp: 12450,
+  xp: 12580,
   nextLevelXp: 15000,
   performance: 92,
   health: 95,
@@ -486,6 +490,254 @@ export const palettes = [
   { name: 'Neon Genesis', colors: ['#FFB4AB', '#DDB7FF', '#111417'], state: 'Locked — LVL 15' },
   { name: 'Empire Gold', colors: ['#FFD700', '#000000', '#FFFFFF'], state: 'Marketplace' },
   { name: 'Deep Carbon', colors: ['#37393D', '#8E90A2', '#00DBE7'], state: 'Owned' },
+]
+
+/* ------------------------------------------------------------------------ */
+/* AI Training Center — vivid tiles. Each tile carries its own gradient pair  */
+/* so the grid reads as a colourful launcher rather than a monochrome list.   */
+/* ------------------------------------------------------------------------ */
+export const trainingTiles = [
+  {
+    slug: 'voice',
+    icon: 'mic',
+    title: 'Voice Training',
+    desc: 'Teach your voice',
+    from: '#0fd6b0',
+    to: '#0a7f8c',
+    progress: 72,
+    xp: 200,
+  },
+  {
+    slug: 'language',
+    icon: 'language',
+    title: 'Language Training',
+    desc: 'Add new languages',
+    from: '#ff5f9e',
+    to: '#7b5bff',
+    progress: 55,
+    xp: 250,
+  },
+  {
+    slug: 'movement',
+    icon: 'directions_run',
+    title: 'Movement Training',
+    desc: 'Teach movements',
+    from: '#3d7bff',
+    to: '#1b2ea8',
+    progress: 30,
+    xp: 300,
+  },
+  {
+    slug: 'facial',
+    icon: 'mood',
+    title: 'Facial Expressions',
+    desc: 'Capture expressions',
+    from: '#ff5fa2',
+    to: '#c62368',
+    progress: 18,
+    xp: 220,
+  },
+  {
+    slug: 'image-labeling',
+    icon: 'image',
+    title: 'Image Labeling',
+    desc: 'Label images',
+    from: '#4ade80',
+    to: '#15803d',
+    progress: 46,
+    xp: 150,
+  },
+  {
+    slug: 'video-labeling',
+    icon: 'play_arrow',
+    title: 'Video Labeling',
+    desc: 'Label videos',
+    from: '#5b9dff',
+    to: '#1d3fd6',
+    progress: 24,
+    xp: 250,
+  },
+  {
+    slug: 'text-translation',
+    icon: 'translate',
+    title: 'Text & Translation',
+    desc: 'Provide translations',
+    from: '#ffa63d',
+    to: '#e0611a',
+    progress: 61,
+    xp: 180,
+  },
+  {
+    slug: 'conversation',
+    icon: 'forum',
+    title: 'Conversation Data',
+    desc: 'Chat & conversations',
+    from: '#57c9ff',
+    to: '#1f6fd0',
+    progress: 38,
+    xp: 260,
+  },
+  {
+    slug: 'custom',
+    icon: 'folder_special',
+    title: 'Custom Data',
+    desc: 'Upload your data',
+    from: '#f472b6',
+    to: '#9d174d',
+    progress: 8,
+    xp: 300,
+  },
+]
+
+export const contribution = {
+  quality: 'High Quality',
+  score: 4850,
+  target: 6000,
+  submissions: 248,
+  approved: 231,
+  streak: 12,
+}
+
+/* ------------------------------------------------------------------------ */
+/* Deployments — Available / Active / History                                */
+/* ------------------------------------------------------------------------ */
+export const activeDeployments = [
+  {
+    id: 'warehouse-assistant',
+    title: 'Warehouse Assistant',
+    industry: 'Logistics Industry',
+    since: 'May 12, 2024',
+    status: 'Active',
+    tier: 'professional',
+    hours: '48.5 h',
+    tasks: 65,
+    performance: 98,
+    client: 'NorthChain Distribution',
+    location: 'Lagos Hub 4',
+    rate: '$15.50/hr',
+    earned: '$751.75',
+    progress: 62,
+  },
+  {
+    id: 'retail-support-bot',
+    title: 'Retail Support Bot',
+    industry: 'Retail Industry',
+    since: 'Apr 20, 2024',
+    status: 'Active',
+    tier: 'builder',
+    hours: '32.0 h',
+    tasks: 42,
+    performance: 97,
+    client: 'Marketways Group',
+    location: 'Abuja Store 12',
+    rate: '$11.75/hr',
+    earned: '$376.00',
+    progress: 41,
+  },
+  {
+    id: 'field-data-scout',
+    title: 'Field Data Scout',
+    industry: 'Agriculture Industry',
+    since: 'Jun 02, 2024',
+    status: 'Paused',
+    tier: 'starter',
+    hours: '12.4 h',
+    tasks: 18,
+    performance: 91,
+    client: 'GreenBelt Farms',
+    location: 'Oyo Cluster 2',
+    rate: '$14.20/hr',
+    earned: '$176.08',
+    progress: 17,
+  },
+]
+
+export const deploymentHistory = [
+  {
+    id: 'hospitality-concierge',
+    title: 'Hospitality Concierge',
+    industry: 'Hospitality Industry',
+    period: 'Jan 08 — Mar 30, 2024',
+    status: 'Completed',
+    tier: 'builder',
+    hours: '186.0 h',
+    tasks: 934,
+    performance: 96,
+    earned: '$2,399.40',
+  },
+  {
+    id: 'clinic-front-desk',
+    title: 'Clinic Front Desk',
+    industry: 'Healthcare Industry',
+    period: 'Nov 02 — Dec 22, 2023',
+    status: 'Completed',
+    tier: 'professional',
+    hours: '124.5 h',
+    tasks: 611,
+    performance: 94,
+    earned: '$2,290.80',
+  },
+  {
+    id: 'campus-guide',
+    title: 'Campus Guide Unit',
+    industry: 'Education Industry',
+    period: 'Aug 14 — Sep 30, 2023',
+    status: 'Ended early',
+    tier: 'starter',
+    hours: '41.0 h',
+    tasks: 152,
+    performance: 88,
+    earned: '$426.40',
+  },
+]
+
+export const deploymentSummary = [
+  { label: 'Active units', value: '2', icon: 'rocket_launch', tone: 'tertiary' },
+  { label: 'Total hours', value: '92.9', icon: 'schedule', tone: 'primary' },
+  { label: 'Avg. performance', value: '96%', icon: 'trending_up', tone: 'success' },
+]
+
+/* ------------------------------------------------------------------------ */
+/* Robot skills + analytics (My Robot tabs)                                  */
+/* ------------------------------------------------------------------------ */
+export const robotSkills = [
+  { name: 'Inventory Sorting', level: 'Mastered', progress: 100, icon: 'inventory_2', from: '#4ade80', to: '#15803d' },
+  { name: 'Customer Greeting', level: 'Advanced', progress: 82, icon: 'waving_hand', from: '#ffa63d', to: '#e0611a' },
+  { name: 'Route Navigation', level: 'Advanced', progress: 76, icon: 'explore', from: '#5b9dff', to: '#1d3fd6' },
+  { name: 'Speech Recognition', level: 'Intermediate', progress: 58, icon: 'record_voice_over', from: '#0fd6b0', to: '#0a7f8c' },
+  { name: 'Object Detection', level: 'Intermediate', progress: 49, icon: 'visibility', from: '#ff5fa2', to: '#c62368' },
+  { name: 'Safety Protocols', level: 'Locked', progress: 0, icon: 'health_and_safety', from: '#8e90a2', to: '#4b4f60' },
+]
+
+export const robotAnalytics = {
+  weekly: [52, 61, 48, 73, 66, 81, 74, 88, 79, 92, 85, 92],
+  cards: [
+    { label: 'Uptime', value: '99.2%', icon: 'bolt', tone: 'tertiary' },
+    { label: 'Tasks / day', value: '24', icon: 'task_alt', tone: 'primary' },
+    { label: 'Error rate', value: '0.8%', icon: 'error_outline', tone: 'error' },
+    { label: 'Client rating', value: '4.8', icon: 'star', tone: 'secondary' },
+  ],
+}
+
+/* ------------------------------------------------------------------------ */
+/* Points & rewards (colourful earn list)                                    */
+/* ------------------------------------------------------------------------ */
+export const earnActions = [
+  { icon: 'groups', label: 'Attend Daily Meeting', xp: 100, from: '#ff5f9e', to: '#c62368', link: '/community' },
+  { icon: 'campaign', label: 'Promote WRS', xp: 150, from: '#ffc53d', to: '#e08a1a', link: '/referrals' },
+  { icon: 'celebration', label: 'Event Participation', xp: 200, from: '#4ade80', to: '#15803d', link: '/community' },
+  { icon: 'school', label: 'Complete Course', xp: 250, from: '#57c9ff', to: '#1f6fd0', link: '/academy' },
+  { icon: 'model_training', label: 'AI Training Contribution', xp: 300, from: '#a78bfa', to: '#6d28d9', link: '/training' },
+]
+
+/* ------------------------------------------------------------------------ */
+/* Checkout                                                                  */
+/* ------------------------------------------------------------------------ */
+export const paymentMethods = [
+  { id: 'card', label: 'Debit / Credit Card', desc: 'Visa, Mastercard, Verve', icon: 'credit_card', from: '#5b9dff', to: '#1d3fd6' },
+  { id: 'bank', label: 'Bank Transfer', desc: 'Direct transfer, 5–10 min', icon: 'account_balance', from: '#4ade80', to: '#15803d' },
+  { id: 'crypto', label: 'Crypto (USDT)', desc: 'TRC-20 / BEP-20 network', icon: 'currency_bitcoin', from: '#ffa63d', to: '#e0611a' },
+  { id: 'wallet', label: 'WRS Wallet Balance', desc: 'Available: $184.20', icon: 'account_balance_wallet', from: '#a78bfa', to: '#6d28d9' },
 ]
 
 export const personalities = [

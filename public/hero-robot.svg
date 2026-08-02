@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1400" preserveAspectRatio="xMidYMid slice" width="800" height="1400">
+  <!--
+    Splash hero. Drop-in replacement point: swap this file for a photo/render
+    (hero-robot.jpg) and update HERO in src/screens/Splash.jsx.
+  -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#131c33"/>
+      <stop offset="55%" stop-color="#0d1220"/>
+      <stop offset="100%" stop-color="#070a12"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="42%" r="46%">
+      <stop offset="0%" stop-color="#2d5bff" stop-opacity="0.55"/>
+      <stop offset="55%" stop-color="#2d5bff" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#2d5bff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shell" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="48%" stop-color="#d8e0f5"/>
+      <stop offset="100%" stop-color="#7f8bab"/>
+    </linearGradient>
+    <linearGradient id="torso" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cdd5ea"/>
+      <stop offset="100%" stop-color="#5d6883"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="0.1" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#16203a"/>
+      <stop offset="100%" stop-color="#04070f"/>
+    </linearGradient>
+    <radialGradient id="eyeGlow">
+      <stop offset="0%" stop-color="#00dbe7" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#00dbe7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00dbe7" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#00dbe7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="1400" fill="url(#sky)"/>
+  <rect width="800" height="1400" fill="url(#halo)"/>
+
+  <!-- orbital rings -->
+  <g fill="none" stroke="#7f9dff" stroke-opacity="0.16">
+    <ellipse cx="400" cy="620" rx="330" ry="96"/>
+    <ellipse cx="400" cy="620" rx="250" ry="70" stroke-opacity="0.1"/>
+  </g>
+
+  <!-- ground pool -->
+  <ellipse cx="400" cy="1180" rx="300" ry="70" fill="url(#floor)"/>
+
+  <g transform="translate(400 660) scale(3.05) translate(-100 -100)">
+    <!-- antenna -->
+    <rect x="97" y="16" width="6" height="16" rx="3" fill="#8d97b5"/>
+    <circle cx="100" cy="14" r="6" fill="#00dbe7"/>
+
+    <!-- shoulders / torso -->
+    <path d="M46 200c0-28 20-46 54-46s54 18 54 46z" fill="url(#torso)"/>
+    <rect x="86" y="140" width="28" height="18" rx="8" fill="#9aa4c1"/>
+    <circle cx="100" cy="176" r="10" fill="#0a0f1c"/>
+    <circle cx="100" cy="176" r="5" fill="#00dbe7" opacity="0.9"/>
+
+    <!-- ears -->
+    <rect x="30" y="76" width="14" height="34" rx="7" fill="#9aa4c1"/>
+    <rect x="156" y="76" width="14" height="34" rx="7" fill="#9aa4c1"/>
+
+    <!-- head -->
+    <rect x="42" y="34" width="116" height="112" rx="40" fill="url(#shell)"/>
+    <path d="M52 62c6-16 20-26 40-27-18 4-32 15-38 31-3 8-4 15-3 22-2-9-2-18 1-26z" fill="#ffffff" opacity="0.4"/>
+    <rect x="52" y="44" width="96" height="80" rx="32" fill="url(#visor)"/>
+
+    <!-- eyes -->
+    <circle cx="78" cy="84" r="24" fill="url(#eyeGlow)"/>
+    <circle cx="122" cy="84" r="24" fill="url(#eyeGlow)"/>
+    <ellipse cx="78" cy="84" rx="11" ry="12" fill="#00dbe7"/>
+    <ellipse cx="122" cy="84" rx="11" ry="12" fill="#00dbe7"/>
+    <ellipse cx="74" cy="79" rx="4" ry="4.5" fill="#ffffff" opacity="0.85"/>
+    <ellipse cx="118" cy="79" rx="4" ry="4.5" fill="#ffffff" opacity="0.85"/>
+
+    <!-- grille -->
+    <rect x="86" y="106" width="28" height="4" rx="2" fill="#00dbe7" opacity="0.55"/>
+    <rect x="92" y="114" width="16" height="3" rx="1.5" fill="#00dbe7" opacity="0.3"/>
+    <rect x="52" y="44" width="96" height="80" rx="32" fill="none" stroke="#00dbe7" stroke-opacity="0.18"/>
+  </g>
+
+  <!-- drifting motes -->
+  <g fill="#b8c3ff" opacity="0.35">
+    <circle cx="120" cy="240" r="2"/>
+    <circle cx="690" cy="330" r="2.5"/>
+    <circle cx="230" cy="880" r="2"/>
+    <circle cx="640" cy="940" r="1.8"/>
+    <circle cx="90" cy="620" r="1.6"/>
+    <circle cx="720" cy="700" r="2.2"/>
+  </g>
+</svg>

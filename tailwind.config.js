@@ -67,25 +67,91 @@ export default {
         'margin-page': '20px',
         'element-gap': '8px',
       },
+      /* ------------------------------------------------------ type system
+         Three roles, one job each:
+           Sora            → display + headlines (the only voice-y face)
+           Hanken Grotesk  → everything readable: body, labels, buttons, nav
+           JetBrains Mono  → machine data only: IDs, codes, timers, counters
+         Token names are kept stable so the whole app inherits the change. */
       fontFamily: {
-        'label-md': ['JetBrains Mono', 'monospace'],
-        'headline-md': ['Sora', 'sans-serif'],
-        'label-sm': ['JetBrains Mono', 'monospace'],
-        'headline-lg': ['Sora', 'sans-serif'],
-        'body-md': ['Hanken Grotesk', 'sans-serif'],
+        sans: ['Hanken Grotesk', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        display: ['Sora', 'sans-serif'],
         'display-lg': ['Sora', 'sans-serif'],
+        'headline-lg': ['Sora', 'sans-serif'],
         'headline-lg-mobile': ['Sora', 'sans-serif'],
+        'headline-md': ['Sora', 'sans-serif'],
+        title: ['Sora', 'sans-serif'],
         'body-lg': ['Hanken Grotesk', 'sans-serif'],
+        'body-md': ['Hanken Grotesk', 'sans-serif'],
+        'body-sm': ['Hanken Grotesk', 'sans-serif'],
+        'label-md': ['Hanken Grotesk', 'sans-serif'],
+        'label-sm': ['Hanken Grotesk', 'sans-serif'],
+        data: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
+      /* Fixed scale, ~1.2 ratio — product UI, not fluid brand type.
+         Sora only appears at 19px and above; everything smaller is Hanken. */
       fontSize: {
-        'label-md': ['14px', { lineHeight: '20px', fontWeight: '500' }],
-        'headline-md': ['24px', { lineHeight: '32px', fontWeight: '600' }],
-        'label-sm': ['12px', { lineHeight: '16px', fontWeight: '500' }],
-        'headline-lg': ['32px', { lineHeight: '40px', letterSpacing: '-0.01em', fontWeight: '600' }],
-        'body-md': ['16px', { lineHeight: '24px', fontWeight: '400' }],
-        'display-lg': ['40px', { lineHeight: '48px', letterSpacing: '-0.02em', fontWeight: '700' }],
-        'headline-lg-mobile': ['28px', { lineHeight: '36px', fontWeight: '600' }],
-        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        // display / headline — Sora
+        'display-lg': ['30px', { lineHeight: '36px', letterSpacing: '-0.025em', fontWeight: '700' }],
+        'headline-lg': ['25px', { lineHeight: '31px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'headline-lg-mobile': ['22px', { lineHeight: '28px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'headline-md': ['19px', { lineHeight: '25px', letterSpacing: '-0.015em', fontWeight: '600' }],
+
+        // title — Hanken semibold: card titles, list rows, anything under 19px
+        title: ['16px', { lineHeight: '22px', letterSpacing: '-0.005em', fontWeight: '600' }],
+        'title-sm': ['15px', { lineHeight: '20px', letterSpacing: '-0.005em', fontWeight: '600' }],
+
+        // body — Hanken
+        'body-lg': ['16px', { lineHeight: '25px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '23px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '19px', fontWeight: '400' }],
+
+        // labels — Hanken semibold
+        'label-md': ['14px', { lineHeight: '18px', fontWeight: '600' }],
+        'label-sm': ['12px', { lineHeight: '16px', letterSpacing: '0.01em', fontWeight: '600' }],
+
+        // data — JetBrains Mono for IDs, codes and figures
+        'data-lg': ['19px', { lineHeight: '25px', letterSpacing: '0.03em', fontWeight: '500' }],
+        'data-md': ['14px', { lineHeight: '19px', letterSpacing: '0.04em', fontWeight: '500' }],
+        'data-sm': ['11px', { lineHeight: '15px', letterSpacing: '0.07em', fontWeight: '500' }],
+      },
+
+      /* Finer opacity steps for hairlines and tints (drives the `/n` modifier). */
+      opacity: {
+        3: '.03',
+        4: '.04',
+        6: '.06',
+        7: '.07',
+        8: '.08',
+        12: '.12',
+        15: '.15',
+        18: '.18',
+        35: '.35',
+        45: '.45',
+        55: '.55',
+        65: '.65',
+        85: '.85',
+      },
+
+      /* Semantic stacking order — no arbitrary 999s. */
+      zIndex: {
+        base: '0',
+        raised: '10',
+        sticky: '20',
+        nav: '30',
+        scrim: '40',
+        drawer: '50',
+        toast: '60',
+      },
+
+      transitionTimingFunction: {
+        out: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
+      transitionDuration: {
+        fast: '120ms',
+        DEFAULT: '180ms',
+        slow: '240ms',
       },
       keyframes: {
         float: {

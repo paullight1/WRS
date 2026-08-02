@@ -1,67 +1,112 @@
 import { useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
-import RobotAvatar from '../components/RobotAvatar.jsx'
-import { Badge, Button, Card, Icon, Progress, SectionTitle, Stat, Tabs, tone } from '../components/ui.jsx'
-import { robot, capabilities, languages, trainingModules } from '../data/mock.js'
+import Robot3D from '../components/robot3d/Robot3D.jsx'
+import { Badge, Button, Card, GradIcon, Icon, Progress, Ring, SectionTitle, Stat, tone, IconTile } from '../components/ui.jsx'
+import {
+  robot, capabilities, languages, trainingTiles, robotSkills, robotAnalytics, activeDeployments,
+} from '../data/mock.js'
+
+const OVERVIEW_ROWS = [
+  { icon: 'person', label: 'Status', value: robot.status, cls: 'text-success' },
+  { icon: 'rocket_launch', label: 'Deployment', value: robot.currentDeployment },
+  { icon: 'battery_full', label: 'Battery', value: `${robot.battery}%` },
+  { icon: 'health_and_safety', label: 'Health', value: 'Excellent', cls: 'text-success' },
+  { icon: 'schedule', label: 'Last Active', value: robot.lastActive },
+]
 
 export default function MyRobot() {
   const [tab, setTab] = useState('Overview')
+  const xpPct = (robot.xp / robot.nextLevelXp) * 100
 
   return (
     <AppShell
       title="My Robot"
       right={
-        <Button to="/robot/customize" variant="ghost" size="sm" className="mr-1 hidden sm:inline-flex" icon="tune">
-          Customize
+        <Button to="/robot/passport" variant="ghost" size="sm" className="mr-1 hidden sm:inline-flex" icon="badge">
+          Passport
         </Button>
       }
     >
-      {/* ------------------------------------------------------------ header */}
+      {/* ------------------------------------------------------------ hero */}
       <section>
-        <Card className="relative overflow-hidden p-card-padding">
-          <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-tertiary/15 blur-[70px]" />
-          <div className="relative flex items-center gap-4">
-            <RobotAvatar size={92} className="animate-float" />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h2 className="truncate font-headline-md text-[21px] font-bold text-on-surface">{robot.name}</h2>
-                <Icon name="edit" className="text-[16px] text-outline" />
-              </div>
-              <p className="text-label-sm font-label-sm text-primary">{robot.package}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Badge t="tertiary">
-                  <span className="h-1.5 w-1.5 rounded-full bg-tertiary" /> {robot.status}
-                </Badge>
-                <Badge t="primary">ID {robot.id}</Badge>
-              </div>
-            </div>
+        <Card className="relative overflow-hidden px-card-padding pb-card-padding pt-6">
+
+          <div className="relative flex items-start justify-between gap-2">
+            <Ring value={100} size={84} color="#5b9dff" label="Level" sub={robot.level} />
+            <Robot3D size={148} interactive className="-mt-2" label={`${robot.name}, drag to rotate`} />
+            <Ring value={xpPct} size={84} color="#00dbe7">
+              <span className="block text-label-sm text-outline">XP</span>
+              <span className="block text-title font-bold text-on-surface">
+                {robot.xp.toLocaleString()}
+              </span>
+              <span className="block text-[9px] text-outline">
+                / {robot.nextLevelXp.toLocaleString()}
+              </span>
+            </Ring>
           </div>
 
-          <div className="relative mt-5 grid grid-cols-3 gap-3">
-            <Stat label="Level" value={robot.level} t="primary" />
-            <Stat label="XP" value={robot.xp.toLocaleString()} t="tertiary" />
-            <Stat label="Health" value={`${robot.health}%`} t="success" />
+          {/* pedestal glow under the unit */}
+
+          <div className="relative mt-4">
+            <h2 className="font-headline-lg text-headline-lg font-bold leading-none tracking-tight text-on-surface">
+              {robot.name}
+            </h2>
+            <p className="mt-1 text-label-md text-on-surface-variant">{robot.unit}</p>
+            <p className="text-label-sm text-success">{robot.robotClass}</p>
+          </div>
+
+          <div className="relative mt-4 flex flex-wrap gap-2">
+            <Badge t="success">
+              <span className="h-1.5 w-1.5 rounded-full bg-current" /> {robot.status}
+            </Badge>
+            <Badge t="primary">{robot.package}</Badge>
+            <Badge t="outline">ID {robot.id}</Badge>
           </div>
         </Card>
       </section>
 
-      <Tabs items={['Overview', 'Training', 'Performance']} value={tab} onChange={setTab} />
+      {/* ------------------------------------------------------------- tabs */}
+      <div className="surface flex gap-1 rounded-2xl p-1">
+        {['Overview', 'Training', 'Skills', 'Analytics'].map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`flex-1 rounded-xl px-2 py-2.5 text-label-sm transition-all ${
+              tab === t
+                ? 'grad-primary text-white shadow-[0_6px_18px_-6px_rgba(45,91,255,.9)]'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
 
-      {/* ---------------------------------------------------------- overview */}
+      {/* --------------------------------------------------------- overview */}
       {tab === 'Overview' && (
         <>
+          <Card className="divide-y divide-white/8">
+            {OVERVIEW_ROWS.map((r) => (
+              <div key={r.label} className="flex items-center gap-3 px-5 py-3.5">
+                <Icon name={r.icon} className="text-[20px] text-outline" />
+                <span className="flex-1 text-body-md text-on-surface-variant">{r.label}</span>
+                <span className={`text-label-md ${r.cls || 'text-on-surface'}`}>{r.value}</span>
+              </div>
+            ))}
+          </Card>
+
           <section>
             <SectionTitle>Capabilities</SectionTitle>
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               {capabilities.map((c) => {
                 const t = tone(c.tone)
                 return (
-                  <div key={c.label} className="glass flex items-center gap-3 rounded-2xl p-4">
-                    <span className={`grid h-10 w-10 place-items-center rounded-xl border ${t.bg} ${t.border}`}>
-                      <Icon name={c.icon} className={`${t.text} text-[20px]`} fill />
+                  <div key={c.label} className="surface flex items-center gap-3 rounded-2xl p-3.5">
+                    <IconTile icon={c.icon} accent={t.accent} size={40} radius={12} iconSize={20} />
+                    <span className="min-w-0">
+                      <span className="block truncate text-label-sm text-outline">{c.label}</span>
+                      <span className={`block truncate text-label-md ${t.text}`}>{c.value}</span>
                     </span>
-                    <span className="flex-1 text-body-md text-on-surface">{c.label}</span>
-                    <span className={`text-label-md font-label-md ${t.text}`}>{c.value}</span>
                   </div>
                 )
               })}
@@ -70,42 +115,30 @@ export default function MyRobot() {
 
           <section>
             <SectionTitle>Robot Profile</SectionTitle>
-            <Card className="divide-y divide-white/5">
+            <Card className="divide-y divide-white/8">
               {[
                 ['Personality Type', robot.personality],
                 ['Voice Profile', robot.voiceProfile],
                 ['AI Version', robot.aiVersion],
                 ['Career Level', robot.career],
                 ['Data Quality Score', `${robot.dataQuality}%`],
-                ['Robot Reputation', robot.reputation],
                 ['Activation Date', robot.activationDate],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between gap-4 px-5 py-3.5">
                   <span className="text-body-md text-on-surface-variant">{k}</span>
-                  <span className="text-label-md font-label-md text-on-surface">{v}</span>
+                  <span className="text-label-md text-on-surface">{v}</span>
                 </div>
               ))}
             </Card>
           </section>
 
-          <section className="grid gap-2 sm:grid-cols-2">
-            <Button to="/training" full icon="model_training">
-              Train My Robot
-            </Button>
-            <Button to="/robot/passport" variant="ghost" full icon="badge">
-              View Robot Passport
-            </Button>
-            <Button to="/robot/customize" variant="tonal" full icon="tune">
-              Customize Robot
-            </Button>
-            <Button to="/packages" variant="tonal" full icon="upgrade">
-              Upgrade Package
-            </Button>
-          </section>
+          <Button to="/robot/customize" full size="lg" icon="tune">
+            Customize Robot
+          </Button>
         </>
       )}
 
-      {/* ---------------------------------------------------------- training */}
+      {/* --------------------------------------------------------- training */}
       {tab === 'Training' && (
         <>
           <section>
@@ -113,21 +146,21 @@ export default function MyRobot() {
               Module progress
             </SectionTitle>
             <div className="space-y-2">
-              {trainingModules.map((m) => {
-                const t = tone(m.tone)
-                return (
-                  <Card key={m.slug} className="p-4">
-                    <div className="flex items-center gap-3">
-                      <span className={`grid h-10 w-10 place-items-center rounded-xl border ${t.bg} ${t.border}`}>
-                        <Icon name={m.icon} className={`${t.text} text-[20px]`} fill />
-                      </span>
-                      <span className="flex-1 text-body-md text-on-surface">{m.title}</span>
-                      <span className={`text-label-md font-label-md ${t.text}`}>{m.progress}%</span>
-                    </div>
-                    <Progress value={m.progress} className="mt-3" height="h-1.5" />
-                  </Card>
-                )
-              })}
+              {trainingTiles.map((m) => (
+                <Card key={m.slug} className="p-3.5">
+                  <div className="flex items-center gap-3">
+                    <GradIcon icon={m.icon} from={m.from} to={m.to} size={40} radius={13} />
+                    <span className="min-w-0 flex-1 truncate text-body-md text-on-surface">{m.title}</span>
+                    <span className="text-label-md text-tertiary">{m.progress}%</span>
+                  </div>
+                  <span className="mt-3 block h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                    <span
+                      className="block h-full rounded-full"
+                      style={{ width: `${m.progress}%`, backgroundColor: m.from }}
+                    />
+                  </span>
+                </Card>
+              ))}
             </div>
           </section>
 
@@ -136,7 +169,7 @@ export default function MyRobot() {
             <Card className="space-y-3 p-card-padding">
               {languages.map((l) => (
                 <div key={l.name}>
-                  <div className="mb-1.5 flex justify-between text-label-sm font-label-sm">
+                  <div className="mb-1.5 flex justify-between text-label-sm">
                     <span className="text-on-surface">{l.name}</span>
                     <span className={l.progress ? 'text-tertiary' : 'text-outline'}>{l.level}</span>
                   </div>
@@ -145,26 +178,65 @@ export default function MyRobot() {
               ))}
             </Card>
           </section>
+
+          <Button to="/training" full size="lg" icon="model_training">
+            Train My Robot
+          </Button>
         </>
       )}
 
-      {/* ------------------------------------------------------- performance */}
-      {tab === 'Performance' && (
+      {/* ----------------------------------------------------------- skills */}
+      {tab === 'Skills' && (
+        <>
+          <section>
+            <SectionTitle action={`${robotSkills.filter((s) => s.progress > 0).length} unlocked`}>
+              Installed skills
+            </SectionTitle>
+            <div className="space-y-2">
+              {robotSkills.map((s) => (
+                <Card key={s.name} className={`p-3.5 ${s.progress ? '' : 'opacity-55'}`}>
+                  <div className="flex items-center gap-3">
+                    <GradIcon icon={s.progress ? s.icon : 'lock'} from={s.from} to={s.to} size={44} radius={14} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-body-md font-medium text-on-surface">{s.name}</p>
+                      <p className="text-label-sm text-outline">{s.level}</p>
+                    </div>
+                    <span className="text-title font-bold text-on-surface">{s.progress}%</span>
+                  </div>
+                  <span className="mt-3 block h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                    <span
+                      className="block h-full rounded-full"
+                      style={{ width: `${s.progress}%`, backgroundColor: s.from }}
+                    />
+                  </span>
+                </Card>
+              ))}
+            </div>
+          </section>
+
+          <Button to="/marketplace" variant="tonal" full size="lg" icon="storefront">
+            Browse Skill Marketplace
+          </Button>
+        </>
+      )}
+
+      {/* -------------------------------------------------------- analytics */}
+      {tab === 'Analytics' && (
         <>
           <section>
             <SectionTitle action="Last 30 days">Performance</SectionTitle>
             <Card className="p-card-padding">
               <div className="flex items-end gap-1.5" style={{ height: 140 }}>
-                {[52, 61, 48, 73, 66, 81, 74, 88, 79, 92, 85, 92].map((v, i) => (
+                {robotAnalytics.weekly.map((v, i) => (
                   <div key={i} className="flex-1">
                     <div
-                      className="w-full rounded-t-md grad-line transition-all"
+                      className="grad-line w-full rounded-t-md transition-all"
                       style={{ height: `${v}%`, opacity: 0.35 + (i / 12) * 0.65 }}
                     />
                   </div>
                 ))}
               </div>
-              <div className="mt-3 flex justify-between text-label-sm font-label-sm text-outline">
+              <div className="mt-3 flex justify-between text-label-sm text-outline">
                 <span>30 days ago</span>
                 <span>Today</span>
               </div>
@@ -172,15 +244,32 @@ export default function MyRobot() {
           </section>
 
           <section className="grid grid-cols-2 gap-3">
-            <Stat label="Success Rate" value="97%" t="tertiary" icon="task_alt" />
-            <Stat label="Productivity" value="92" t="primary" icon="speed" />
-            <Stat label="Client Rating" value="4.8" t="secondary" icon="star" />
-            <Stat label="Safety Score" value="99" t="success" icon="health_and_safety" />
+            {robotAnalytics.cards.map((c) => (
+              <Stat key={c.label} label={c.label} value={c.value} t={c.tone} icon={c.icon} />
+            ))}
           </section>
 
-          <Button to="/deploy/active" variant="tonal" full icon="monitoring">
-            View Active Deployment
-          </Button>
+          <section>
+            <SectionTitle action="View all" to="/deploy">
+              Active contracts
+            </SectionTitle>
+            <div className="space-y-2">
+              {activeDeployments
+                .filter((d) => d.status === 'Active')
+                .map((d) => (
+                  <Card key={d.id} className="flex items-center gap-3 p-4">
+                    <Icon name="rocket_launch" className="text-[20px] text-tertiary" fill />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-body-md text-on-surface">{d.title}</p>
+                      <p className="text-label-sm text-outline">
+                        {d.hours} · {d.tasks} tasks
+                      </p>
+                    </div>
+                    <span className="text-label-md text-success">{d.performance}%</span>
+                  </Card>
+                ))}
+            </div>
+          </section>
         </>
       )}
     </AppShell>

@@ -1,82 +1,85 @@
 import AppShell from '../components/AppShell.jsx'
-import { Badge, Button, Card, Disclosure, Icon, ListRow, SectionTitle, StatusDot, tone } from '../components/ui.jsx'
+import {
+  Badge, Button, Card, DataRow, Disclosure, Icon, List, Progress, Row, SectionTitle, tone, IconTile,
+}  from '../components/ui.jsx'
 import { earningSources } from '../data/mock.js'
 
+const stateTone = { Pending: 'outline', Promotional: 'secondary', Confirmed: 'tertiary' }
+
 export default function Wallet() {
+  const total = earningSources.reduce((s, e) => s + parseFloat(e.amount.replace('$', '')), 0)
+
   return (
-    <AppShell title="Wallet & Earnings" back avatar={false}>
-      <section className="text-center">
-        <p className="text-label-md font-label-md uppercase tracking-widest text-on-surface-variant">Total Balance</p>
-        <h2 className="mt-1 font-headline-lg text-[44px] font-bold text-tertiary text-glow-cyan">$186.40</h2>
-        <div className="mt-2 flex justify-center">
-          <StatusDot label="Live updates active" />
+    <AppShell title="Wallet" back avatar={false}>
+      {/* ---------------------------------------------------------- balance
+          One figure, stated plainly. The split underneath is what a user
+          actually acts on, so it sits with the number rather than in a card. */}
+      <section>
+        <p className="text-label-md text-on-surface-variant">Available balance</p>
+        <p className="tnum mt-1 font-headline-lg text-headline-lg font-bold leading-none text-on-surface">$154.40</p>
+        <p className="mt-2 text-body-sm text-on-surface-variant">
+          <span className="text-tertiary">$32.00 pending</span> · $186.40 total
+        </p>
+
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <Button size="lg" icon="add" full>
+            Deposit
+          </Button>
+          <Button variant="tonal" size="lg" icon="arrow_outward" full>
+            Withdraw
+          </Button>
         </div>
       </section>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Button size="lg" icon="add_circle" full>
-          Deposit
-        </Button>
-        <Button variant="tonal" size="lg" icon="account_balance_wallet" full>
-          Withdraw
-        </Button>
-      </div>
-
+      {/* -------------------------------------------------------- earnings
+          A breakdown is a table of figures, not four identical cards. */}
       <section>
-        <SectionTitle action="Last 30 Days">Earnings Sources</SectionTitle>
-        <div className="space-y-3">
+        <SectionTitle action="Last 30 days">Where it came from</SectionTitle>
+        <List>
           {earningSources.map((s) => {
             const c = tone(s.tone)
+            const pct = Math.round((parseFloat(s.amount.replace('$', '')) / total) * 100)
             return (
-              <Card key={s.label} className="flex items-center justify-between gap-4 p-4">
-                <div className="flex min-w-0 items-center gap-4">
-                  <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border ${c.bg} ${c.border}`}>
-                    <Icon name={s.icon} className={`${c.text} text-[22px]`} fill />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-body-md font-semibold text-on-surface">{s.label}</p>
-                    <p className="text-label-sm font-label-sm text-on-surface-variant">{s.share}</p>
-                  </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-body-lg font-bold text-on-surface">{s.amount}</p>
-                  <Badge t={s.state === 'Pending' ? 'outline' : s.state === 'Promotional' ? 'secondary' : 'tertiary'}>
-                    {s.state}
-                  </Badge>
-                </div>
-              </Card>
+              <Row
+                key={s.label}
+                iconNode={
+                  <IconTile icon={s.icon} accent={c.accent} size={36} radius={12} iconSize={18} />
+                }
+                title={s.label}
+                value={s.amount}
+                meta={s.state}
+              >
+                <span className="mt-1.5 flex items-center gap-2">
+                  <Progress value={pct} height="h-1" className="max-w-[120px]" label={`${s.label} share`} />
+                  <span className="text-label-sm text-on-surface-variant">{pct}%</span>
+                </span>
+              </Row>
             )
           })}
-        </div>
+        </List>
       </section>
 
+      {/* ------------------------------------------------------- statement */}
       <section>
-        <SectionTitle>Wallet information</SectionTitle>
-        <Card className="divide-y divide-white/5">
-          {[
-            ['Available balance', '$154.40', 'text-tertiary'],
-            ['Pending balance', '$32.00', 'text-outline'],
-            ['Total earned', '$642.80', 'text-on-surface'],
-            ['Total withdrawn', '$456.40', 'text-on-surface'],
-            ['Payment method', 'Bank transfer — ****4821', 'text-on-surface'],
-            ['Currency preference', 'USD', 'text-on-surface'],
-          ].map(([k, v, cls]) => (
-            <div key={k} className="flex items-center justify-between px-5 py-3.5">
-              <span className="text-body-md text-on-surface-variant">{k}</span>
-              <span className={`font-label-md text-label-md ${cls}`}>{v}</span>
-            </div>
-          ))}
+        <SectionTitle>Account</SectionTitle>
+        <Card className="divide-hairline">
+          <DataRow label="Total earned" value="$642.80" />
+          <DataRow label="Total withdrawn" value="$456.40" />
+          <DataRow label="Payment method" value="Bank ****4821" />
+          <DataRow label="Currency" value="USD" />
         </Card>
       </section>
 
-      <div className="space-y-2">
-        <ListRow icon="history" t="outline" title="Transaction History" subtitle="All movements in and out" to="/wallet/transactions" />
-        <ListRow icon="database" t="tertiary" title="AI Data Revenue" subtitle="Dataset participation & payouts" to="/wallet/data-revenue" />
-      </div>
+      <section>
+        <List>
+          <Row icon="history" t="outline" title="Transaction history" subtitle="Every movement in and out" to="/wallet/transactions" />
+          <Row icon="database" t="tertiary" title="AI data revenue" subtitle="Dataset participation and payouts" to="/wallet/data-revenue" />
+        </List>
+      </section>
 
       <Disclosure icon="gavel">
-        Every figure is labelled confirmed, pending, estimated or promotional. Earnings are never guaranteed and depend
-        on verified activity, approved data or real service revenue.
+        Every figure is labelled confirmed, pending, estimated or promotional. Earnings are never guaranteed — they
+        depend on verified activity, approved data or real service revenue.
       </Disclosure>
     </AppShell>
   )

@@ -1,5 +1,5 @@
 import AppShell from '../components/AppShell.jsx'
-import RobotAvatar from '../components/RobotAvatar.jsx'
+import Robot3D from '../components/robot3d/Robot3D.jsx'
 import { Badge, Button, Card, Icon, SectionTitle } from '../components/ui.jsx'
 import { robot, user } from '../data/mock.js'
 
@@ -30,16 +30,15 @@ export default function RobotPassport() {
       <section>
         <Card className="relative overflow-hidden p-card-padding">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px grad-line" />
-          <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary-container/20 blur-[60px]" />
 
           <div className="relative flex items-center gap-4">
-            <RobotAvatar size={84} />
+            <Robot3D size={84} label={`${robot.name}, ${robot.id}`} />
             <div className="min-w-0">
-              <p className="text-label-sm font-label-sm uppercase tracking-[0.25em] text-outline">
+              <p className="text-label-sm text-outline">
                 World Robotic System
               </p>
-              <h2 className="font-headline-md text-[22px] font-bold text-on-surface">{robot.name}</h2>
-              <p className="font-label-sm text-label-sm text-tertiary">{robot.id}</p>
+              <h2 className="font-headline-md text-headline-md text-on-surface">{robot.name}</h2>
+              <p className="text-label-sm text-tertiary">{robot.id}</p>
             </div>
           </div>
 
@@ -49,8 +48,8 @@ export default function RobotPassport() {
             <Badge t="secondary">Level {robot.level}</Badge>
           </div>
 
-          <div className="relative mt-5 rounded-xl border border-white/5 bg-black/25 p-3">
-            <p className="break-all font-label-sm text-[10px] leading-relaxed tracking-[0.3em] text-outline">
+          <div className="relative mt-5 rounded-xl border border-white/8 bg-black/25 p-3">
+            <p className="break-all font-data text-data-sm leading-relaxed text-outline">
               WRS&lt;&lt;{robot.id.replace(/-/g, '')}&lt;&lt;{user.wrsId}&lt;&lt;PRO&lt;&lt;LVL10&lt;&lt;
               {robot.aiVersion.replace(/[ .]/g, '')}
             </p>
@@ -60,11 +59,11 @@ export default function RobotPassport() {
 
       <section>
         <SectionTitle>Identity record</SectionTitle>
-        <Card className="divide-y divide-white/5">
+        <Card className="divide-y divide-white/8">
           {rows.map(([k, v]) => (
             <div key={k} className="flex items-center justify-between gap-4 px-5 py-3.5">
               <span className="text-body-md text-on-surface-variant">{k}</span>
-              <span className="text-right text-label-md font-label-md text-on-surface">{v}</span>
+              <span className="text-right text-label-md text-on-surface">{v}</span>
             </div>
           ))}
         </Card>
@@ -76,7 +75,7 @@ export default function RobotPassport() {
           {skills.map((s) => (
             <span
               key={s}
-              className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-label-sm font-label-sm text-on-surface-variant"
+              className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-label-sm text-on-surface-variant"
             >
               {s}
             </span>
@@ -88,7 +87,7 @@ export default function RobotPassport() {
         <SectionTitle>Industry certifications</SectionTitle>
         <div className="space-y-2">
           {certs.map((c) => (
-            <div key={c} className="glass flex items-center gap-3 rounded-2xl p-3.5">
+            <div key={c} className="surface flex items-center gap-3 rounded-2xl p-3.5">
               <Icon name="workspace_premium" className="text-tertiary" fill />
               <span className="flex-1 text-body-md text-on-surface">{c}</span>
               <Icon name="verified" className="text-[18px] text-tertiary" fill />
@@ -105,11 +104,11 @@ export default function RobotPassport() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-body-md text-on-surface">{h.role}</p>
-                  <p className="text-label-sm font-label-sm text-outline">{h.org}</p>
+                  <p className="text-label-sm text-outline">{h.org}</p>
                 </div>
                 <Badge t={h.state === 'Active' ? 'tertiary' : 'outline'}>{h.state}</Badge>
               </div>
-              <p className="mt-2 font-label-sm text-label-sm text-outline">{h.period}</p>
+              <p className="mt-2 text-label-sm text-outline">{h.period}</p>
             </Card>
           ))}
         </div>

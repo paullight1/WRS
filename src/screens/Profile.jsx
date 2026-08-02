@@ -8,11 +8,10 @@ export default function Profile() {
     <AppShell title="Profile" back avatar={false}>
       <section>
         <Card className="relative overflow-hidden p-card-padding text-center">
-          <div className="pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full bg-primary-container/20 blur-[70px]" />
           <div className="relative flex flex-col items-center">
             <UserAvatar size={84} />
-            <h2 className="mt-3 font-headline-md text-[21px] font-bold text-on-surface">{user.name}</h2>
-            <p className="font-label-sm text-label-sm text-outline">WRS ID: {user.wrsId}</p>
+            <h2 className="mt-3 font-headline-md text-headline-md text-on-surface">{user.name}</h2>
+            <p className="text-label-sm text-outline">WRS ID: {user.wrsId}</p>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
               <Badge t="tertiary">
                 <Icon name="verified" className="text-[12px]" fill /> Verified
@@ -20,7 +19,7 @@ export default function Profile() {
               <Badge t="primary">{user.package}</Badge>
               <Badge t="outline">{user.country}</Badge>
             </div>
-            <p className="mt-3 text-label-sm font-label-sm text-outline">Member since {user.memberSince}</p>
+            <p className="mt-3 text-label-sm text-outline">Member since {user.memberSince}</p>
           </div>
         </Card>
       </section>
@@ -33,7 +32,7 @@ export default function Profile() {
           <RobotAvatar size={64} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-body-md text-on-surface">{robot.name}</p>
-            <p className="text-label-sm font-label-sm text-outline">
+            <p className="text-label-sm text-outline">
               Level {robot.level} · {robot.xp.toLocaleString()} XP · {robot.status}
             </p>
           </div>

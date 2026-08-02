@@ -102,10 +102,6 @@ export default function RobotFace({ tier = 'professional', size = 64, className 
       aria-label={`${t.label} class robot`}
     >
       <defs>
-        <linearGradient id={`${uid}-bg`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={t.bg[0]} />
-          <stop offset="100%" stopColor={t.bg[1]} />
-        </linearGradient>
         <linearGradient id={`${uid}-shell`} x1="0.2" y1="0" x2="0.8" y2="1">
           <stop offset="0%" stopColor={t.shell[0]} />
           <stop offset="52%" stopColor={t.shell[1]} />
@@ -124,19 +120,14 @@ export default function RobotFace({ tier = 'professional', size = 64, className 
           <stop offset="0%" stopColor={t.eye} stopOpacity="0.85" />
           <stop offset="100%" stopColor={t.eye} stopOpacity="0" />
         </radialGradient>
-        <radialGradient id={`${uid}-aura`}>
-          <stop offset="0%" stopColor={t.aura} />
-          <stop offset="100%" stopColor="transparent" />
-        </radialGradient>
         <clipPath id={`${uid}-clip`}>
           <rect x="0" y="0" width="120" height="120" rx={framed ? 26 : 60} />
         </clipPath>
       </defs>
 
       <g clipPath={`url(#${uid}-clip)`}>
-        {/* backdrop */}
-        {framed && <rect x="0" y="0" width="120" height="120" fill={`url(#${uid}-bg)`} />}
-        <circle cx="60" cy="58" r="52" fill={`url(#${uid}-aura)`} />
+        {/* backdrop — flat tier colour, no gradient */}
+        {framed && <rect x="0" y="0" width="120" height="120" fill={t.bg[1]} />}
 
         {/* ---------------------------------------------------------- mantle */}
         {t.mantle && (

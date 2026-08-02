@@ -10,8 +10,8 @@ export default function DataQuality() {
     <AppShell title="Contribution Quality" back avatar={false}>
       <section>
         <Card className="p-card-padding text-center">
-          <p className="text-label-sm font-label-sm uppercase tracking-widest text-outline">Overall quality score</p>
-          <p className="mt-2 font-headline-lg text-[46px] font-bold text-tertiary text-glow-cyan">
+          <p className="text-label-sm text-outline">Overall quality score</p>
+          <p className="mt-2 font-headline-lg text-display-lg font-bold text-tertiary">
             {robot.dataQuality}%
           </p>
           <Badge t="tertiary" className="mt-2">
@@ -28,7 +28,7 @@ export default function DataQuality() {
         <Card className="space-y-4 p-card-padding">
           {qualityScores.map((s) => (
             <div key={s.label}>
-              <div className="mb-1.5 flex justify-between text-label-sm font-label-sm">
+              <div className="mb-1.5 flex justify-between text-label-sm">
                 <span className="text-on-surface-variant">{s.label}</span>
                 <span className="text-tertiary">{s.value}%</span>
               </div>
@@ -44,7 +44,7 @@ export default function DataQuality() {
           {levels.map((l, i) => (
             <div
               key={l}
-              className={`glass flex items-center gap-3 rounded-2xl p-3.5 ${
+              className={`surface flex items-center gap-3 rounded-2xl p-3.5 ${
                 i === current ? 'border-tertiary/40 bg-tertiary/5' : i > current ? 'opacity-50' : ''
               }`}
             >

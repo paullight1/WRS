@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
-import { Badge, Button, Card, Disclosure, Icon, Progress, SectionTitle, Toast, tone } from '../components/ui.jsx'
+import { Badge, Button, Card, Disclosure, Icon, Progress, SectionTitle, Toast, tone, IconTile } from '../components/ui.jsx'
 import { dataTasks } from '../data/mock.js'
 
 export default function DataTask() {
@@ -22,12 +22,10 @@ export default function DataTask() {
       <section>
         <Card className="p-card-padding">
           <div className="flex items-start gap-4">
-            <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl border ${c.bg} ${c.border}`}>
-              <Icon name={task.icon} className={`${c.text} text-[26px]`} fill />
-            </span>
+            <IconTile icon={task.icon} accent={c.accent} size={56} radius={12} iconSize={26} />
             <div className="min-w-0 flex-1">
-              <h2 className="font-headline-md text-[19px] text-on-surface">{task.title}</h2>
-              <p className="text-label-sm font-label-sm uppercase tracking-wider text-outline">{task.cat}</p>
+              <h2 className="font-headline-md text-headline-md text-on-surface">{task.title}</h2>
+              <p className="text-label-sm text-outline">{task.cat}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <Badge t={task.tone}>+{task.xp} XP</Badge>
                 <Badge t="outline">{task.time}</Badge>
@@ -39,7 +37,7 @@ export default function DataTask() {
 
       <section>
         <SectionTitle>Task information</SectionTitle>
-        <Card className="divide-y divide-white/5">
+        <Card className="divide-y divide-white/8">
           {[
             ['Task category', task.cat],
             ['Estimated completion', task.time],
@@ -52,7 +50,7 @@ export default function DataTask() {
           ].map(([k, v]) => (
             <div key={k} className="flex items-center justify-between gap-4 px-5 py-3.5">
               <span className="text-body-md text-on-surface-variant">{k}</span>
-              <span className="text-right text-label-md font-label-md text-on-surface">{v}</span>
+              <span className="text-right text-label-md text-on-surface">{v}</span>
             </div>
           ))}
         </Card>

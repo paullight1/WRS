@@ -1,54 +1,73 @@
 import { useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
-import { Badge, Card, Chip, Icon, SectionTitle, tone } from '../components/ui.jsx'
+import { ChipBar, EmptyState, Icon, List, tone } from '../components/ui.jsx'
 import { notifications } from '../data/mock.js'
 
-const cats = ['All', 'Robot Activity', 'Deployment', 'Data Task', 'Earnings', 'Wallet', 'Community Event']
+const cats = ['All', 'Unread', 'Robot Activity', 'Deployment', 'Data Task', 'Earnings', 'Wallet']
+
+/* Notifications are a timeline, not a card grid: dense rows, unread carried
+   by a marker and weight rather than by a whole boxed container. */
+function NotificationRow({ n }) {
+  const c = tone(n.tone)
+  return (
+    <div className={`flex gap-3 px-4 py-3.5 ${n.unread ? '' : 'opacity-70'}`}>
+      <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg ${c.bg}`}>
+        <Icon name={n.icon} className={`${c.text} text-[18px]`} fill />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className={`text-body-md ${n.unread ? 'text-on-surface' : 'text-on-surface-variant'}`}>{n.text}</p>
+        <p className="mt-0.5 text-label-sm text-on-surface-variant">
+          {n.cat} · {n.time}
+        </p>
+      </div>
+      {n.unread && (
+        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-tertiary" aria-label="Unread" />
+      )}
+    </div>
+  )
+}
 
 export default function Notifications() {
   const [cat, setCat] = useState('All')
-  const list = notifications.filter((n) => cat === 'All' || n.cat === cat)
   const unread = notifications.filter((n) => n.unread).length
 
-  return (
-    <AppShell title="Notifications" back avatar={false}>
-      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-        {cats.map((c) => (
-          <Chip key={c} active={cat === c} onClick={() => setCat(c)}>
-            {c}
-          </Chip>
-        ))}
-      </div>
+  const list = notifications.filter((n) =>
+    cat === 'All' ? true : cat === 'Unread' ? n.unread : n.cat === cat,
+  )
 
-      <section>
-        <SectionTitle action={`${unread} unread`}>Recent</SectionTitle>
-        <div className="space-y-2">
-          {list.map((n, i) => {
-            const c = tone(n.tone)
-            return (
-              <Card key={i} className={`flex items-start gap-4 p-4 ${n.unread ? 'border-white/15' : 'opacity-70'}`}>
-                <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl border ${c.bg} ${c.border}`}>
-                  <Icon name={n.icon} className={`${c.text} text-[20px]`} fill />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <Badge t={n.tone}>{n.cat}</Badge>
-                    {n.unread && <span className="h-1.5 w-1.5 rounded-full bg-tertiary" />}
-                  </div>
-                  <p className="mt-1.5 text-body-md text-on-surface">{n.text}</p>
-                </div>
-                <span className="shrink-0 text-label-sm font-label-sm text-outline">{n.time}</span>
-              </Card>
-            )
-          })}
-          {!list.length && (
-            <Card className="p-10 text-center">
-              <Icon name="notifications_off" className="text-[30px] text-outline" />
-              <p className="mt-2 text-body-md text-outline">Nothing in {cat}.</p>
-            </Card>
-          )}
-        </div>
-      </section>
+  return (
+    <AppShell
+      title="Notifications"
+      subtitle={unread ? `${unread} unread` : 'All caught up'}
+      back
+      avatar={false}
+      right={
+        unread ? (
+          <button className="tap px-2 text-label-md text-primary transition-colors duration-fast hover:underline">
+            Mark read
+          </button>
+        ) : null
+      }
+    >
+      <ChipBar items={cats} value={cat} onChange={setCat} visible={3} />
+
+      {list.length ? (
+        <List>
+          {list.map((n, i) => (
+            <NotificationRow key={i} n={n} />
+          ))}
+        </List>
+      ) : (
+        <EmptyState
+          icon="notifications_off"
+          title={cat === 'Unread' ? "You're all caught up" : `Nothing in ${cat}`}
+          desc={
+            cat === 'Unread'
+              ? 'New robot activity, deployment updates and payouts will appear here.'
+              : 'Try a different filter — activity from other areas may still be waiting.'
+          }
+        />
+      )}
     </AppShell>
   )
 }

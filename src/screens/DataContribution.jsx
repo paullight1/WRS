@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
-import { Badge, Button, Card, Icon, SectionTitle, tone } from '../components/ui.jsx'
+import { Badge, Button, Card, Icon, SectionTitle, tone, IconTile } from '../components/ui.jsx'
 import { dataTasks, dataStats } from '../data/mock.js'
 
 const extraTasks = [
@@ -39,14 +39,12 @@ export default function DataContribution() {
               <Link
                 key={t.slug}
                 to={`/data/${t.slug}`}
-                className="glass flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-white/25 active:scale-[.99]"
+                className="surface flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-white/25 active:scale-[.99]"
               >
-                <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border ${c.bg} ${c.border}`}>
-                  <Icon name={t.icon} className={`${c.text} text-[22px]`} fill />
-                </span>
+                <IconTile icon={t.icon} accent={c.accent} size={48} radius={12} iconSize={22} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-headline-md text-[16px] text-on-surface">{t.title}</p>
-                  <p className="text-label-sm font-label-sm uppercase tracking-wider text-outline">
+                  <p className="truncate text-title text-on-surface">{t.title}</p>
+                  <p className="text-label-sm text-outline">
                     {t.cat} · {t.time}
                   </p>
                 </div>
@@ -60,7 +58,7 @@ export default function DataContribution() {
           {extraTasks.map((t) => (
             <span
               key={t}
-              className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-label-sm font-label-sm text-outline"
+              className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-label-sm text-outline"
             >
               {t}
             </span>
@@ -78,14 +76,14 @@ export default function DataContribution() {
               const c = tone(s.tone)
               return (
                 <div key={s.label}>
-                  <p className="text-label-sm font-label-sm text-on-surface-variant">{s.label}</p>
-                  <p className={`font-headline-md text-[22px] font-semibold ${c.text}`}>{s.value}</p>
+                  <p className="text-label-sm text-on-surface-variant">{s.label}</p>
+                  <p className={`font-headline-md text-headline-md font-semibold ${c.text}`}>{s.value}</p>
                 </div>
               )
             })}
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3 border-t border-white/5 pt-5 sm:grid-cols-4">
+          <div className="mt-5 grid grid-cols-2 gap-3 border-t border-white/8 pt-5 sm:grid-cols-4">
             {[
               ['Approved', '221'],
               ['Rejected', '9'],
@@ -93,8 +91,8 @@ export default function DataContribution() {
               ['Tasks completed', '186'],
             ].map(([k, v]) => (
               <div key={k}>
-                <p className="text-label-sm font-label-sm text-outline">{k}</p>
-                <p className="font-headline-md text-[17px] text-on-surface">{v}</p>
+                <p className="text-label-sm text-outline">{k}</p>
+                <p className="text-title text-on-surface">{v}</p>
               </div>
             ))}
           </div>

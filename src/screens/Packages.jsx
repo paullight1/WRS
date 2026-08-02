@@ -7,7 +7,6 @@ import { packages, comparisonRows } from '../data/mock.js'
 
 /* Row card — the robot portrait carries the tier, so the icon chip is gone. */
 function PackageRow({ p, featured = false }) {
-  const c = tone(p.tone)
   const tag = tone(p.tagTone || p.tone)
 
   return (
@@ -15,15 +14,10 @@ function PackageRow({ p, featured = false }) {
       to={`/packages/${p.slug}`}
       className={`group relative flex items-center gap-4 overflow-hidden rounded-2xl p-3.5 transition-all active:scale-[.99] ${
         featured
-          ? 'glass border-2 border-tertiary/40 bg-tertiary/[.06] hover:border-tertiary/60'
-          : 'glass hover:border-white/25'
+          ? 'surface border-2 border-tertiary/40 bg-tertiary/[.06] hover:border-tertiary/60'
+          : 'surface hover:border-white/25'
       }`}
     >
-      {/* tier wash */}
-      <span
-        className={`pointer-events-none absolute -left-8 top-1/2 h-32 w-32 -translate-y-1/2 rounded-full blur-[45px] ${c.bg}`}
-      />
-
       <RobotFace
         tier={p.slug}
         size={62}
@@ -32,19 +26,19 @@ function PackageRow({ p, featured = false }) {
 
       <div className="relative min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <h3 className="truncate font-headline-md text-[17px] font-semibold text-on-surface">{p.name}</h3>
+          <h3 className="truncate text-title font-semibold text-on-surface">{p.name}</h3>
           {p.badge && <Badge t={p.slug === 'professional' ? 'tertiary' : 'gold'}>{p.badge}</Badge>}
         </div>
-        <p className="truncate text-label-sm font-label-sm text-outline">{p.robotClass}</p>
+        <p className="truncate text-label-sm text-outline">{p.robotClass}</p>
         <span
-          className={`mt-1.5 inline-block rounded-full border px-2.5 py-0.5 text-[10px] font-label-sm uppercase tracking-wider ${tag.bg} ${tag.border} ${tag.text}`}
+          className={`mt-1.5 inline-block rounded-full border px-2.5 py-0.5 text-label-sm ${tag.bg} ${tag.border} ${tag.text}`}
         >
           {p.tag}
         </span>
       </div>
 
       <div className="relative flex shrink-0 items-center gap-1">
-        <span className="font-headline-md text-[20px] font-bold text-on-surface">${p.price.toLocaleString()}</span>
+        <span className="font-headline-md text-headline-md text-on-surface">${p.price.toLocaleString()}</span>
         <Icon name="chevron_right" className="text-outline transition-transform group-hover:translate-x-0.5" />
       </div>
     </Link>
@@ -92,20 +86,20 @@ export default function Packages() {
                   <RobotFace tier="professional" size={84} animate className="shrink-0" />
                   <div>
                     <h3 className="font-headline-md text-headline-md text-on-surface">Professional</h3>
-                    <p className="text-label-md font-label-md text-tertiary">Professional Robot</p>
+                    <p className="text-label-md text-tertiary">Professional Robot</p>
                     <Badge t="tertiary" className="mt-2">
                       Best Value
                     </Badge>
                   </div>
                 </div>
                 <div className="sm:text-right">
-                  <div className="font-headline-lg text-[34px] font-bold text-on-surface">$100</div>
-                  <p className="mb-3 text-label-sm font-label-sm text-on-surface-variant">Own more. Achieve more.</p>
+                  <div className="font-headline-lg text-headline-lg font-bold text-on-surface">$100</div>
+                  <p className="mb-3 text-label-sm text-on-surface-variant">Own more. Achieve more.</p>
                   <Button to="/packages/professional">Get Professional</Button>
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-3 border-t border-white/5 pt-6 sm:grid-cols-2">
+              <div className="mt-6 grid gap-3 border-t border-white/8 pt-6 sm:grid-cols-2">
                 {featured.features.map((f) => (
                   <div key={f} className="flex items-center gap-3 text-body-md text-on-surface-variant">
                     <Icon name="check_circle" className="text-[20px] text-tertiary" fill />
@@ -132,13 +126,13 @@ export default function Packages() {
                       size={40 + i * 4}
                       className="transition-transform group-hover:-translate-y-1"
                     />
-                    <span className="text-center text-[10px] font-label-sm leading-tight text-outline group-hover:text-on-surface">
+                    <span className="text-center text-label-sm leading-tight text-outline group-hover:text-on-surface">
                       {p.robotClass.replace(' Robot', '')}
                     </span>
                   </Link>
                 ))}
               </div>
-              <p className="mt-4 text-label-sm font-label-sm leading-relaxed text-outline">
+              <p className="mt-4 text-label-sm leading-relaxed text-outline">
                 Shells, optics and plating change with the class. Crowned tiers unlock governance, developer access and
                 priority global deployment.
               </p>
@@ -149,11 +143,11 @@ export default function Packages() {
           <section>
             <SectionTitle>Estimated Benefits</SectionTitle>
             <Card className="overflow-hidden">
-              <div className="grid grid-cols-2 border-b border-white/5 bg-white/5 px-5 py-3">
-                <span className="text-label-sm font-label-sm text-outline">Parameter</span>
-                <span className="text-right text-label-sm font-label-sm text-outline">Potential</span>
+              <div className="grid grid-cols-2 border-b border-white/8 bg-white/5 px-5 py-3">
+                <span className="text-label-sm text-outline">Parameter</span>
+                <span className="text-right text-label-sm text-outline">Potential</span>
               </div>
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-white/8">
                 {[
                   ['Deployment Opportunities', 'Medium - High', 'text-primary'],
                   ['Platform Rewards', 'Medium', 'text-tertiary'],
@@ -167,7 +161,7 @@ export default function Packages() {
                 ))}
               </div>
             </Card>
-            <p className="mt-3 text-label-sm font-label-sm leading-relaxed text-outline">
+            <p className="mt-3 text-label-sm leading-relaxed text-outline">
               Figures are illustrative. Packages are platform access tiers and do not guarantee profits, fixed returns,
               or income.
             </p>
@@ -180,25 +174,25 @@ export default function Packages() {
             <table className="w-full min-w-[760px] text-left">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
-                  <th className="px-4 py-3 text-label-sm font-label-sm text-outline">Category</th>
+                  <th className="px-4 py-3 text-label-sm text-outline">Category</th>
                   {packages.map((p) => (
                     <th key={p.slug} className="px-4 py-3">
                       <div className="flex flex-col items-center gap-1.5">
                         <RobotFace tier={p.slug} size={38} />
-                        <span className="text-label-sm font-label-sm text-on-surface">{p.name}</span>
+                        <span className="text-label-sm text-on-surface">{p.name}</span>
                       </div>
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-white/8">
                 {comparisonRows.map((r) => (
                   <tr key={r.label}>
                     <td className="whitespace-nowrap px-4 py-3 text-body-md text-on-surface-variant">{r.label}</td>
                     {r.values.map((v, i) => (
                       <td
                         key={i}
-                        className={`px-4 py-3 text-center text-label-sm font-label-sm ${
+                        className={`px-4 py-3 text-center text-label-sm ${
                           i === 2 ? 'bg-tertiary/5 text-tertiary' : 'text-on-surface'
                         }`}
                       >

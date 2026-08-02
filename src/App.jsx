@@ -13,6 +13,8 @@ import Customize from './screens/Customize.jsx'
 
 import Packages from './screens/Packages.jsx'
 import PackageDetail from './screens/PackageDetail.jsx'
+import Checkout from './screens/Checkout.jsx'
+import PaymentSuccess from './screens/PaymentSuccess.jsx'
 
 import Training from './screens/Training.jsx'
 import TrainingModule from './screens/TrainingModule.jsx'
@@ -63,6 +65,8 @@ export default function App() {
       {/* packages */}
       <Route path="/packages" element={<Packages />} />
       <Route path="/packages/:slug" element={<PackageDetail />} />
+      <Route path="/packages/:slug/checkout" element={<Checkout />} />
+      <Route path="/packages/:slug/success" element={<PaymentSuccess />} />
 
       {/* training */}
       <Route path="/training" element={<Training />} />
@@ -76,6 +80,7 @@ export default function App() {
       {/* deployment */}
       <Route path="/deploy" element={<Deploy />} />
       <Route path="/deploy/active" element={<ActiveDeployment />} />
+      <Route path="/deploy/active/:id" element={<ActiveDeployment />} />
       <Route path="/deploy/:name" element={<DeploymentDetails />} />
 
       {/* wallet */}

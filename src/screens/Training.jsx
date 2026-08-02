@@ -1,69 +1,106 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
-import { Badge, Button, Card, Icon, Progress, SectionTitle, Tabs, tone } from '../components/ui.jsx'
-import { trainingModules, dataTasks } from '../data/mock.js'
+import { Badge, Button, Card, GradIcon, Icon, Progress, SectionTitle, Tabs, tone, IconTile } from '../components/ui.jsx'
+import { trainingTiles, contribution, dataTasks } from '../data/mock.js'
+
+/* Colourful launcher tile — the core of the training grid. */
+function TrainingTile({ t }) {
+  return (
+    <Link
+      to={`/training/${t.slug}`}
+      className="surface group relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl px-2.5 py-5 text-center transition-all hover:border-white/25 active:scale-[.97]"
+    >
+      <GradIcon
+        icon={t.icon}
+        from={t.from}
+        to={t.to}
+        size={54}
+        radius={18}
+        className="relative transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
+      />
+      <span className="relative mt-1 block text-[13px] font-medium leading-tight text-on-surface">{t.title}</span>
+      <span className="relative block text-[11px] leading-tight text-outline">{t.desc}</span>
+      <span
+        className="relative mt-1 h-1 w-10 overflow-hidden rounded-full"
+        style={{ background: 'rgba(255,255,255,.1)' }}
+      >
+        <span
+          className="block h-full rounded-full"
+          style={{ width: `${t.progress}%`, backgroundColor: t.from }}
+        />
+      </span>
+    </Link>
+  )
+}
 
 export default function Training() {
-  const [tab, setTab] = useState('My Training')
+  const [tab, setTab] = useState('Train')
+  const overall = Math.round(trainingTiles.reduce((s, t) => s + t.progress, 0) / trainingTiles.length)
 
   return (
-    <AppShell title="AI Training Center" back avatar={false}>
-      <section>
-        <Card className="relative overflow-hidden p-card-padding">
-          <div className="pointer-events-none absolute -right-10 -top-14 h-44 w-44 rounded-full bg-primary-container/25 blur-[70px]" />
-          <div className="relative">
-            <p className="text-label-sm font-label-sm uppercase tracking-widest text-tertiary">Training Center</p>
-            <h2 className="mt-1 font-headline-lg-mobile text-[24px] text-on-surface">
-              Personalize and make your robot smarter
-            </h2>
-            <p className="mt-2 text-body-md leading-relaxed text-on-surface-variant">
-              Use your voice, language, knowledge, movements and data. Everything you teach stays attached to your robot.
-            </p>
-            <div className="mt-5 space-y-2">
-              <div className="flex justify-between text-label-sm font-label-sm text-outline">
-                <span>Overall training</span>
-                <span>41%</span>
-              </div>
-              <Progress value={41} />
+    <AppShell title="AI Training Center" subtitle="Train your robot with your data" back avatar={false}>
+      <Tabs items={['Train', 'Data Tasks']} value={tab} onChange={setTab} />
+
+      {tab === 'Train' ? (
+        <>
+          {/* ------------------------------------------------- colourful grid */}
+          <section>
+            <div className="grid grid-cols-3 gap-3">
+              {trainingTiles.map((t) => (
+                <TrainingTile key={t.slug} t={t} />
+              ))}
             </div>
-          </div>
-        </Card>
-      </section>
+          </section>
 
-      <Tabs items={['My Training', 'Data Tasks']} value={tab} onChange={setTab} />
+          {/* ------------------------------------------------- contributions */}
+          <section>
+            <Card className="relative overflow-hidden p-card-padding">
+              <div className="relative flex items-center gap-4">
+                <GradIcon icon="workspace_premium" from="#57c9ff" to="#1f6fd0" size={52} radius={16} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-title font-semibold text-on-surface">Your Contributions</p>
+                  <p className="text-label-md text-success">{contribution.quality}</p>
+                </div>
+                <Button to="/data/quality" size="sm">
+                  View
+                </Button>
+              </div>
 
-      {tab === 'My Training' ? (
-        <section>
-          <SectionTitle action="6 modules">Training Modules</SectionTitle>
-          <div className="space-y-2">
-            {trainingModules.map((m) => {
-              const c = tone(m.tone)
-              return (
-                <Link
-                  key={m.slug}
-                  to={`/training/${m.slug}`}
-                  className="glass block rounded-2xl p-4 transition-all hover:border-white/25 active:scale-[.99]"
-                >
-                  <div className="flex items-center gap-4">
-                    <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border ${c.bg} ${c.border}`}>
-                      <Icon name={m.icon} className={`${c.text} text-[22px]`} fill />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-body-md font-medium text-on-surface">{m.title}</p>
-                      <p className="truncate text-label-sm font-label-sm text-outline">{m.desc}</p>
-                    </div>
-                    <Icon name="chevron_right" className="shrink-0 text-outline" />
+              <div className="relative mt-5">
+                <Progress value={(contribution.score / contribution.target) * 100} height="h-2.5" />
+                <div className="mt-2 flex items-center justify-between text-label-sm">
+                  <span className="text-on-surface">Score: {contribution.score.toLocaleString()}</span>
+                  <span className="text-outline">Target {contribution.target.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="relative mt-5 grid grid-cols-3 gap-3 border-t border-white/8 pt-4 text-center">
+                {[
+                  ['Submitted', contribution.submissions],
+                  ['Approved', contribution.approved],
+                  ['Day streak', contribution.streak],
+                ].map(([k, v]) => (
+                  <div key={k}>
+                    <p className="text-title font-bold text-on-surface">{v}</p>
+                    <p className="text-label-sm text-outline">{k}</p>
                   </div>
-                  <Progress value={m.progress} className="mt-3" height="h-1.5" showShimmer={false} />
-                </Link>
-              )
-            })}
+                ))}
+              </div>
+            </Card>
+          </section>
+
+          <div>
+            <div className="mb-3 flex items-center justify-between text-label-sm">
+              <span className="text-outline">Overall training completion</span>
+              <span className="text-tertiary">{overall}%</span>
+            </div>
+            <Progress value={overall} className="mb-4" />
+            <Button to="/training/voice" full size="lg" icon="play_arrow">
+              Continue Training
+            </Button>
           </div>
-          <Button to="/training/voice" full size="lg" className="mt-4" icon="play_arrow">
-            Start Training
-          </Button>
-        </section>
+        </>
       ) : (
         <section>
           <SectionTitle action="12 new">Available Data Tasks</SectionTitle>
@@ -74,14 +111,14 @@ export default function Training() {
                 <Link
                   key={t.slug}
                   to={`/data/${t.slug}`}
-                  className="glass flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-white/25"
+                  className="surface flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-white/25"
                 >
-                  <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border ${c.bg} ${c.border}`}>
-                    <Icon name={t.icon} className={`${c.text} text-[22px]`} fill />
-                  </span>
+                  <IconTile icon={t.icon} accent={c.accent} size={48} radius={12} iconSize={22} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-body-md font-medium text-on-surface">{t.title}</p>
-                    <p className="text-label-sm font-label-sm uppercase tracking-wider text-outline">{t.cat}</p>
+                    <p className="text-label-sm text-outline">
+                      {t.cat} · {t.time}
+                    </p>
                   </div>
                   <Badge t={t.tone}>+{t.xp} XP</Badge>
                 </Link>
