@@ -72,13 +72,22 @@ function PistonArm({ c }) {
 
 const VARIANTS = { titan: TitanServo, flex: FlexCable, piston: PistonArm }
 
-export default function Actuators({ variant = 'titan', colors, spread = 1, shoulderX = 0.62 }) {
+/**
+ * @param armRefs [left, right] refs onto the shoulder pivots. The worksite
+ *   scenes drive these directly each frame — an arm that swings through React
+ *   state would re-render the whole robot sixty times a second.
+ */
+export default function Actuators({ variant = 'titan', colors, spread = 1, shoulderX = 0.62, armRefs }) {
   const V = VARIANTS[variant] || TitanServo
   return (
     <>
-      {[-1, 1].map((s) => (
-        <group key={s} position={[s * shoulderX * spread, 0.34, 0]} rotation={[0, 0, s * -0.06]}>
-          <V c={colors} />
+      {[-1, 1].map((s, i) => (
+        // Position and pivot are split so the arm rotates about the shoulder,
+        // not about the robot's centre line.
+        <group key={s} position={[s * shoulderX * spread, 0.34, 0]}>
+          <group ref={armRefs?.[i]} rotation={[0, 0, s * -0.06]}>
+            <V c={colors} />
+          </group>
         </group>
       ))}
     </>

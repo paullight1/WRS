@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
+import Worksite3D from '../components/robot3d/Worksite3D.jsx'
 import { Badge, Button, Card, Disclosure, Icon, SectionTitle, Toast, tone, IconTile } from '../components/ui.jsx'
 import { industries, robot, ownerTier, unlocked } from '../data/mock.js'
+import { worksiteFor } from '../data/worksites.js'
 import StateView from '../components/states/StateView.jsx'
 
 export default function DeploymentDetails() {
@@ -11,6 +13,7 @@ export default function DeploymentDetails() {
   const [toast, setToast] = useState('')
   if (!sector) return <Navigate to="/deploy" replace />
   const c = tone(sector.tone)
+  const site = worksiteFor(sector.name)
   const open = unlocked(sector.requires)
 
   /* Locked sectors are still reachable on purpose: being told why, and what
@@ -18,6 +21,22 @@ export default function DeploymentDetails() {
   if (!open) {
     return (
       <AppShell title={sector.name} back avatar={false}>
+        {/* Locked still shows the worksite. Being told what the sector *is* is
+            the whole argument for upgrading into it — a padlock alone is not. */}
+        <section>
+          <Card className="relative overflow-hidden p-0">
+            <Worksite3D industry={sector.name} height={196} className="opacity-80" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-surface via-surface/75 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4">
+              <p className="truncate text-label-sm text-outline">{site.task}</p>
+              <Badge t="gold">
+                <Icon name="lock" className="text-[14px]" />
+                {sector.requires}
+              </Badge>
+            </div>
+          </Card>
+        </section>
+
         <StateView
           kind="locked"
           title={`${sector.name} needs the ${sector.requires} package`}
@@ -42,20 +61,25 @@ export default function DeploymentDetails() {
 
   return (
     <AppShell title={sector.name} back avatar={false}>
+      {/* The sector, shown rather than described: the robot doing this sector's
+          work, in this sector's setting. */}
       <section>
-        <Card className="relative overflow-hidden p-card-padding">
-          <div className="relative flex items-center gap-4">
-            <IconTile icon={sector.icon} accent={c.accent} size={64} radius={12} iconSize={30} />
-            <div className="min-w-0">
+        <Card className="relative overflow-hidden p-0">
+          <Worksite3D industry={sector.name} height={224} />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-surface via-surface/80 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 flex items-end gap-3.5 p-4">
+            <IconTile icon={sector.icon} accent={c.accent} size={52} radius={12} iconSize={26} />
+            <div className="min-w-0 flex-1">
+              <p className="text-label-sm text-outline">{site.task}</p>
               <h2 className="truncate font-headline-md text-headline-md text-on-surface">{sector.name}</h2>
-              <p className="text-label-sm text-outline">{sector.desc}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Badge t="tertiary">Available</Badge>
-                <Badge t="primary">Demand {sector.demand}</Badge>
-              </div>
             </div>
           </div>
         </Card>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Badge t="tertiary">Available</Badge>
+          <Badge t="primary">Demand {sector.demand}</Badge>
+          <Badge t="outline">{sector.desc}</Badge>
+        </div>
       </section>
 
       <section>

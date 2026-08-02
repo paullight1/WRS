@@ -1,8 +1,10 @@
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import RobotFace from '../components/RobotFace.jsx'
+import Worksite3D from '../components/robot3d/Worksite3D.jsx'
 import { Badge, Button, Card, Progress, SectionTitle, Stat, StatusDot } from '../components/ui.jsx'
 import { activeDeployment as legacy, activeDeployments, deploymentHistory, robot } from '../data/mock.js'
+import { worksiteFor } from '../data/worksites.js'
 
 const statuses = ['Online', 'Working', 'Charging', 'Paused', 'Maintenance', 'Offline']
 
@@ -12,9 +14,30 @@ export default function ActiveDeployment() {
   const live = activeDeployments.find((x) => x.id === id)
   const d = live || past || activeDeployments[0]
   const isHistory = !live && !!past
+  const site = worksiteFor(d.industry)
 
   return (
     <AppShell title={isHistory ? 'Deployment Record' : 'Active Deployment'} back avatar={false}>
+      {/* What the contract actually looks like where it runs. A closed contract
+          keeps the scene — it is what the record is a record of. */}
+      <section>
+        <Card className="relative overflow-hidden p-0">
+          <Worksite3D
+            industry={d.industry}
+            height={200}
+            label={`${robot.name} working in ${site.name} — ${site.task}`}
+          />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-surface via-surface/75 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 p-4">
+            <p className="truncate text-label-sm text-on-surface-variant">{site.task}</p>
+            <Badge t={isHistory ? 'outline' : 'success'}>
+              {!isHistory && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
+              {isHistory ? 'Closed' : 'On site'}
+            </Badge>
+          </div>
+        </Card>
+      </section>
+
       <section>
         <Card className="relative overflow-hidden p-card-padding">
           <div className="relative flex items-center gap-4">

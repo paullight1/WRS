@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import RobotFace from '../components/RobotFace.jsx'
+import Worksite3D from '../components/robot3d/Worksite3D.jsx'
 import { ACCENTS, Badge, Button, Card, Field, Icon, Progress, SectionTitle, tone, IconTile } from '../components/ui.jsx'
 import { industries, robot, activeDeployments, deploymentHistory, deploymentSummary, unlocked } from '../data/mock.js'
+import { worksiteFor } from '../data/worksites.js'
 
 const STATUS_TONE = {
   Active: 'success',
@@ -85,6 +87,8 @@ export default function Deploy() {
   const [tab, setTab] = useState('Active')
   const [q, setQ] = useState('')
   const list = industries.filter((i) => i.name.toLowerCase().includes(q.toLowerCase()))
+  // The contract actually running, which is the one worth putting on stage.
+  const live = activeDeployments.find((d) => d.status === 'Active') || activeDeployments[0]
 
   return (
     <AppShell title="Deployments" subtitle={`${robot.name} · ${robot.robotClass}`}>
@@ -124,6 +128,26 @@ export default function Deploy() {
           </section>
 
           <Field placeholder="Search industries…" icon="search" value={q} onChange={(e) => setQ(e.target.value)} />
+
+          {/* One live stage rather than nine: it follows the search, so typing
+              "farm" shows the robot in a field before you commit to the sector. */}
+          {list.length > 0 && (
+            <Card
+              as={Link}
+              to={`/deploy/${encodeURIComponent(list[0].name)}`}
+              className="relative block overflow-hidden p-0 active:scale-[.99]"
+            >
+              <Worksite3D industry={list[0].name} height={196} />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-surface via-surface/75 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <p className="truncate text-label-sm text-outline">{worksiteFor(list[0].name).task}</p>
+                  <p className="truncate text-title text-on-surface">{list[0].name}</p>
+                </div>
+                <Icon name="arrow_forward" className="text-tertiary" />
+              </div>
+            </Card>
+          )}
 
           <section>
             <SectionTitle action={`${list.length} sectors`}>Available sectors</SectionTitle>
@@ -195,6 +219,33 @@ export default function Deploy() {
       {/* ------------------------------------------------------------ active */}
       {tab === 'Active' && (
         <>
+          {/* The contract that is running right now, on its worksite. One stage
+              per tab on purpose: a WebGL context per card is more than a
+              mid-range phone should be asked to hold open while scrolling. */}
+          {live && (
+            <Card
+              as={Link}
+              to={`/deploy/active/${live.id}`}
+              className="relative block overflow-hidden p-0 active:scale-[.99]"
+            >
+              <Worksite3D
+                industry={live.industry}
+                height={196}
+                label={`${live.title} — ${worksiteFor(live.industry).task}`}
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-surface via-surface/75 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <p className="truncate text-label-sm text-outline">{worksiteFor(live.industry).task}</p>
+                  <p className="truncate text-title text-on-surface">{live.title}</p>
+                </div>
+                <Badge t="success">
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" /> On site
+                </Badge>
+              </div>
+            </Card>
+          )}
+
           <section className="grid grid-cols-3 gap-3">
             {deploymentSummary.map((s) => {
               const c = tone(s.tone)
