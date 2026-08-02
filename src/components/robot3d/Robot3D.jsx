@@ -21,6 +21,17 @@ function supportsWebGL() {
   return webglSupport
 }
 
+/**
+ * How far back to pull the camera. A hero fills its frame; a thumbnail needs a
+ * tight crop or it reads as a shrunken robot; the sizes between keep the
+ * roomier framing so list and card layouts stay as they were.
+ */
+function cameraDistance(size) {
+  if (size >= 240) return 6.05
+  if (size < 120) return 5.8
+  return 6.6
+}
+
 function prefersReducedMotion() {
   return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 }
@@ -39,6 +50,7 @@ export default function Robot3D({
   config = defaultRobotConfig,
   highlight = null,
   interactive = false,
+  fill = false,
   className = '',
   label = 'WRS robot',
 }) {
@@ -64,13 +76,17 @@ export default function Robot3D({
     }
   }, [use3D])
 
-  const fallback = <RobotAvatar size={size} eye={eye} glow={false} />
+  /* `fill` takes the width of its container and squares itself, with `size` as
+     the ceiling — the only way to be as large as possible on a 360px phone
+     without overflowing it. CSS width beats the SVG's width attribute, so the
+     fallback bust scales with it. */
+  const fallback = <RobotAvatar size={size} eye={eye} glow={false} className={fill ? 'h-full w-full' : ''} />
 
   return (
     <div
       ref={host}
       className={className}
-      style={{ width: size, height: size }}
+      style={fill ? { width: '100%', maxWidth: size, aspectRatio: '1 / 1' } : { width: size, height: size }}
       role="img"
       aria-label={label}
       data-robot3d={use3D ? 'on' : 'off'}
@@ -84,7 +100,7 @@ export default function Robot3D({
             still={reduced}
             frameloop={onScreen && pageVisible ? 'always' : 'never'}
             dpr={[1, size >= 140 ? 2 : 1.5]}
-            compact={size < 120}
+            distance={cameraDistance(size)}
           />
         </Suspense>
       ) : (

@@ -64,9 +64,10 @@ export default function Customize() {
             <div className="absolute inset-x-8 top-6 h-[2px] animate-scan bg-tertiary/40" />
           </div>
 
-          <div onPointerDown={() => setGrabbed(true)}>
+          <div className="w-full" onPointerDown={() => setGrabbed(true)}>
             <Robot3D
-              size={260}
+              fill
+              size={380}
               config={config}
               highlight={cat === 'Parts' ? module : null}
               interactive
