@@ -353,15 +353,15 @@ export const dataStats = [
 ]
 
 export const industries = [
-  { name: 'Agriculture', desc: 'Farming & food production', icon: 'potted_plant', tone: 'primary', demand: 'High', rate: '$14.20/hr' },
-  { name: 'Manufacturing', desc: 'Factory & production', icon: 'factory', tone: 'secondary', demand: 'High', rate: '$16.80/hr' },
-  { name: 'Logistics & Warehousing', desc: 'Supply chain & delivery', icon: 'local_shipping', tone: 'tertiary', demand: 'Very High', rate: '$15.50/hr' },
-  { name: 'Healthcare', desc: 'Hospital support', icon: 'medical_services', tone: 'error', demand: 'Medium', rate: '$18.40/hr' },
-  { name: 'Hospitality', desc: 'Hotels & tourism', icon: 'apartment', tone: 'primary', demand: 'Medium', rate: '$12.90/hr' },
-  { name: 'Retail', desc: 'Stores & customer service', icon: 'storefront', tone: 'secondary', demand: 'Medium', rate: '$11.75/hr' },
-  { name: 'Construction', desc: 'Sites & operations', icon: 'engineering', tone: 'tertiary', demand: 'Low', rate: '$17.10/hr' },
-  { name: 'Security', desc: 'Monitoring & patrol', icon: 'shield', tone: 'primary', demand: 'Medium', rate: '$13.60/hr' },
-  { name: 'Education', desc: 'Learning support', icon: 'school', tone: 'secondary', demand: 'Low', rate: '$10.40/hr' },
+  { name: 'Agriculture', desc: 'Farming & food production', icon: 'potted_plant', tone: 'primary', demand: 'High', rate: '$14.20/hr', requires: 'Starter'  },
+  { name: 'Manufacturing', desc: 'Factory & production', icon: 'factory', tone: 'secondary', demand: 'High', rate: '$16.80/hr', requires: 'Professional'  },
+  { name: 'Logistics & Warehousing', desc: 'Supply chain & delivery', icon: 'local_shipping', tone: 'tertiary', demand: 'Very High', rate: '$15.50/hr', requires: 'Builder'  },
+  { name: 'Healthcare', desc: 'Hospital support', icon: 'medical_services', tone: 'error', demand: 'Medium', rate: '$18.40/hr', requires: 'Enterprise'  },
+  { name: 'Hospitality', desc: 'Hotels & tourism', icon: 'apartment', tone: 'primary', demand: 'Medium', rate: '$12.90/hr', requires: 'Starter'  },
+  { name: 'Retail', desc: 'Stores & customer service', icon: 'storefront', tone: 'secondary', demand: 'Medium', rate: '$11.75/hr', requires: 'Builder'  },
+  { name: 'Construction', desc: 'Sites & operations', icon: 'engineering', tone: 'tertiary', demand: 'Low', rate: '$17.10/hr', requires: 'Enterprise'  },
+  { name: 'Security', desc: 'Monitoring & patrol', icon: 'shield', tone: 'primary', demand: 'Medium', rate: '$13.60/hr', requires: 'Elite'  },
+  { name: 'Education', desc: 'Learning support', icon: 'school', tone: 'secondary', demand: 'Low', rate: '$10.40/hr', requires: 'Builder'  },
 ]
 
 export const earningSources = [
@@ -402,13 +402,87 @@ export const marketplaceCategories = [
   'All', 'AI Skills', 'Language Packs', 'Robot Upgrades', 'Industry Modules', 'Voice Packs', 'Developer Apps',
 ]
 
+// Tier ladder used to decide whether an item is compatible with the owner's
+// package. Index order matters — anything above the owner's index is locked.
+export const packageTiers = ['Starter', 'Builder', 'Professional', 'Enterprise', 'Elite', 'Visionary']
+
+/* What the current owner has, derived from their robot so the two never drift. */
+export const ownerTier = robot.package.replace(/ Package$/, '')
+export const tierRank = (t) => packageTiers.indexOf(t)
+export const unlocked = (requires) => tierRank(requires) <= tierRank(ownerTier)
+
 export const marketplaceItems = [
-  { name: 'Yoruba Language Pack', dev: 'WRS Labs', price: '$12', rating: 4.9, cat: 'Language Packs', icon: 'translate', tone: 'tertiary', state: 'Install' },
-  { name: 'Warehouse Ops Module', dev: 'NorthChain', price: '$34', rating: 4.7, cat: 'Industry Modules', icon: 'inventory_2', tone: 'primary', state: 'Buy' },
-  { name: 'Quantum Core v1.4', dev: 'WRS Labs', price: '$59', rating: 4.8, cat: 'Robot Upgrades', icon: 'memory', tone: 'secondary', state: 'Update' },
-  { name: 'Calm Voice Profile', dev: 'Sonora AI', price: '$8', rating: 4.5, cat: 'Voice Packs', icon: 'record_voice_over', tone: 'tertiary', state: 'Buy' },
-  { name: 'Vision Labeling Suite', dev: 'Optiq', price: '$21', rating: 4.6, cat: 'AI Skills', icon: 'visibility', tone: 'primary', state: 'Buy' },
-  { name: 'Fleet Analytics Pro', dev: 'Meridian', price: '$45', rating: 4.9, cat: 'Developer Apps', icon: 'analytics', tone: 'secondary', state: 'Buy' },
+  {
+    id: 'yoruba', name: 'Yoruba Language Pack', dev: 'WRS Labs', price: 12, rating: 4.9, reviews: 2140,
+    cat: 'Language Packs', icon: 'translate', accent: 'teal', requires: 'Builder', size: '82 MB',
+    blurb: 'Full conversational Yoruba with tonal accuracy, proverbs and regional variants.',
+    featured: true,
+  },
+  {
+    id: 'warehouse', name: 'Warehouse Ops Module', dev: 'NorthChain', price: 34, rating: 4.7, reviews: 810,
+    cat: 'Industry Modules', icon: 'inventory_2', accent: 'blue', requires: 'Professional', size: '140 MB',
+    blurb: 'Pick-and-pack routines, inventory scanning and dock scheduling.',
+  },
+  {
+    id: 'vision', name: 'Vision Labeling Suite', dev: 'Optiq', price: 21, rating: 4.6, reviews: 1290,
+    cat: 'AI Skills', icon: 'visibility', accent: 'indigo', requires: 'Professional', size: '96 MB',
+    blurb: 'Faster bounding boxes and segmentation for image and video tasks.',
+  },
+  {
+    id: 'calm-voice', name: 'Calm Voice Profile', dev: 'Sonora AI', price: 8, rating: 4.5, reviews: 640,
+    cat: 'Voice Packs', icon: 'record_voice_over', accent: 'violet', requires: 'Starter', size: '24 MB',
+    blurb: 'A slower, warmer delivery for support and care settings.',
+  },
+  {
+    id: 'hausa', name: 'Hausa Language Pack', dev: 'WRS Labs', price: 12, rating: 4.8, reviews: 1460,
+    cat: 'Language Packs', icon: 'translate', accent: 'teal', requires: 'Builder', size: '78 MB',
+    blurb: 'Northern Nigerian Hausa with market and logistics vocabulary.',
+  },
+  {
+    id: 'safety', name: 'Site Safety Protocols', dev: 'Aegis Robotics', price: 0, rating: 4.4, reviews: 3120,
+    cat: 'AI Skills', icon: 'health_and_safety', accent: 'green', requires: 'Starter', size: '31 MB',
+    blurb: 'Hazard recognition and stop-work rules. Free, maintained by WRS partners.',
+  },
+  {
+    id: 'fleet', name: 'Fleet Analytics Pro', dev: 'Meridian', price: 45, rating: 4.9, reviews: 420,
+    cat: 'Developer Apps', icon: 'analytics', accent: 'pink', requires: 'Enterprise', size: '58 MB',
+    blurb: 'Cross-robot utilisation dashboards and exportable performance reports.',
+  },
+  {
+    id: 'memory-8', name: 'Memory Vault +8GB', dev: 'WRS Labs', price: 39, rating: 4.7, reviews: 980,
+    cat: 'Robot Upgrades', icon: 'memory', accent: 'orange', requires: 'Professional', size: '—',
+    blurb: 'Raises long-term recall so your robot keeps more of what you teach it.',
+  },
+  {
+    id: 'agri', name: 'Agriculture Field Kit', dev: 'GreenLoop', price: 28, rating: 4.3, reviews: 260,
+    cat: 'Industry Modules', icon: 'potted_plant', accent: 'green', requires: 'Professional', size: '112 MB',
+    blurb: 'Crop inspection, irrigation checks and harvest-window estimation.',
+  },
+  {
+    id: 'swahili', name: 'Swahili Language Pack', dev: 'Lugha Labs', price: 14, rating: 4.6, reviews: 730,
+    cat: 'Language Packs', icon: 'translate', accent: 'teal', requires: 'Builder', size: '80 MB',
+    blurb: 'East African Swahili with hospitality and retail phrasing.',
+  },
+  {
+    id: 'api', name: 'Developer API Bridge', dev: 'WRS Labs', price: 60, rating: 4.8, reviews: 190,
+    cat: 'Developer Apps', icon: 'terminal', accent: 'slate', requires: 'Elite', size: '12 MB',
+    blurb: 'REST and webhook access to your robot telemetry and task queue.',
+  },
+  {
+    id: 'reflex', name: 'Reflex Speed Tuning', dev: 'Kite Systems', price: 18, rating: 4.2, reviews: 510,
+    cat: 'Robot Upgrades', icon: 'speed', accent: 'amber', requires: 'Professional', size: '9 MB',
+    blurb: 'Trims latency between instruction and action on repetitive routines.',
+  },
+]
+
+// What the owner already has. Update state is the highest-value job on this
+// screen, so it is modelled explicitly rather than inferred.
+export const installedItems = [
+  { id: 'core', name: 'Quantum Core', dev: 'WRS Labs', icon: 'memory', accent: 'orange', version: '1.4', next: '1.6', size: '64 MB', updated: '2 days ago', update: true },
+  { id: 'lidar', name: 'LIDAR 360 Gen-4', dev: 'WRS Labs', icon: 'sensors', accent: 'indigo', version: '4.0', size: '48 MB', updated: '3 weeks ago' },
+  { id: 'english', name: 'English Voice Pack', dev: 'WRS Labs', icon: 'record_voice_over', accent: 'violet', version: '2.1', size: '26 MB', updated: '1 month ago' },
+  { id: 'routing', name: 'Route Planning', dev: 'NorthChain', icon: 'alt_route', accent: 'blue', version: '3.2', next: '3.3', size: '37 MB', updated: '5 days ago', update: true },
+  { id: 'safety-base', name: 'Site Safety Protocols', dev: 'Aegis Robotics', icon: 'health_and_safety', accent: 'green', version: '1.9', size: '31 MB', updated: '2 months ago' },
 ]
 
 export const courses = [

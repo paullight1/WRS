@@ -57,6 +57,46 @@
   summary::-webkit-details-marker {
     display: none;
   }
+}
+
+/* Overlay entrances. Declared here rather than as Tailwind animation utilities
+   because they are applied by name from component style attributes, which the
+   JIT scanner cannot see. */
+@layer components {
+  @keyframes wrs-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes wrs-rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .wrs-fade-in {
+    animation: wrs-fade-in 200ms var(--ease-out) both;
+  }
+
+  .wrs-rise-in {
+    animation: wrs-rise-in 380ms var(--ease-out) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wrs-fade-in,
+    .wrs-rise-in {
+      animation: none;
+    }
+  }
 
   /* Figures align in any column of numbers. */
   table,

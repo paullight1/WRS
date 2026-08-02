@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import RobotFace from '../components/RobotFace.jsx'
-import { Badge, Button, Card, Field, Icon, Progress, SectionTitle, tone, IconTile } from '../components/ui.jsx'
-import { industries, robot, activeDeployments, deploymentHistory, deploymentSummary } from '../data/mock.js'
+import { ACCENTS, Badge, Button, Card, Field, Icon, Progress, SectionTitle, tone, IconTile } from '../components/ui.jsx'
+import { industries, robot, activeDeployments, deploymentHistory, deploymentSummary, unlocked } from '../data/mock.js'
 
 const STATUS_TONE = {
   Active: 'success',
@@ -130,14 +130,23 @@ export default function Deploy() {
             <div className="space-y-2">
               {list.map((s) => {
                 const c = tone(s.tone)
+                const open = unlocked(s.requires)
                 return (
                   <Link
                     key={s.name}
                     to={`/deploy/${encodeURIComponent(s.name)}`}
-                    className="surface group flex items-center justify-between gap-4 rounded-2xl p-4 transition-all hover:border-tertiary/40 active:scale-[.99]"
+                    className={`surface group flex items-center justify-between gap-4 rounded-2xl p-4 transition-all active:scale-[.99] ${
+                      open ? 'hover:border-tertiary/40' : 'hover:border-[#f7c948]/40'
+                    }`}
                   >
                     <div className="flex min-w-0 items-center gap-4">
-                      <IconTile icon={s.icon} accent={c.accent} size={56} radius={12} iconSize={26} />
+                      <IconTile
+                        icon={open ? s.icon : 'lock'}
+                        accent={open ? c.accent : ACCENTS.amber}
+                        size={56}
+                        radius={12}
+                        iconSize={26}
+                      />
                       <div className="min-w-0">
                         <h3 className="truncate text-title text-on-surface group-hover:text-tertiary">
                           {s.name}
@@ -149,9 +158,15 @@ export default function Deploy() {
                       </div>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-2">
-                      <Badge t="tertiary">
-                        <span className="h-1.5 w-1.5 rounded-full bg-tertiary" /> Available
-                      </Badge>
+                      {open ? (
+                        <Badge t="tertiary">
+                          <span className="h-1.5 w-1.5 rounded-full bg-tertiary" /> Available
+                        </Badge>
+                      ) : (
+                        <Badge t="gold">
+                          <Icon name="lock" className="text-[13px]" /> {s.requires}
+                        </Badge>
+                      )}
                       <Icon name="chevron_right" className="text-outline transition-transform group-hover:translate-x-1" />
                     </div>
                   </Link>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { armWelcome } from '../components/WelcomeModal.jsx'
 import { Atmosphere } from '../components/AppShell.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
 import { defaultRobotConfig } from '../data/robotParts.js'
@@ -18,7 +19,12 @@ export default function Onboarding() {
   const [pkg, setPkg] = useState('professional')
 
   const steps = ['Welcome', 'Package', 'Name', 'Appearance', 'Personality', 'Finish']
-  const next = () => (step === steps.length - 1 ? nav('/home') : setStep(step + 1))
+  const next = () => {
+    if (step < steps.length - 1) return setStep(step + 1)
+    // Home shows the welcome once, on the first arrival after setup.
+    armWelcome()
+    return nav('/home')
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col px-margin-page py-8">

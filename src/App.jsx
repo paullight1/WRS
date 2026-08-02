@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 
+import { NotifyProvider } from './components/notifications/Notify.jsx'
+
 import Landing from './screens/Landing.jsx'
 import Splash from './screens/Splash.jsx'
 import Login from './screens/Login.jsx'
@@ -49,7 +51,9 @@ import Support from './screens/Support.jsx'
 
 export default function App() {
   return (
-    <Routes>
+    // Toasts must outlive any single screen, so the provider sits above the router.
+    <NotifyProvider>
+      <Routes>
       {/* public site */}
       <Route path="/" element={<Landing />} />
 
@@ -110,7 +114,8 @@ export default function App() {
       <Route path="/settings" element={<Settings />} />
       <Route path="/support" element={<Support />} />
 
-      <Route path="*" element={<Navigate to="/home" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
+    </NotifyProvider>
   )
 }

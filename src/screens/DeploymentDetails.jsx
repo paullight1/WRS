@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import { Badge, Button, Card, Disclosure, Icon, SectionTitle, Toast, tone, IconTile } from '../components/ui.jsx'
-import { industries, robot } from '../data/mock.js'
+import { industries, robot, ownerTier, unlocked } from '../data/mock.js'
+import StateView from '../components/states/StateView.jsx'
 
 export default function DeploymentDetails() {
   const { name } = useParams()
@@ -10,6 +11,29 @@ export default function DeploymentDetails() {
   const [toast, setToast] = useState('')
   if (!sector) return <Navigate to="/deploy" replace />
   const c = tone(sector.tone)
+  const open = unlocked(sector.requires)
+
+  /* Locked sectors are still reachable on purpose: being told why, and what
+     would change it, is more use than a row that refuses to respond. */
+  if (!open) {
+    return (
+      <AppShell title={sector.name} back avatar={false}>
+        <StateView
+          kind="locked"
+          title={`${sector.name} needs the ${sector.requires} package`}
+          desc={`Your robot is on ${ownerTier}. This sector requires ${sector.requires} or higher — it covers regulated and higher-risk work, so the robot class has to match.`}
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button to="/packages">Compare packages</Button>
+              <Button variant="ghost" to="/deploy">
+                Other sectors
+              </Button>
+            </div>
+          }
+        />
+      </AppShell>
+    )
+  }
 
   const fire = (m) => {
     setToast(m)

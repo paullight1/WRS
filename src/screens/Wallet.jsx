@@ -1,13 +1,91 @@
+import { useSearchParams } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import {
   Badge, Button, Card, DataRow, Disclosure, Icon, List, Progress, Row, SectionTitle, tone, IconTile,
 }  from '../components/ui.jsx'
+import StateView, { LoadingView } from '../components/states/StateView.jsx'
+import { useNotify } from '../components/notifications/Notify.jsx'
+import { useMockRequest, useOnline } from '../lib/appState.js'
 import { earningSources } from '../data/mock.js'
 
 const stateTone = { Pending: 'outline', Promotional: 'secondary', Confirmed: 'tertiary' }
 
 export default function Wallet() {
   const total = earningSources.reduce((s, e) => s + parseFloat(e.amount.replace('$', '')), 0)
+  const online = useOnline()
+  const notify = useNotify()
+
+  /* Money is the one screen where a stale figure is worse than no figure, so
+     it loads rather than appearing instantly, and it says so when it cannot.
+     The failure is caller-controlled: `/wallet?state=error` reproduces the
+     outage path on demand instead of failing at random. */
+  const [params] = useSearchParams()
+  const { data, loading, error, retry } = useMockRequest(earningSources, {
+    shouldFail: params.get('state') === 'error',
+  })
+
+  /* A withdrawal with no connection fails before it starts — better to say so
+     than to spin. */
+  const withdraw = () => {
+    if (!online) {
+      notify({
+        kind: 'error',
+        title: "Can't withdraw offline",
+        body: 'Reconnect and try again — nothing has been taken from your balance.',
+      })
+      return
+    }
+    notify({ kind: 'success', title: 'Withdrawal requested', body: 'You will be notified once it is reviewed.' })
+  }
+
+  if (!online) {
+    return (
+      <AppShell title="Wallet" back avatar={false}>
+        <StateView
+          live
+          kind="offline"
+          title="You're offline"
+          desc="Balances are hidden until we can confirm them — a figure we can't verify is worse than none."
+          action={
+            <Button variant="ghost" icon="refresh" onClick={retry}>
+              Try again
+            </Button>
+          }
+        />
+      </AppShell>
+    )
+  }
+
+  if (loading) {
+    return (
+      <AppShell title="Wallet" back avatar={false}>
+        <LoadingView title="Loading your wallet" desc="Confirming balances and pending payouts." />
+      </AppShell>
+    )
+  }
+
+  if (error) {
+    return (
+      <AppShell title="Wallet" back avatar={false}>
+        <StateView
+          live
+          kind="error"
+          title="We couldn't load your wallet"
+          desc="Your balance and payouts are safe — this is a problem reaching the server, not with your account."
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button icon="refresh" onClick={retry}>
+                Try again
+              </Button>
+              <Button variant="ghost" to="/support">
+                Contact support
+              </Button>
+            </div>
+          }
+        />
+      </AppShell>
+    )
+  }
 
   return (
     <AppShell title="Wallet" back avatar={false}>
@@ -25,7 +103,7 @@ export default function Wallet() {
           <Button size="lg" icon="add" full>
             Deposit
           </Button>
-          <Button variant="tonal" size="lg" icon="arrow_outward" full>
+          <Button variant="tonal" size="lg" icon="arrow_outward" full onClick={withdraw}>
             Withdraw
           </Button>
         </div>
@@ -36,7 +114,7 @@ export default function Wallet() {
       <section>
         <SectionTitle action="Last 30 days">Where it came from</SectionTitle>
         <List>
-          {earningSources.map((s) => {
+          {data.map((s) => {
             const c = tone(s.tone)
             const pct = Math.round((parseFloat(s.amount.replace('$', '')) / total) * 100)
             return (

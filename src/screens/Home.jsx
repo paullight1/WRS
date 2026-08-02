@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
+import WelcomeModal, { consumeWelcome } from '../components/WelcomeModal.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
 import { ACCENTS, Badge, Button, Card, Icon, IconTile, List, Progress, SectionTitle, tone } from '../components/ui.jsx'
 import { user, robot, todayOverview, latestUpdates } from '../data/mock.js'
@@ -44,6 +45,14 @@ export default function Home() {
   const toNext = robot.nextLevelXp - robot.xp
   const [showPrompt, setShowPrompt] = useState(true)
 
+  /* Read once on mount, not on every render: consumeWelcome clears the flag,
+     so calling it during render would fire under StrictMode's double-invoke
+     and the modal would never appear. */
+  const [welcome, setWelcome] = useState(false)
+  useEffect(() => {
+    if (consumeWelcome()) setWelcome(true)
+  }, [])
+
   const [ids, setIds] = useState(loadShortcuts)
   const [editing, setEditing] = useState(false)
 
@@ -65,6 +74,7 @@ export default function Home() {
 
   return (
     <AppShell title={`Hello, ${user.firstName}`} subtitle="Here's your robot today">
+      <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
       {/* --------------------------------------------------------- the robot
           The protagonist, and the one screen element that carries the next
           action — a user should never scroll to find out what to do. */}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
-import { ChipBar, EmptyState, Icon, List, SectionTitle } from '../components/ui.jsx'
+import { Button, ChipBar, Icon, List, SectionTitle } from '../components/ui.jsx'
+import StateView from '../components/states/StateView.jsx'
 import { transactions } from '../data/mock.js'
 
 const filters = ['All', 'Confirmed', 'Pending', 'Completed', 'Promotional']
@@ -43,10 +44,18 @@ export default function Transactions() {
           </List>
         </section>
       ) : (
-        <EmptyState
-          icon="receipt_long"
+        <StateView
+          live
+          kind={f === 'All' ? 'empty' : 'noResults'}
           title={`No ${f.toLowerCase()} transactions`}
           desc="Deployment payouts, data revenue and withdrawals all appear here once they settle."
+          action={
+            f === 'All' ? null : (
+              <Button variant="ghost" onClick={() => setF('All')}>
+                Show all
+              </Button>
+            )
+          }
         />
       )}
     </AppShell>
