@@ -1,0 +1,76 @@
+%% WRS mobile app and role-workspace map. Hierarchy, not screen layout.
+flowchart TD
+  Entry["Entry"] --> Public["Public site"]
+  Entry --> Auth["Login / Register / Verify"]
+  Auth --> Onboarding["Onboarding: package → robot activation → consent choices"]
+  Onboarding --> Home
+
+  subgraph MemberApp["Member app — global navigation"]
+    Home["Home"]
+    Robot["My Robot"]
+    Deploy["Deploy"]
+    Market["Marketplace"]
+    More["More"]
+  end
+
+  Home --> Next["Recommended next action"]
+  Home --> Updates["Activity and status updates"]
+  Home --> Alerts["Notifications"]
+
+  Robot --> RobotOverview["Overview"]
+  Robot --> Training["Training"]
+  Robot --> Performance["Performance"]
+  Robot --> Passport["Robot Passport"]
+  Robot --> Customize["Customize / Upgrade"]
+
+  Deploy --> Opportunities["Opportunities"]
+  Opportunities --> Opportunity["Opportunity details"]
+  Opportunity --> Request["Deployment request"]
+  Deploy --> Active["Active deployment"]
+  Active --> Contract["Contract / performance / activity"]
+
+  Market --> Skills["Skills and language packs"]
+  Market --> Tools["Tools, upgrades, services"]
+  Market --> Item["Item details / install / update"]
+
+  More --> Train["Training Center"]
+  More --> Data["Data Contribution"]
+  More --> Wallet["Wallet & Earnings"]
+  More --> Rewards["Points & Rewards"]
+  More --> Academy["Academy"]
+  More --> Community["Community & Events"]
+  More --> Referrals["Referrals"]
+  More --> Account["Profile / Settings / Security / Support"]
+
+  Data --> Tasks["Task catalog"]
+  Tasks --> Task["Task details / submit"]
+  Data --> Quality["Contribution quality"]
+  Data --> Contributions["Submission history / appeals"]
+  Wallet --> Transactions["Transactions"]
+  Wallet --> Revenue["Program distributions"]
+  Rewards --> EventCode["Enter event code"]
+  Rewards --> Boosts["Robot boosts"]
+
+  More -. role granted .-> Validator["Validator workspace"]
+  Validator --> ReviewQueue["Review queue"]
+  Validator --> Calibration["Calibration & credentials"]
+  Validator --> ReviewMetrics["Review quality / appeals"]
+
+  More -. role granted .-> Leadership["Leadership workspace"]
+  Leadership --> CommunityHealth["Community health"]
+  Leadership --> EventOps["Events / authorized codes"]
+  Leadership --> MemberSupport["Onboarding / support / escalation"]
+
+  Entry --> Enterprise["Enterprise workspace"]
+  Enterprise --> DatasetCatalog["Dataset catalog"]
+  DatasetCatalog --> DatasetSheet["Dataset sheet / sample request"]
+  Enterprise --> Contracts["Contracts / deliveries / usage attestations"]
+
+  Entry --> Admin["Staff operations"]
+  Admin --> IdentityOps["Identity / support"]
+  Admin --> ContributionOps["Tasks / validation / appeals"]
+  Admin --> CommunityOps["Roles / events / incidents"]
+  Admin --> FinanceOps["Ledgers / reconciliation / withdrawals"]
+  Admin --> DatasetOps["Registry / release / licensing"]
+  Admin --> SecurityOps["Audit / security / privacy rights"]
+

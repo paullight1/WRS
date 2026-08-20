@@ -1,0 +1,42 @@
+flowchart LR
+  Member[Member client] --> API[WRS API /api/v1]
+  Ops[Validator / leadership / staff clients] --> API
+  Enterprise[Enterprise workspace] --> API
+
+  API --> IAM[Identity + scoped roles]
+  API --> Robot[Robots + entitlements]
+  API --> Learn[Learning]
+  API --> Consent[Consent + privacy]
+  API --> Contrib[Contributions]
+  API --> Validate[Validation + appeals]
+  API --> Dataset[Dataset registry + releases]
+  API --> Community[Community + events]
+  API --> Deploy[Opportunities + deployments]
+  API --> Value[Rewards + finance]
+
+  Contrib --> Objects[(Private object storage)]
+  Contrib --> Validate
+  Consent --> Contrib
+  Validate --> Dataset
+  Dataset --> Delivery[Controlled enterprise delivery]
+
+  IAM --> DB[(PostgreSQL)]
+  Robot --> DB
+  Learn --> DB
+  Consent --> DB
+  Contrib --> DB
+  Validate --> DB
+  Dataset --> DB
+  Community --> DB
+  Deploy --> DB
+  Value --> DB
+
+  Learn --> Outbox[Transactional outbox / workers]
+  Contrib --> Outbox
+  Validate --> Outbox
+  Community --> Outbox
+  Deploy --> Outbox
+  Outbox --> Value
+  Outbox --> Providers[Payments / notifications / telemetry]
+
+  API -. local development only .-> Local[JSON repository]
