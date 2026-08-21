@@ -7,6 +7,7 @@
 - **Services** — `src/services`. Use-case orchestration and interfaces consumed by UI. Services translate domain outcomes into explicit pending/success/failure results.
 - **Infrastructure** — `src/infrastructure`. Provider adapters for database, auth, payments, storage, observability, and external APIs. Secrets remain server-side.
 - **Safety compatibility layer** — `src/lib`. Existing production-hardening utilities remain here while they are gradually moved behind domain/service interfaces.
+- **Environment configuration** — runtime/build environment validation is centralized in `src/lib/runtimeConfig.js` until the server/provider layer owns it. Production environment values must fail closed when required authoritative services are absent; individual screens must not read raw environment variables to decide sensitive behavior.
 
 ## Dependency direction
 
