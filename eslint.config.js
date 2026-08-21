@@ -5,6 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
 const productionFiles = [
+  'api/**/*.js',
   'src/lib/**/*.{js,mjs}',
   'src/domain/**/*.{js,mjs,ts}',
   'src/services/**/*.{js,mjs,ts}',
