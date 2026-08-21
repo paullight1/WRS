@@ -1,325 +1,276 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
+import { useRobot } from '../components/robot/RobotProvider.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
-import { Badge, Button, Card, GradIcon, Icon, SectionTitle, Toast } from '../components/ui.jsx'
-import { personalities, palettes, robot } from '../data/mock.js'
+import { Badge, Button, Card, Icon, SectionTitle, Toast } from '../components/ui.jsx'
+import StateView from '../components/states/StateView.jsx'
+import { palettes, personalities } from '../data/mock.js'
 import { defaultParts, defaultTuning, modules } from '../data/robotParts.js'
 
-/* Extra palettes beyond the shared mock set, so the colour tab feels alive. */
-const EXTRA_PALETTES = [
+const voices = [
+  { id: 'standard-en', name: 'Standard English', capability: null },
+  { id: 'standard-yo', name: 'Standard Yoruba', capability: null },
+  { id: 'custom-en-yo', name: 'Custom EN/YO', capability: 'voice.custom' },
+]
+
+const extraPalettes = [
   { name: 'Solar Flare', colors: ['#ffa63d', '#e0611a', '#2b1405'], state: 'Owned' },
   { name: 'Verdant Core', colors: ['#4ade80', '#15803d', '#08160e'], state: 'Owned' },
 ]
 
-const CATEGORIES = [
-  { key: 'Parts', icon: 'settings_input_component', from: '#57c9ff', to: '#1f6fd0' },
-  { key: 'Colors', icon: 'palette', from: '#ff5f9e', to: '#c62368' },
-  { key: 'Voice', icon: 'record_voice_over', from: '#0fd6b0', to: '#0a7f8c' },
-  { key: 'Traits', icon: 'psychology', from: '#a78bfa', to: '#6d28d9' },
-]
+const tabs = ['Parts', 'Colors', 'Voice', 'Traits']
 
-const VOICES = [
-  { name: 'David — Custom EN/YO', tag: 'Your voice', icon: 'graphic_eq', from: '#0fd6b0', to: '#0a7f8c' },
-  { name: 'Sonora Calm', tag: 'Marketplace', icon: 'spa', from: '#57c9ff', to: '#1f6fd0' },
-  { name: 'Command Bold', tag: 'Owned', icon: 'campaign', from: '#ffa63d', to: '#e0611a' },
-  { name: 'Aria Warm', tag: 'Locked — LVL 32', icon: 'lock', from: '#8e90a2', to: '#4b4f60' },
-]
-
-const SLIDERS = [
-  { key: 'speed', label: 'Processing Speed', color: '#00dbe7' },
-  { key: 'battery', label: 'Battery Optimization', color: '#4ade80' },
-  { key: 'sensor', label: 'Sensor Sensitivity', color: '#ff5f9e' },
-]
+function initialConfiguration(configuration) {
+  return {
+    palette: configuration?.palette || 'Oceania Flow',
+    parts: configuration?.parts || defaultParts,
+    personality: configuration?.personality || 'Logical',
+    tuning: configuration?.tuning || defaultTuning,
+    voiceProfileId: configuration?.voiceProfileId || 'standard-en',
+  }
+}
 
 export default function Customize() {
-  const [cat, setCat] = useState('Parts')
-  const [attrs, setAttrs] = useState(defaultTuning)
-  const [pers, setPers] = useState(robot.personality)
-  const [palette, setPalette] = useState('Oceania Flow')
-  const [parts, setParts] = useState(defaultParts)
-  const [module, setModule] = useState('head')
-  const [voice, setVoice] = useState(robot.voiceProfile)
-  const [saved, setSaved] = useState(false)
-  const [grabbed, setGrabbed] = useState(false)
+  const robotState = useRobot()
+  const [tab, setTab] = useState('Parts')
+  const [draft, setDraft] = useState(() => initialConfiguration(robotState.configuration))
+  const [activeModule, setActiveModule] = useState('head')
+  const [message, setMessage] = useState('')
+  const [toast, setToast] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  const allPalettes = [...palettes, ...EXTRA_PALETTES]
+  useEffect(() => {
+    if (robotState.configuration) setDraft(initialConfiguration(robotState.configuration))
+  }, [robotState.configuration])
 
-  /* What the 3D robot renders. Everything the user touches feeds this object. */
-  const config = { palette, parts, personality: pers, tuning: attrs }
+  const allPalettes = useMemo(() => [...palettes, ...extraPalettes], [])
+  const robotName = robotState.robot?.name || 'Robot'
 
-  const activeModule = modules.find((m) => m.key === module)
-  const optionName = (m) => m.options.find((o) => o.id === parts[m.key])?.name
+  if (robotState.loading) {
+    return <AppShell title="Customize Robot" back avatar={false}><StateView kind="loading" title="Loading robot configuration" desc="Reading the latest confirmed configuration." /></AppShell>
+  }
 
-  const save = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2200)
+  if (!robotState.robot) {
+    return (
+      <AppShell title="Customize Robot" back avatar={false}>
+        <StateView
+          kind="locked"
+          title={robotState.isDemo ? 'Create the demo robot first' : 'Authoritative robot state is unavailable'}
+          desc={robotState.error || 'Complete onboarding before changing robot configuration.'}
+          action={<Button to="/onboarding">Open onboarding</Button>}
+        />
+      </AppShell>
+    )
+  }
+
+  const setPart = (key, value) => setDraft((current) => ({ ...current, parts: { ...current.parts, [key]: value } }))
+  const setTuning = (key, value) => setDraft((current) => ({ ...current, tuning: { ...current.tuning, [key]: value } }))
+
+  const saveRobot = async () => {
+    setSaving(true)
+    setMessage('')
+    try {
+      const result = await robotState.saveRobotConfiguration(draft)
+      if (result.status === 'saved') {
+        setDraft(initialConfiguration(result.configuration))
+        setToast(robotState.isDemo ? 'Demo configuration stored on this device' : 'Configuration confirmed by robot service')
+        setTimeout(() => setToast(''), 2400)
+        return
+      }
+      if (result.status === 'conflict') {
+        setDraft(initialConfiguration(result.current))
+        setMessage('This robot changed elsewhere. The latest server configuration has been loaded; review it before saving again.')
+        return
+      }
+      if (result.status === 'capability-locked') {
+        setMessage(`Your active package does not include ${result.capability}. The server rejected the change.`)
+        return
+      }
+      setMessage('This account is not authorized to modify that robot.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Configuration could not be confirmed. Your previous state was restored.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <AppShell title="Customize Robot" subtitle={`${robot.name} · ${robot.unit}`} back avatar={false}>
-      {/* -------------------------------------------------------- viewport */}
+    <AppShell
+      title="Customize Robot"
+      subtitle={`${robotName}${robotState.isDemo ? ' · demo state' : ' · authoritative state'}`}
+      back
+      avatar={false}
+    >
       <section>
-        <Card className="relative flex flex-col items-center overflow-hidden p-card-padding">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-x-8 top-6 h-[2px] animate-scan bg-tertiary/40" />
+        <Card className="relative overflow-hidden p-card-padding">
+          <Robot3D
+            fill
+            size={360}
+            config={{
+              palette: draft.palette,
+              parts: draft.parts,
+              personality: draft.personality,
+              tuning: draft.tuning,
+            }}
+            highlight={tab === 'Parts' ? activeModule : null}
+            interactive
+            label={`${robotName}, unsaved configuration preview`}
+          />
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <Badge t="primary">{draft.personality}</Badge>
+            <Badge t="tertiary">{draft.palette}</Badge>
+            <Badge t="outline">v{robotState.configuration?.version || 1}</Badge>
           </div>
-
-          <div className="w-full" onPointerDown={() => setGrabbed(true)}>
-            <Robot3D
-              fill
-              size={380}
-              config={config}
-              highlight={cat === 'Parts' ? module : null}
-              interactive
-              className="relative"
-              label={`${robot.name}, live preview`}
-            />
-          </div>
-
-          <p
-            className={`relative -mt-2 flex items-center gap-1.5 text-label-sm text-outline transition-opacity duration-slow ${
-              grabbed ? 'opacity-0' : 'opacity-100'
-            }`}
-          >
-            <Icon name="360" className="text-[16px]" />
-            Drag to rotate
+          <p className="mt-3 text-center text-label-sm text-outline">
+            Preview changes are local until Save Robot is confirmed by the robot service.
           </p>
-
-          <div className="relative mt-3 flex flex-wrap justify-center gap-2">
-            <Badge t="primary">{pers}</Badge>
-            <Badge t="tertiary">{palette}</Badge>
-            <Badge t="outline">{activeModule ? optionName(activeModule) : ''}</Badge>
-          </div>
         </Card>
       </section>
 
-      {/* ----------------------------------------------------- category bar */}
       <div className="grid grid-cols-4 gap-2">
-        {CATEGORIES.map((c) => {
-          const active = cat === c.key
-          return (
-            <button
-              key={c.key}
-              onClick={() => setCat(c.key)}
-              className={`surface flex flex-col items-center gap-2 rounded-2xl px-2 py-3 transition-all active:scale-[.97] ${
-                active ? 'border-white/30 bg-white/[.06]' : 'hover:border-white/20'
-              }`}
-            >
-              <GradIcon
-                icon={c.icon}
-                from={c.from}
-                to={c.to}
-                size={38}
-                radius={12}
-                className={active ? '' : 'opacity-70 grayscale-[.35]'}
-              />
-              <span className={`text-[11px] ${active ? 'text-on-surface' : 'text-outline'}`}>{c.key}</span>
-            </button>
-          )
-        })}
+        {tabs.map((item) => (
+          <button
+            type="button"
+            key={item}
+            onClick={() => setTab(item)}
+            className={`surface rounded-xl px-2 py-3 text-label-sm transition-colors ${tab === item ? 'border-tertiary/50 bg-tertiary/10 text-on-surface' : 'text-outline'}`}
+          >
+            {item}
+          </button>
+        ))}
       </div>
 
-      {/* -------------------------------------------------------------- parts */}
-      {cat === 'Parts' && (
+      {tab === 'Parts' && (
         <>
           <section>
-            <SectionTitle action={`${modules.length} modules`}>Robot parts</SectionTitle>
+            <SectionTitle>Robot parts</SectionTitle>
             <div className="space-y-2">
-              {modules.map((m) => {
-                const active = module === m.key
-                return (
-                  <div
-                    key={m.key}
-                    className={`surface rounded-2xl transition-all ${
-                      active ? 'border-tertiary/50 bg-tertiary/[.06]' : 'hover:border-white/25'
-                    }`}
+              {modules.map((module) => (
+                <Card key={module.key} className="p-3.5">
+                  <button
+                    type="button"
+                    onClick={() => setActiveModule(module.key)}
+                    className="flex w-full items-center justify-between gap-3 text-left"
                   >
-                    <button
-                      onClick={() => setModule(m.key)}
-                      aria-expanded={active}
-                      className="flex w-full items-center gap-3.5 p-3.5 text-left transition-transform active:scale-[.99]"
-                    >
-                      <GradIcon icon={m.icon} from={m.from} to={m.to} size={44} radius={14} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-body-md font-medium text-on-surface">{m.name}</span>
-                        <span className="block truncate text-label-sm text-outline">{optionName(m)}</span>
-                      </span>
-                      <Icon
-                        name={active ? 'expand_less' : 'chevron_right'}
-                        className={active ? 'text-tertiary' : 'text-outline'}
-                      />
-                    </button>
-
-                    {/* Variants rebuild the model as you tap, so the choice is
-                        never abstract — you see the part before you commit. */}
-                    {active && (
-                      <div className="flex gap-2 overflow-x-auto px-3.5 pb-3.5">
-                        {m.options.map((o) => {
-                          const on = parts[m.key] === o.id
-                          return (
-                            <button
-                              key={o.id}
-                              onClick={() => setParts({ ...parts, [m.key]: o.id })}
-                              aria-pressed={on}
-                              className={`min-w-[7.5rem] flex-1 rounded-xl border p-2.5 text-left transition-colors duration-fast ${
-                                on
-                                  ? 'border-tertiary/60 bg-tertiary/12'
-                                  : 'border-white/12 bg-white/[.03] hover:border-white/25'
-                              }`}
-                            >
-                              <span className={`block truncate text-label-md ${on ? 'text-tertiary' : 'text-on-surface'}`}>
-                                {o.name}
-                              </span>
-                              <span className="mt-0.5 block truncate text-label-sm text-outline">{o.desc}</span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+                    <span className="text-body-md text-on-surface">{module.name}</span>
+                    <Icon name={activeModule === module.key ? 'expand_less' : 'expand_more'} className="text-outline" />
+                  </button>
+                  {activeModule === module.key && (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      {module.options.map((option) => {
+                        const active = draft.parts[module.key] === option.id
+                        return (
+                          <button
+                            type="button"
+                            key={option.id}
+                            onClick={() => setPart(module.key, option.id)}
+                            className={`rounded-xl border p-3 text-left ${active ? 'border-tertiary/60 bg-tertiary/10' : 'border-white/10 bg-white/[.02]'}`}
+                          >
+                            <span className="block text-label-md text-on-surface">{option.name}</span>
+                            <span className="mt-1 block text-label-sm text-outline">{option.desc}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </Card>
+              ))}
             </div>
           </section>
 
           <section>
             <SectionTitle>Performance tuning</SectionTitle>
             <Card className="space-y-5 p-card-padding">
-              {SLIDERS.map((s) => (
-                <div key={s.key}>
-                  <div className="mb-2 flex justify-between text-label-sm">
-                    <span className="text-on-surface-variant">{s.label}</span>
-                    <span style={{ color: s.color }}>{attrs[s.key]}%</span>
-                  </div>
+              {[
+                ['speed', 'Processing Speed'],
+                ['battery', 'Battery Optimization'],
+                ['sensor', 'Sensor Sensitivity'],
+              ].map(([key, label]) => (
+                <label key={key} className="block">
+                  <span className="mb-2 flex justify-between text-label-sm text-on-surface-variant">
+                    <span>{label}</span><span>{draft.tuning[key]}%</span>
+                  </span>
                   <input
                     type="range"
                     min="0"
                     max="100"
-                    value={attrs[s.key]}
-                    onChange={(e) => setAttrs({ ...attrs, [s.key]: +e.target.value })}
-                    className="range-wrs"
-                    style={{ accentColor: s.color }}
+                    value={draft.tuning[key]}
+                    onChange={(event) => setTuning(key, Number(event.target.value))}
+                    className="range-wrs w-full"
                   />
-                </div>
+                </label>
               ))}
+              <p className="text-label-sm text-outline">Tuning above standard limits requires the corresponding active package capability and is revalidated server-side.</p>
             </Card>
           </section>
         </>
       )}
 
-      {/* ------------------------------------------------------------ colours */}
-      {cat === 'Colors' && (
+      {tab === 'Colors' && (
         <section>
-          <SectionTitle action={`${allPalettes.length} palettes`}>Colour palettes</SectionTitle>
+          <SectionTitle>Colour palettes</SectionTitle>
           <div className="grid gap-2 sm:grid-cols-2">
-            {allPalettes.map((p) => {
-              const locked = p.state.startsWith('Locked')
-              const active = palette === p.name
-              return (
-                <button
-                  key={p.name}
-                  disabled={locked}
-                  onClick={() => setPalette(p.name)}
-                  className={`surface flex w-full items-center gap-4 rounded-2xl p-3.5 text-left transition-all active:scale-[.99] ${
-                    active ? 'border-tertiary/50 bg-tertiary/[.06]' : 'hover:border-white/25'
-                  } ${locked ? 'opacity-45' : ''}`}
-                >
-                  <span className="flex -space-x-2.5">
-                    {p.colors.map((c) => (
-                      <span
-                        key={c}
-                        className="h-9 w-9 rounded-full border-2 border-background"
-                        style={{ background: c, boxShadow: `0 4px 14px -4px ${c}` }}
-                      />
-                    ))}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-body-md font-medium text-on-surface">{p.name}</span>
-                    <span className={`block text-label-sm ${active ? 'text-tertiary' : 'text-outline'}`}>
-                      {active ? 'Applied' : p.state}
-                    </span>
-                  </span>
-                  {locked && <Icon name="lock" className="text-[18px] text-outline" />}
-                </button>
-              )
-            })}
+            {allPalettes.map((palette) => (
+              <button
+                type="button"
+                key={palette.name}
+                onClick={() => setDraft((current) => ({ ...current, palette: palette.name }))}
+                className={`surface flex items-center gap-3 rounded-2xl p-4 text-left ${draft.palette === palette.name ? 'border-tertiary/50 bg-tertiary/5' : ''}`}
+              >
+                <span className="flex -space-x-2">
+                  {palette.colors.map((color) => <span key={color} className="h-8 w-8 rounded-full border-2 border-background" style={{ background: color }} />)}
+                </span>
+                <span className="text-body-md text-on-surface">{palette.name}</span>
+              </button>
+            ))}
           </div>
         </section>
       )}
 
-      {/* -------------------------------------------------------------- voice */}
-      {cat === 'Voice' && (
-        <>
-          <section>
-            <SectionTitle action="Trained">Voice profile</SectionTitle>
-            <div className="space-y-2">
-              {VOICES.map((v) => {
-                const locked = v.tag.startsWith('Locked')
-                const active = voice === v.name
-                return (
-                  <button
-                    key={v.name}
-                    disabled={locked}
-                    onClick={() => setVoice(v.name)}
-                    className={`surface flex w-full items-center gap-3.5 rounded-2xl p-3.5 text-left transition-all active:scale-[.99] ${
-                      active ? 'border-tertiary/50 bg-tertiary/[.06]' : 'hover:border-white/25'
-                    } ${locked ? 'opacity-45' : ''}`}
-                  >
-                    <GradIcon icon={v.icon} from={v.from} to={v.to} size={44} radius={14} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-body-md font-medium text-on-surface">{v.name}</span>
-                      <span className="block truncate text-label-sm text-outline">{v.tag}</span>
-                    </span>
-                    <Icon name={active ? 'volume_up' : 'play_circle'} className={active ? 'text-tertiary' : 'text-outline'} />
-                  </button>
-                )
-              })}
-            </div>
-          </section>
-
-          <Button to="/training/voice" variant="tonal" full icon="mic">
-            Record More Voice Data
-          </Button>
-        </>
+      {tab === 'Voice' && (
+        <section>
+          <SectionTitle>Voice profile</SectionTitle>
+          <div className="space-y-2">
+            {voices.map((voice) => (
+              <button
+                type="button"
+                key={voice.id}
+                onClick={() => setDraft((current) => ({ ...current, voiceProfileId: voice.id }))}
+                className={`surface flex w-full items-center justify-between gap-3 rounded-2xl p-4 text-left ${draft.voiceProfileId === voice.id ? 'border-tertiary/50 bg-tertiary/5' : ''}`}
+              >
+                <span>
+                  <span className="block text-body-md text-on-surface">{voice.name}</span>
+                  <span className="block text-label-sm text-outline">{voice.capability ? `Requires ${voice.capability}` : 'Standard capability'}</span>
+                </span>
+                <Icon name={draft.voiceProfileId === voice.id ? 'check_circle' : 'radio_button_unchecked'} className="text-tertiary" />
+              </button>
+            ))}
+          </div>
+        </section>
       )}
 
-      {/* ------------------------------------------------------------- traits */}
-      {cat === 'Traits' && (
+      {tab === 'Traits' && (
         <section>
           <SectionTitle>Personality</SectionTitle>
           <div className="grid grid-cols-2 gap-2">
-            {personalities.map((p) => {
-              const active = pers === p.name
-              return (
-                <button
-                  key={p.name}
-                  onClick={() => setPers(p.name)}
-                  className={`surface flex flex-col items-center gap-2 rounded-2xl px-3 py-4 transition-all active:scale-[.98] ${
-                    active ? 'border-primary/60 bg-primary-container/20' : 'hover:border-white/25'
-                  }`}
-                >
-                  <Icon name={p.icon} className={`text-[26px] ${active ? 'text-primary' : 'text-outline'}`} fill={active} />
-                  <span className={`text-label-md ${active ? 'text-on-surface' : 'text-on-surface-variant'}`}>
-                    {p.name}
-                  </span>
-                </button>
-              )
-            })}
+            {personalities.map((personality) => (
+              <button
+                type="button"
+                key={personality.name}
+                onClick={() => setDraft((current) => ({ ...current, personality: personality.name }))}
+                className={`surface rounded-2xl p-4 text-center ${draft.personality === personality.name ? 'border-primary/60 bg-primary-container/20' : ''}`}
+              >
+                <Icon name={personality.icon} className="mx-auto text-[26px] text-primary" />
+                <span className="mt-2 block text-label-md text-on-surface">{personality.name}</span>
+              </button>
+            ))}
           </div>
         </section>
       )}
 
-      {/* ------------------------------------------------------------ actions */}
-      <div className="grid gap-2 sm:grid-cols-2">
-        <Button variant="ghost" full icon="visibility">
-          Preview Changes
-        </Button>
-        <Button full icon="save" onClick={save}>
-          Save Robot
-        </Button>
-      </div>
-
-      <Toast show={saved} message="Robot configuration saved" />
+      {message && <p role="alert" className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error">{message}</p>}
+      <Button full size="lg" icon="save" loading={saving} onClick={saveRobot}>Save Robot</Button>
+      <Toast show={!!toast} message={toast} />
     </AppShell>
   )
 }
