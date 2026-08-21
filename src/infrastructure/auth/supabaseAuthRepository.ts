@@ -29,22 +29,16 @@ export class SupabaseAuthRepository implements AuthRepository {
   }
 
   registerPendingAccount(input: NormalizedRegistration) {
-    return this.port.call<{ account: AccountSummary; challenges: VerificationChallenge[] }>(
-      'auth.registerAtomic',
-      { input },
-    )
+    return this.port.call<{ account: AccountSummary; challenges: VerificationChallenge[] }>('auth.registerAtomic', {
+      input,
+    })
   }
 
   issueVerification(userId: string, kind: VerificationKind) {
     return this.port.call<VerificationChallenge>('auth.issueVerification', { userId, kind })
   }
 
-  verifyChallenge(
-    userId: string,
-    challengeId: string,
-    kind: VerificationKind,
-    code: string,
-  ) {
+  verifyChallenge(userId: string, challengeId: string, kind: VerificationKind, code: string) {
     return this.port.call<AuthSession | null>('auth.verifyChallenge', {
       userId,
       challengeId,
@@ -107,11 +101,7 @@ export class SupabaseAuthRepository implements AuthRepository {
     return this.port.call<AuthSession | null>('auth.redeemRecoveryCode', { sessionId, code })
   }
 
-  recordSecurityEvent(
-    userId: string | null,
-    event: string,
-    metadata: Record<string, unknown> = {},
-  ) {
+  recordSecurityEvent(userId: string | null, event: string, metadata: Record<string, unknown> = {}) {
     return this.port.call<void>('auth.securityEvent', { userId, event, metadata })
   }
 }

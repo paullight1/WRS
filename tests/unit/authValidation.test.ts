@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeEmail, normalizePhone, passwordIssues, validateOtp, validateRegistration } from '../../src/domain/auth/validation'
+import {
+  normalizeEmail,
+  normalizePhone,
+  passwordIssues,
+  validateOtp,
+  validateRegistration,
+} from '../../src/domain/auth/validation'
 
 describe('auth validation', () => {
   it('normalizes identifiers deterministically', () => {

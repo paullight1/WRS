@@ -36,11 +36,7 @@ export interface AuthRepository {
   verifyMfa(sessionId: string, enrollmentId: string, code: string): Promise<AuthSession | null>
   disableMfa(sessionId: string, code: string): Promise<boolean>
   redeemRecoveryCode(sessionId: string, code: string): Promise<AuthSession | null>
-  recordSecurityEvent(
-    userId: string | null,
-    event: string,
-    metadata?: Record<string, unknown>,
-  ): Promise<void>
+  recordSecurityEvent(userId: string | null, event: string, metadata?: Record<string, unknown>): Promise<void>
 }
 
 export class AuthService {
@@ -76,10 +72,7 @@ export class AuthService {
     }
   }
 
-  async resendVerification(
-    userId: string,
-    kind: VerificationKind,
-  ): Promise<AuthResult<VerificationChallenge>> {
+  async resendVerification(userId: string, kind: VerificationKind): Promise<AuthResult<VerificationChallenge>> {
     if (!(await this.repository.rateLimit(`verification-resend:${kind}`, userId))) {
       return { ok: false, code: 'rate-limited', message: 'Please wait before requesting another code.' }
     }
@@ -118,11 +111,7 @@ export class AuthService {
     return { ok: true, data: session }
   }
 
-  async login(
-    identifier: string,
-    password: string,
-    rememberMe = false,
-  ): Promise<AuthResult<AuthSession>> {
+  async login(identifier: string, password: string, rememberMe = false): Promise<AuthResult<AuthSession>> {
     if (!(await this.repository.rateLimit('login', identifier.trim().toLowerCase()))) {
       return { ok: false, code: 'rate-limited', message: 'Try again later.' }
     }
@@ -190,11 +179,7 @@ export class AuthService {
     return this.repository.enrollMfa(sessionId)
   }
 
-  async verifyMfa(
-    sessionId: string,
-    enrollmentId: string,
-    code: string,
-  ): Promise<AuthResult<AuthSession>> {
+  async verifyMfa(sessionId: string, enrollmentId: string, code: string): Promise<AuthResult<AuthSession>> {
     if (!validateOtp(code)) {
       return { ok: false, code: 'invalid-factor', message: 'Enter a valid factor.' }
     }

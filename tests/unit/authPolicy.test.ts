@@ -21,13 +21,18 @@ const now = new Date('2026-08-21T06:00:00.000Z')
 describe('authorization policy', () => {
   it('fails closed for missing, expired and unverified sessions', () => {
     expect(authorizeSession(null, 'authenticated', now)).toEqual({ allowed: false, reason: 'unauthenticated' })
-    expect(authorizeSession(session({ expiresAt: '2026-08-21T05:00:00.000Z' }), 'authenticated', now).reason).toBe('expired')
+    expect(authorizeSession(session({ expiresAt: '2026-08-21T05:00:00.000Z' }), 'authenticated', now).reason).toBe(
+      'expired',
+    )
     expect(authorizeSession(session({ phoneVerified: false }), 'verified', now).reason).toBe('unverified')
   })
 
   it('does not allow ID substitution across owned resources', () => {
     expect(authorizeOwnedResource(session(), 'verified', 'user-a', now).allowed).toBe(true)
-    expect(authorizeOwnedResource(session(), 'verified', 'user-b', now)).toEqual({ allowed: false, reason: 'forbidden' })
+    expect(authorizeOwnedResource(session(), 'verified', 'user-b', now)).toEqual({
+      allowed: false,
+      reason: 'forbidden',
+    })
   })
 
   it('enforces KYC/admin policy independently of UI visibility', () => {
