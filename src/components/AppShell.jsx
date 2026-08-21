@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider.jsx'
 import { Icon } from './ui.jsx'
@@ -307,6 +307,7 @@ export default function AppShell({
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
+  const closeDrawer = useCallback(() => setDrawerOpen(false), [])
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
@@ -314,7 +315,7 @@ export default function AppShell({
 
   return (
     <div className="min-h-screen">
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <Drawer open={drawerOpen} onClose={closeDrawer} />
       <div className="lg:pl-[288px]">
         <TopBar
           title={title}
