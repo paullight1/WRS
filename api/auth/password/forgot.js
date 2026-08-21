@@ -1,6 +1,6 @@
-import { enforceRateLimit, loadProfileByIdentifier } from '../../_lib/auth.js'
-import { assertSameOrigin, functionHandler, json, readJson, requireMethod } from '../../_lib/http.js'
-import { authPublic } from '../../_lib/supabase.js'
+import { enforceRateLimit, loadProfileByIdentifier } from '../../../server/auth.js'
+import { assertSameOrigin, functionHandler, json, readJson, requireMethod } from '../../../server/http.js'
+import { authPublic } from '../../../server/supabase.js'
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
