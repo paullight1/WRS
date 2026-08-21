@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { sha256 } from './crypto.js'
 import { HttpError } from './http.js'
 import { recordSecurityEvent } from './auth.js'
-import { buildAppSession, sessionCookies } from './session.js'
+import { buildAppSession, recordSessionMetadata, sessionCookies } from './session.js'
 import { authPublic, authSecret, serviceRest } from './supabase.js'
 
 function recoveryCodes(count = 8) {
@@ -27,9 +27,7 @@ async function storeFactor(userId, providerFactorId, status = 'pending') {
 }
 
 async function loadFactor(userId, factorId = null) {
-  const filter = factorId
-    ? `provider_factor_id=eq.${encodeURIComponent(factorId)}`
-    : 'status=eq.verified'
+  const filter = factorId ? `provider_factor_id=eq.${encodeURIComponent(factorId)}` : 'status=eq.verified'
   const { data } = await serviceRest(
     `/rest/v1/user_mfa_factors?user_id=eq.${encodeURIComponent(userId)}&${filter}&select=*&order=created_at.desc&limit=1`,
   )
@@ -94,13 +92,17 @@ export async function verifyMfa(resolved, enrollmentId, code) {
     await recordSecurityEvent(resolved.user.id, 'mfa.verification.failed').catch(() => undefined)
     throw new HttpError(400, 'Factor verification failed.', 'invalid-factor')
   }
-  await serviceRest(`/rest/v1/user_mfa_factors?user_id=eq.${encodeURIComponent(resolved.user.id)}&provider_factor_id=eq.${encodeURIComponent(enrollmentId)}`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
-    body: { status: 'verified', verified_at: new Date().toISOString(), disabled_at: null },
-  })
+  await serviceRest(
+    `/rest/v1/user_mfa_factors?user_id=eq.${encodeURIComponent(resolved.user.id)}&provider_factor_id=eq.${encodeURIComponent(enrollmentId)}`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: { status: 'verified', verified_at: new Date().toISOString(), disabled_at: null },
+    },
+  )
   const user = tokenResponse.user || resolved.user
   const accessToken = tokenResponse.access_token || resolved.accessToken
+  if (tokenResponse.access_token) await recordSessionMetadata(resolved.user.id, accessToken, resolved.rememberMe)
   const session = await buildAppSession(user, accessToken)
   await recordSecurityEvent(resolved.user.id, 'mfa.enabled')
   return {
@@ -148,20 +150,27 @@ export async function disableMfa(resolved, code) {
   } else {
     const recovered = await consumeRecoveryCode(resolved.user.id, code)
     if (!recovered) throw new HttpError(400, 'Current factor or recovery code is invalid.', 'invalid-factor')
-    await authSecret(`/auth/v1/admin/users/${encodeURIComponent(resolved.user.id)}/factors/${encodeURIComponent(factor.provider_factor_id)}`, {
-      method: 'DELETE',
-      errorMessage: 'Authenticator could not be disabled.',
-    })
+    await authSecret(
+      `/auth/v1/admin/users/${encodeURIComponent(resolved.user.id)}/factors/${encodeURIComponent(factor.provider_factor_id)}`,
+      {
+        method: 'DELETE',
+        errorMessage: 'Authenticator could not be disabled.',
+      },
+    )
   }
 
-  await serviceRest(`/rest/v1/user_mfa_factors?user_id=eq.${encodeURIComponent(resolved.user.id)}&provider_factor_id=eq.${encodeURIComponent(factor.provider_factor_id)}`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
-    body: { status: 'disabled', disabled_at: new Date().toISOString() },
-  })
+  await serviceRest(
+    `/rest/v1/user_mfa_factors?user_id=eq.${encodeURIComponent(resolved.user.id)}&provider_factor_id=eq.${encodeURIComponent(factor.provider_factor_id)}`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: { status: 'disabled', disabled_at: new Date().toISOString() },
+    },
+  )
   await invalidateRecoveryCodes(resolved.user.id)
   const accessToken = tokenResponse?.access_token || resolved.accessToken
   const user = tokenResponse?.user || resolved.user
+  if (tokenResponse?.access_token) await recordSessionMetadata(resolved.user.id, accessToken, resolved.rememberMe)
   const session = await buildAppSession(user, accessToken)
   await recordSecurityEvent(resolved.user.id, 'mfa.disabled')
   return {
