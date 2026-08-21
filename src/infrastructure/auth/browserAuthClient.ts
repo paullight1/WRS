@@ -27,6 +27,11 @@ export const browserAuthClient = {
       body: JSON.stringify({ identifier, password, rememberMe }),
     }),
   logout: () => request<Json>('/api/auth/logout', { method: 'POST', body: '{}' }),
+  startVerification: () =>
+    request<{ userId: string; challenges: VerificationChallengeSummary[] }>('/api/auth/verification/start', {
+      method: 'POST',
+      body: '{}',
+    }),
   verify: (userId: string, challengeId: string, kind: VerificationKind, code: string) =>
     request<{ session: AuthSession }>('/api/auth/verify', {
       method: 'POST',
