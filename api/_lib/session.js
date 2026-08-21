@@ -4,8 +4,9 @@ import { authPublic, serviceRest } from './supabase.js'
 const ACCESS_COOKIE = 'wrs_at'
 const REFRESH_COOKIE = 'wrs_rt'
 const REMEMBER_COOKIE = 'wrs_rm'
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-function decodeJwt(jwt) {
+export function decodeAccessClaims(jwt) {
   try {
     const payload = String(jwt).split('.')[1]
     return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
@@ -66,11 +67,40 @@ async function hasVerifiedMfa(userId) {
   return Array.isArray(data) && data.length > 0
 }
 
+export async function recordSessionMetadata(userId, accessToken, rememberMe = false) {
+  const claims = decodeAccessClaims(accessToken)
+  const sessionId = String(claims.session_id || '')
+  if (!UUID.test(sessionId)) return
+  const expires = Number(claims.exp || 0)
+  const expiresAt = expires ? new Date(expires * 1000) : new Date(Date.now() + 3600_000)
+  await serviceRest('/rest/v1/user_sessions?on_conflict=auth_session_id', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: {
+      user_id: userId,
+      auth_session_id: sessionId,
+      remember_me: rememberMe,
+      expires_at: expiresAt.toISOString(),
+      revoked_at: null,
+    },
+  })
+}
+
+export async function revokeSessionMetadata(accessToken) {
+  const sessionId = String(decodeAccessClaims(accessToken).session_id || '')
+  if (!UUID.test(sessionId)) return
+  await serviceRest(`/rest/v1/user_sessions?auth_session_id=eq.${encodeURIComponent(sessionId)}`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=minimal' },
+    body: { revoked_at: new Date().toISOString() },
+  })
+}
+
 export async function buildAppSession(user, accessToken) {
   if (!user?.id) return null
   const [profile, roles, mfaEnabled] = await Promise.all([loadProfile(user.id), loadRoles(user.id), hasVerifiedMfa(user.id)])
   if (!profile) return null
-  const claims = decodeJwt(accessToken)
+  const claims = decodeAccessClaims(accessToken)
   const issuedAt = Number(claims.iat || 0)
   const expiresAt = Number(claims.exp || 0)
   return {
@@ -120,7 +150,10 @@ export async function resolveSession(request) {
       })
       accessToken = data.access_token
       user = data.user || (await validateAccess(accessToken))
-      if (user) rotatedCookies = sessionCookies(data, rememberMe)
+      if (user) {
+        rotatedCookies = sessionCookies(data, rememberMe)
+        await recordSessionMetadata(user.id, accessToken, rememberMe)
+      }
     } catch {
       return { session: null, user: null, accessToken: '', cookies: clearSessionCookies() }
     }
