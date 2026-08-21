@@ -3,7 +3,7 @@ import { sha256 } from './crypto.js'
 import { HttpError } from './http.js'
 import { recordSecurityEvent } from './auth.js'
 import { buildAppSession, recordSessionMetadata, sessionCookies } from './session.js'
-import { authPublic, authSecret, serviceRest } from './supabase.js'
+import { authPublic, authSecret, serviceRest, serviceRpc } from './supabase.js'
 
 const PENDING_ENROLLMENT_TTL_MS = 10 * 60_000
 
@@ -156,18 +156,11 @@ export async function verifyMfa(resolved, enrollmentId, code) {
 }
 
 async function consumeRecoveryCode(userId, code) {
-  const hash = sha256(String(code || '').trim().toUpperCase())
-  const { data } = await serviceRest(
-    `/rest/v1/mfa_recovery_codes?user_id=eq.${encodeURIComponent(userId)}&code_hash=eq.${encodeURIComponent(hash)}&used_at=is.null&select=id&limit=1`,
-  )
-  const row = Array.isArray(data) ? data[0] || null : null
-  if (!row) return false
-  await serviceRest(`/rest/v1/mfa_recovery_codes?id=eq.${encodeURIComponent(row.id)}&used_at=is.null`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
-    body: { used_at: new Date().toISOString() },
+  const { data } = await serviceRpc('wrs_consume_mfa_recovery_code', {
+    p_user_id: userId,
+    p_code_hash: sha256(String(code || '').trim().toUpperCase()),
   })
-  return true
+  return data === true
 }
 
 export async function disableMfa(resolved, code) {
