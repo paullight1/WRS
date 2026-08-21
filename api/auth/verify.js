@@ -1,11 +1,11 @@
-import { enforceRateLimit, loadProfile, verifyChallenge } from '../_lib/auth.js'
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../_lib/http.js'
+import { enforceRateLimit, loadProfile, verifyChallenge } from '../../server/auth.js'
+import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
 import {
   buildAppSession,
   recordSessionMetadata,
   revokeAllUserSessionMetadata,
   sessionCookies,
-} from '../_lib/session.js'
+} from '../../server/session.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
