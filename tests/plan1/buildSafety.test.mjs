@@ -2,12 +2,13 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 
-const runBuild = (extraEnv = {}) => spawnSync('npm', ['run', 'build'], {
-  cwd: new URL('../..', import.meta.url),
-  env: { ...process.env, ...extraEnv },
-  encoding: 'utf8',
-  timeout: 120000,
-})
+const runBuild = (extraEnv = {}) =>
+  spawnSync('npm', ['run', 'build'], {
+    cwd: new URL('../..', import.meta.url),
+    env: { ...process.env, ...extraEnv },
+    encoding: 'utf8',
+    timeout: 120000,
+  })
 
 test('default demo configuration produces a production bundle', () => {
   const result = runBuild({ VITE_WRS_MODE: 'demo' })

@@ -9,8 +9,29 @@ const exists = (path) => fs.existsSync(new URL(path, root))
 
 const pkg = JSON.parse(read('package.json'))
 
-const REQUIRED_SCRIPTS = ['lint', 'typecheck', 'format:check', 'test', 'test:unit', 'test:integration', 'test:e2e', 'build', 'audit']
-const REQUIRED_DEV_DEPS = ['eslint', 'eslint-plugin-react-hooks', 'eslint-plugin-jsx-a11y', 'globals', 'prettier', 'typescript', 'vitest', '@testing-library/react', '@testing-library/jest-dom', '@playwright/test']
+const REQUIRED_SCRIPTS = [
+  'lint',
+  'typecheck',
+  'format:check',
+  'test',
+  'test:unit',
+  'test:integration',
+  'test:e2e',
+  'build',
+  'audit',
+]
+const REQUIRED_DEV_DEPS = [
+  'eslint',
+  'eslint-plugin-react-hooks',
+  'eslint-plugin-jsx-a11y',
+  'globals',
+  'prettier',
+  'typescript',
+  'vitest',
+  '@testing-library/react',
+  '@testing-library/jest-dom',
+  '@playwright/test',
+]
 
 test('package scripts expose every production quality gate', () => {
   for (const script of REQUIRED_SCRIPTS) assert.ok(pkg.scripts?.[script], `missing npm script: ${script}`)
@@ -22,7 +43,14 @@ test('tooling dependencies are explicit and lockfile-managed', () => {
 })
 
 test('lint, format, typecheck and browser configs exist', () => {
-  for (const path of ['eslint.config.js', '.prettierrc.json', 'tsconfig.json', 'vitest.config.js', 'playwright.config.js']) assert.ok(exists(path), `missing ${path}`)
+  for (const path of [
+    'eslint.config.js',
+    '.prettierrc.json',
+    'tsconfig.json',
+    'vitest.config.js',
+    'playwright.config.js',
+  ])
+    assert.ok(exists(path), `missing ${path}`)
 })
 
 test('incremental legacy baseline policy is documented', () => {

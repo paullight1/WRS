@@ -9,17 +9,22 @@ const SERVICE_ENV = {
   support: 'VITE_WRS_SUPPORT_SERVICE',
 }
 
-const enabled = (value) => ['1', 'true', 'enabled', 'on'].includes(String(value || '').trim().toLowerCase())
+const enabled = (value) =>
+  ['1', 'true', 'enabled', 'on'].includes(
+    String(value || '')
+      .trim()
+      .toLowerCase(),
+  )
 
 export function parseRuntimeConfig(env = {}) {
-  const mode = String(env.VITE_WRS_MODE || 'demo').trim().toLowerCase()
+  const mode = String(env.VITE_WRS_MODE || 'demo')
+    .trim()
+    .toLowerCase()
   if (!MODES.has(mode)) {
     throw new Error(`Invalid VITE_WRS_MODE "${env.VITE_WRS_MODE}". Expected demo, staging, or production.`)
   }
 
-  const services = Object.fromEntries(
-    Object.entries(SERVICE_ENV).map(([name, key]) => [name, enabled(env[key])]),
-  )
+  const services = Object.fromEntries(Object.entries(SERVICE_ENV).map(([name, key]) => [name, enabled(env[key])]))
 
   return Object.freeze({
     mode,
