@@ -1,6 +1,6 @@
 import { enforceRateLimit, verifyChallenge } from '../_lib/auth.js'
 import { appendCookies, assertSameOrigin, functionHandler, json, readJson, requireMethod } from '../_lib/http.js'
-import { buildAppSession, sessionCookies } from '../_lib/session.js'
+import { buildAppSession, recordSessionMetadata, sessionCookies } from '../_lib/session.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
@@ -13,5 +13,6 @@ export default functionHandler(async (request) => {
   await enforceRateLimit(request, `verify:${kind}`, userId, 10, 10 * 60)
   const tokenResponse = await verifyChallenge(userId, kind, challengeId, code)
   const session = await buildAppSession(tokenResponse.user, tokenResponse.access_token)
+  await recordSessionMetadata(userId, tokenResponse.access_token, false)
   return appendCookies(json({ session }), sessionCookies(tokenResponse, false))
 })
