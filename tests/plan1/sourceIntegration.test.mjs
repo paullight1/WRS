@@ -51,6 +51,24 @@ test('active-looking operational screens no longer ship stale 2025 dates', () =>
   }
 })
 
+test('sensitive screens no longer contain unqualified fake-success claims', () => {
+  const paths = [...new Set(guardedScreens.map(([path]) => path)), 'src/screens/PaymentSuccess.jsx']
+  const banned = [
+    'Payment Successful',
+    'Withdrawal requested',
+    'Code accepted — +250 XP applied',
+    'Boost activated',
+    'Task submitted for review',
+    'Deployment request submitted',
+    'Ticket submitted — reference',
+    'Training data submitted for review',
+  ]
+  for (const path of paths) {
+    const source = read(path)
+    for (const phrase of banned) assert.ok(!source.includes(phrase), `${path} still contains unsafe claim: ${phrase}`)
+  }
+})
+
 test('sensitive-action inventory is mirrored in production-readiness documentation', () => {
   const inventory = read('Docs/production-readiness/01-safety-lockdown/SENSITIVE-ACTIONS.md')
   for (const [, action] of guardedScreens) assert.ok(inventory.includes(action), `docs missing ${action}`)
