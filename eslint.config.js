@@ -9,6 +9,10 @@ const productionFiles = [
   'src/domain/**/*.{js,mjs,ts}',
   'src/services/**/*.{js,mjs,ts}',
   'src/infrastructure/**/*.{js,mjs,ts}',
+  'src/components/auth/**/*.{js,jsx}',
+  'src/components/robot/**/*.{js,jsx}',
+  'src/screens/{Login,Register,Verify,ForgotPassword,ResetPassword,SecuritySettings,Onboarding,Customize,RobotPassport,Home,MyRobot,More,Profile,Settings,ActiveDeployment}.jsx',
+  'src/App.jsx',
   'tests/**/*.{js,mjs,jsx,ts,tsx}',
 ]
 
