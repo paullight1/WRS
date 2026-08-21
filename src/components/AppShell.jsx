@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider.jsx'
 import { Icon } from './ui.jsx'
-import { user, robot } from '../data/mock.js'
 import { runtimeConfig } from '../lib/runtimeConfig.js'
 import { demoDataLabel } from '../lib/mockDataPolicy.js'
 
@@ -12,25 +11,27 @@ export function Atmosphere() {
 }
 
 export function UserAvatar({ size = 40, className = '' }) {
-  const initials = user.name.split(' ').map((n) => n[0]).join('')
+  const auth = useAuth()
+  const label = auth.isDemo ? 'DE' : 'WR'
   return (
     <span
       className={`grid shrink-0 place-items-center rounded-full bg-primary-container/35 text-label-md text-white ${className}`}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.34) }}
       aria-hidden="true"
     >
-      {initials}
+      {label}
     </span>
   )
 }
 
 export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
   const navigate = useNavigate()
-  const [scrolled, setScrolled] = useState(false)
+  const [scrolled, setScrolled] = useState(
+    () => typeof window !== 'undefined' && window.scrollY > 4,
+  )
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4)
-    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -43,11 +44,20 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
     >
       <div className="mx-auto flex max-w-[720px] items-center gap-2">
         {back ? (
-          <button onClick={() => navigate(-1)} className="tap -ml-2.5 grid shrink-0 place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06]" aria-label="Go back">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="tap -ml-2.5 grid shrink-0 place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06]"
+            aria-label="Go back"
+          >
             <Icon name="arrow_back" className="text-on-surface" />
           </button>
         ) : avatar ? (
-          <Link to="/profile" className="tap -ml-1 grid shrink-0 place-items-center" aria-label="Your profile">
+          <Link
+            to="/profile"
+            className="tap -ml-1 grid shrink-0 place-items-center"
+            aria-label="Your profile"
+          >
             <UserAvatar size={36} />
           </Link>
         ) : null}
@@ -59,12 +69,20 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
 
         <div className="flex shrink-0 items-center">
           {right}
-          <Link to="/notifications" className="tap relative grid place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06]" aria-label="Notifications, 3 unread">
+          <Link
+            to="/notifications"
+            className="tap grid place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06]"
+            aria-label="Notifications"
+          >
             <Icon name="notifications" className="text-on-surface" />
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-background bg-tertiary" />
           </Link>
           {onMenu && (
-            <button onClick={onMenu} className="tap -mr-2.5 grid place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06] lg:hidden" aria-label="Open menu">
+            <button
+              type="button"
+              onClick={onMenu}
+              className="tap -mr-2.5 grid place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06] lg:hidden"
+              aria-label="Open menu"
+            >
               <Icon name="menu" className="text-on-surface" />
             </button>
           )}
@@ -84,20 +102,33 @@ const bottomNav = [
 
 export function BottomNav() {
   return (
-    <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-nav bg-surface-container-lowest pb-[max(8px,env(safe-area-inset-bottom))] pt-2 lg:hidden">
+    <nav
+      aria-label="Primary"
+      className="fixed inset-x-0 bottom-0 z-nav bg-surface-container-lowest pb-[max(8px,env(safe-area-inset-bottom))] pt-2 lg:hidden"
+    >
       <ul className="mx-auto flex max-w-[560px] items-stretch px-2">
-        {bottomNav.map((it) => (
-          <li key={it.to} className="flex-1">
+        {bottomNav.map((item) => (
+          <li key={item.to} className="flex-1">
             <NavLink
-              to={it.to}
-              className={({ isActive }) => `tap flex w-full flex-col items-center justify-center gap-1 py-0.5 transition-colors duration-fast ${isActive ? 'text-primary' : 'text-outline'}`}
+              to={item.to}
+              className={({ isActive }) =>
+                `tap flex w-full flex-col items-center justify-center gap-1 py-0.5 transition-colors duration-fast ${
+                  isActive ? 'text-primary' : 'text-outline'
+                }`
+              }
             >
               {({ isActive }) => (
                 <>
-                  <span className={`grid h-8 w-16 place-items-center rounded-full transition-colors duration-fast ${isActive ? 'bg-primary-container/30' : ''}`}>
-                    <Icon name={it.icon} fill={isActive} className="text-[22px]" />
+                  <span
+                    className={`grid h-8 w-16 place-items-center rounded-full transition-colors duration-fast ${
+                      isActive ? 'bg-primary-container/30' : ''
+                    }`}
+                  >
+                    <Icon name={item.icon} fill={isActive} className="text-[22px]" />
                   </span>
-                  <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : ''}`}>{it.label}</span>
+                  <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : ''}`}>
+                    {item.label}
+                  </span>
                 </>
               )}
             </NavLink>
@@ -139,14 +170,17 @@ const drawerGroups = [
 ]
 
 export function Drawer({ open, onClose }) {
-  const loc = useLocation()
+  const location = useLocation()
   const navigate = useNavigate()
   const auth = useAuth()
-  useEffect(() => { onClose?.() }, [loc.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!open) return
-    const onKey = (e) => e.key === 'Escape' && onClose?.()
+    queueMicrotask(() => onClose?.())
+  }, [location.pathname, onClose])
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (event) => event.key === 'Escape' && onClose?.()
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
@@ -161,27 +195,61 @@ export function Drawer({ open, onClose }) {
     navigate('/login', { replace: true })
   }
 
+  const accountTitle = auth.isDemo ? 'Demo account' : 'WRS account'
+  const accountId = auth.session?.userId || 'No verified session'
+
   return (
     <>
-      <div onClick={onClose} className={`fixed inset-0 z-scrim bg-black/60 transition-opacity duration-slow lg:hidden ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
-      <aside aria-label="Sections" aria-hidden={!open || undefined} className={`fixed inset-y-0 left-0 z-drawer flex w-[288px] flex-col border-r border-white/8 bg-surface-container-lowest transition-transform duration-slow ease-out lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 z-scrim bg-black/60 transition-opacity duration-slow lg:hidden ${
+          open ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      />
+      <aside
+        aria-label="Sections"
+        aria-hidden={!open || undefined}
+        className={`fixed inset-y-0 left-0 z-drawer flex w-[288px] flex-col border-r border-white/8 bg-surface-container-lowest transition-transform duration-slow ease-out lg:translate-x-0 ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="px-4 pb-4 pt-[max(20px,env(safe-area-inset-top))]">
-          <Link to="/profile" className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors duration-fast hover:bg-white/[.06]">
+          <Link
+            to="/profile"
+            className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors duration-fast hover:bg-white/[.06]"
+          >
             <UserAvatar size={40} />
             <span className="min-w-0">
-              <span className="block truncate text-title text-on-surface">{user.name}</span>
-              <span className="block truncate font-data text-data-sm text-on-surface-variant">{user.wrsId}</span>
+              <span className="block truncate text-title text-on-surface">{accountTitle}</span>
+              <span className="block truncate font-data text-data-sm text-on-surface-variant">
+                {accountId}
+              </span>
             </span>
           </Link>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 pb-4 no-scrollbar">
-          {drawerGroups.map((g) => (
-            <div key={g.label} className="mb-4">
-              <p className="px-4 pb-1.5 text-label-sm text-outline">{g.label}</p>
-              {g.items.map((it) => (
-                <NavLink key={it.to} to={it.to} className={({ isActive }) => `tap flex items-center gap-3 rounded-xl px-4 text-title transition-colors duration-fast ${isActive ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant hover:bg-white/[.06] hover:text-on-surface'}`}>
-                  {({ isActive }) => <><Icon name={it.icon} fill={isActive} className="text-[21px]" /><span>{it.label}</span></>}
+          {drawerGroups.map((group) => (
+            <div key={group.label} className="mb-4">
+              <p className="px-4 pb-1.5 text-label-sm text-outline">{group.label}</p>
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `tap flex items-center gap-3 rounded-xl px-4 text-title transition-colors duration-fast ${
+                      isActive
+                        ? 'bg-primary-container/20 text-primary'
+                        : 'text-on-surface-variant hover:bg-white/[.06] hover:text-on-surface'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon name={item.icon} fill={isActive} className="text-[21px]" />
+                      <span>{item.label}</span>
+                    </>
+                  )}
                 </NavLink>
               ))}
             </div>
@@ -189,10 +257,17 @@ export function Drawer({ open, onClose }) {
         </nav>
 
         <div className="border-t border-white/8 px-2 py-2 pb-[max(8px,env(safe-area-inset-bottom))]">
-          <NavLink to="/settings" className="tap flex items-center gap-3 rounded-xl px-4 text-title text-on-surface-variant transition-colors duration-fast hover:bg-white/[.06]">
+          <NavLink
+            to="/settings"
+            className="tap flex items-center gap-3 rounded-xl px-4 text-title text-on-surface-variant transition-colors duration-fast hover:bg-white/[.06]"
+          >
             <Icon name="settings" className="text-[21px]" /> Settings
           </NavLink>
-          <button type="button" onClick={logout} className="tap flex w-full items-center gap-3 rounded-xl px-4 text-title text-error transition-colors duration-fast hover:bg-error/10">
+          <button
+            type="button"
+            onClick={logout}
+            className="tap flex w-full items-center gap-3 rounded-xl px-4 text-title text-error transition-colors duration-fast hover:bg-error/10"
+          >
             <Icon name="logout" className="text-[21px]" /> Log out
           </button>
         </div>
@@ -204,30 +279,56 @@ export function Drawer({ open, onClose }) {
 function DemoDataBanner() {
   if (!runtimeConfig.isDemo) return null
   return (
-    <div role="status" aria-label="Demo data" className="mb-4 flex items-start gap-3 rounded-xl border border-[#f7c948]/35 bg-[#f7c948]/10 px-4 py-3 text-left">
+    <div
+      role="status"
+      aria-label="Demo data"
+      className="mb-4 flex items-start gap-3 rounded-xl border border-[#f7c948]/35 bg-[#f7c948]/10 px-4 py-3 text-left"
+    >
       <Icon name="science" className="mt-0.5 shrink-0 text-[19px] text-[#f7c948]" />
       <div>
         <p className="text-label-md text-on-surface">{demoDataLabel}</p>
-        <p className="mt-0.5 text-body-sm text-on-surface-variant">Balances, payouts, deployments, rewards, identities and operational records shown in this app are illustrative and are not live account data.</p>
+        <p className="mt-0.5 text-body-sm text-on-surface-variant">
+          Balances, payouts, deployments, rewards and any demo-only records are illustrative and
+          are not live account data.
+        </p>
       </div>
     </div>
   )
 }
 
-export default function AppShell({ title, subtitle, back, right, avatar = true, children, wide = false }) {
+export default function AppShell({
+  title,
+  subtitle,
+  back,
+  right,
+  avatar = true,
+  children,
+  wide = false,
+}) {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const loc = useLocation()
+  const location = useLocation()
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
-  }, [loc.pathname])
+  }, [location.pathname])
 
   return (
     <div className="min-h-screen">
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
       <div className="lg:pl-[288px]">
-        <TopBar title={title} subtitle={subtitle} back={back} right={right} avatar={avatar} onMenu={() => setDrawerOpen(true)} />
-        <main className={`mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`}>
+        <TopBar
+          title={title}
+          subtitle={subtitle}
+          back={back}
+          right={right}
+          avatar={avatar}
+          onMenu={() => setDrawerOpen(true)}
+        />
+        <main
+          className={`mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${
+            wide ? 'max-w-[1080px]' : 'max-w-[720px]'
+          }`}
+        >
           <DemoDataBanner />
           <div className="space-y-7">{children}</div>
         </main>
@@ -236,5 +337,3 @@ export default function AppShell({ title, subtitle, back, right, avatar = true, 
     </div>
   )
 }
-
-export { robot }
