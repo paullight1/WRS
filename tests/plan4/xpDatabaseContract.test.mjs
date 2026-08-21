@@ -2,10 +2,12 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 
-const source = fs.readFileSync(
-  new URL('../../supabase/migrations/20260821042000_plan4_xp_projection_hardening.sql', import.meta.url),
-  'utf8',
-).toLowerCase()
+const source = fs
+  .readFileSync(
+    new URL('../../supabase/migrations/20260821042000_plan4_xp_projection_hardening.sql', import.meta.url),
+    'utf8',
+  )
+  .toLowerCase()
 
 test('database prevents duplicate XP for the same verified source under a different idempotency key', () => {
   assert.match(source, /robot_xp_events_source_reference_idx/)
