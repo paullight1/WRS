@@ -18,16 +18,50 @@ const liveSession: AuthSession = {
 function repository(overrides: Partial<AuthRepository> = {}): AuthRepository {
   return {
     rateLimit: vi.fn().mockResolvedValue(true),
-    createPendingAccount: vi.fn(async () => ({ userId: 'user-1', status: 'pending' as const, emailVerified: false, phoneVerified: false })),
-    issueVerification: vi.fn(async (_userId: string, kind: VerificationKind) => ({ id: `${kind}-challenge`, kind, expiresAt: '2099-01-01T00:00:00.000Z', resendAvailableAt: '2099-01-01T00:00:00.000Z' })),
+    registerPendingAccount: vi.fn().mockResolvedValue({
+      account: {
+        userId: 'user-1',
+        status: 'pending' as const,
+        emailVerified: false,
+        phoneVerified: false,
+      },
+      challenges: [
+        {
+          id: 'email-challenge',
+          kind: 'email' as const,
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          resendAvailableAt: '2099-01-01T00:00:00.000Z',
+        },
+        {
+          id: 'phone-challenge',
+          kind: 'phone' as const,
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          resendAvailableAt: '2099-01-01T00:00:00.000Z',
+        },
+      ],
+    }),
+    issueVerification: vi.fn(async (_userId: string, kind: VerificationKind) => ({
+      id: `${kind}-challenge-2`,
+      kind,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      resendAvailableAt: '2099-01-01T00:00:00.000Z',
+    })),
     verifyChallenge: vi.fn().mockResolvedValue(liveSession),
     signIn: vi.fn().mockResolvedValue(liveSession),
     revokeSession: vi.fn().mockResolvedValue(undefined),
     requestPasswordReset: vi.fn().mockResolvedValue(undefined),
     resetPassword: vi.fn().mockResolvedValue(true),
-    beginOAuth: vi.fn(async (provider: OAuthProvider) => ({ provider, authorizationUrl: 'https://identity.example/authorize', state: 'opaque-state' })),
+    beginOAuth: vi.fn(async (provider: OAuthProvider) => ({
+      provider,
+      authorizationUrl: 'https://identity.example/authorize',
+      state: 'opaque-state',
+    })),
     completeOAuth: vi.fn(async () => liveSession),
-    enrollMfa: vi.fn().mockResolvedValue({ enrollmentId: 'mfa-1', provisioningUri: 'otpauth://totp/test', recoveryCodes: ['one'] }),
+    enrollMfa: vi.fn().mockResolvedValue({
+      enrollmentId: 'mfa-1',
+      provisioningUri: 'otpauth://totp/test',
+      recoveryCodes: ['one'],
+    }),
     verifyMfa: vi.fn().mockResolvedValue({ ...liveSession, mfaEnabled: true }),
     disableMfa: vi.fn().mockResolvedValue(true),
     redeemRecoveryCode: vi.fn().mockResolvedValue(liveSession),
@@ -51,17 +85,29 @@ const validRegistration = {
 describe('AuthService', () => {
   it('does not create an account when validation fails', async () => {
     const repo = repository()
-    const result = await new AuthService(repo).register({ ...validRegistration, password: 'weak', passwordConfirmation: 'weak' })
+    const result = await new AuthService(repo).register({
+      ...validRegistration,
+      password: 'weak',
+      passwordConfirmation: 'weak',
+    })
     expect(result.ok).toBe(false)
-    expect(repo.createPendingAccount).not.toHaveBeenCalled()
+    expect(repo.registerPendingAccount).not.toHaveBeenCalled()
   })
 
-  it('creates exactly one pending account and both verification challenges', async () => {
+  it('creates the pending account and verification challenges in one repository operation', async () => {
     const repo = repository()
     const result = await new AuthService(repo).register(validRegistration)
     expect(result.ok).toBe(true)
-    expect(repo.createPendingAccount).toHaveBeenCalledTimes(1)
-    expect(repo.issueVerification).toHaveBeenCalledTimes(2)
+    expect(repo.registerPendingAccount).toHaveBeenCalledTimes(1)
+    expect(repo.issueVerification).not.toHaveBeenCalled()
+    expect(result.data?.challenges).toHaveLength(2)
+  })
+
+  it('rate-limits verification resends before issuing a new challenge', async () => {
+    const repo = repository({ rateLimit: vi.fn().mockResolvedValue(false) })
+    const result = await new AuthService(repo).resendVerification('user-1', 'phone')
+    expect(result.ok).toBe(false)
+    expect(repo.issueVerification).not.toHaveBeenCalled()
   })
 
   it('rejects malformed OTP before the repository can consume a challenge', async () => {
@@ -72,7 +118,9 @@ describe('AuthService', () => {
   })
 
   it('uses non-enumerating password recovery responses', async () => {
-    const repo = repository({ requestPasswordReset: vi.fn().mockRejectedValue(new Error('not found')) })
+    const repo = repository({
+      requestPasswordReset: vi.fn().mockRejectedValue(new Error('not found')),
+    })
     const result = await new AuthService(repo).requestPasswordReset('missing@example.com')
     expect(result.ok).toBe(true)
     expect(result.message).toMatch(/if the account exists/i)
@@ -80,7 +128,13 @@ describe('AuthService', () => {
 
   it('requires OAuth state, nonce, code and PKCE verifier before completion', async () => {
     const repo = repository()
-    const result = await new AuthService(repo).completeOAuth({ provider: 'google', code: '', state: '', nonce: '', codeVerifier: '' })
+    const result = await new AuthService(repo).completeOAuth({
+      provider: 'google',
+      code: '',
+      state: '',
+      nonce: '',
+      codeVerifier: '',
+    })
     expect(result.ok).toBe(false)
     expect(repo.completeOAuth).not.toHaveBeenCalled()
   })
