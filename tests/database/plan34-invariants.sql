@@ -13,6 +13,7 @@ BEGIN
     'public.user_sessions',
     'public.user_devices',
     'public.security_events',
+    'public.auth_rate_limit_buckets',
     'public.robots',
     'public.robot_onboarding',
     'public.package_entitlements',
@@ -37,6 +38,7 @@ BEGIN
     'user_sessions',
     'user_devices',
     'security_events',
+    'auth_rate_limit_buckets',
     'robots',
     'robot_onboarding',
     'package_entitlements',
@@ -66,6 +68,12 @@ BEGIN
      or has_table_privilege('authenticated', 'public.security_events', 'UPDATE')
      or has_table_privilege('authenticated', 'public.security_events', 'DELETE') then
     raise exception 'authenticated role must not mutate security_events';
+  end if;
+  if has_table_privilege('authenticated', 'public.auth_rate_limit_buckets', 'SELECT')
+     or has_table_privilege('authenticated', 'public.auth_rate_limit_buckets', 'INSERT')
+     or has_table_privilege('authenticated', 'public.auth_rate_limit_buckets', 'UPDATE')
+     or has_table_privilege('authenticated', 'public.auth_rate_limit_buckets', 'DELETE') then
+    raise exception 'authenticated role must not access auth rate-limit buckets';
   end if;
   if has_table_privilege('authenticated', 'public.robots', 'INSERT')
      or has_table_privilege('authenticated', 'public.robots', 'UPDATE')
@@ -111,6 +119,7 @@ BEGIN
   end if;
 
   foreach routine_name in array ARRAY[
+    'public.wrs_consume_auth_rate_limit(text,text,integer,integer)',
     'public.wrs_complete_robot_onboarding(uuid,jsonb,text)',
     'public.wrs_save_robot_configuration(uuid,uuid,jsonb,bigint)',
     'public.wrs_append_robot_xp_event(uuid,jsonb)',
@@ -133,6 +142,13 @@ BEGIN
   end if;
   if not has_function_privilege('anon', 'public.wrs_verify_robot_passport(uuid)', 'EXECUTE') then
     raise exception 'anon cannot execute privacy-safe passport verification';
+  end if;
+
+  if public.wrs_consume_auth_rate_limit('test', 'subject', 60, 1) is distinct from true then
+    raise exception 'first auth rate-limit event must be accepted';
+  end if;
+  if public.wrs_consume_auth_rate_limit('test', 'subject', 60, 1) is distinct from false then
+    raise exception 'auth rate-limit bucket did not enforce its limit';
   end if;
 
   if public.wrs_robot_level_for_xp(0) <> 1
