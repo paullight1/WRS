@@ -26,10 +26,25 @@ test('production accepts only explicitly configured authoritative services', () 
     VITE_WRS_AUTHORITY_URL: 'https://api.example.test',
     VITE_WRS_PAYMENT_SERVICE: 'enabled',
     VITE_WRS_IDENTITY_SERVICE: 'enabled',
+    VITE_WRS_ROBOT_SERVICE: 'enabled',
     VITE_WRS_DATA_SERVICE: 'enabled',
     VITE_WRS_REWARD_SERVICE: 'enabled',
     VITE_WRS_DEPLOYMENT_SERVICE: 'enabled',
     VITE_WRS_SUPPORT_SERVICE: 'enabled',
   })
   assert.doesNotThrow(() => assertProductionConfig(config))
+})
+
+test('production fails closed when robot authority is not enabled', () => {
+  const config = parseRuntimeConfig({
+    VITE_WRS_MODE: 'production',
+    VITE_WRS_AUTHORITY_URL: 'https://api.example.test',
+    VITE_WRS_PAYMENT_SERVICE: 'enabled',
+    VITE_WRS_IDENTITY_SERVICE: 'enabled',
+    VITE_WRS_DATA_SERVICE: 'enabled',
+    VITE_WRS_REWARD_SERVICE: 'enabled',
+    VITE_WRS_DEPLOYMENT_SERVICE: 'enabled',
+    VITE_WRS_SUPPORT_SERVICE: 'enabled',
+  })
+  assert.throws(() => assertProductionConfig(config), /VITE_WRS_ROBOT_SERVICE/)
 })
