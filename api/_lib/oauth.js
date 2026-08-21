@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { randomToken, sha256, signedToken, verifySignedToken } from './crypto.js'
 import { HttpError, parseCookies, serializeCookie } from './http.js'
-import { recordSecurityEvent } from './auth.js'
+import { loadProfile, recordSecurityEvent } from './auth.js'
 import { buildAppSession, recordSessionMetadata, sessionCookies } from './session.js'
 import { authPublic, serviceRest, supabaseBaseUrl } from './supabase.js'
 
@@ -134,8 +134,7 @@ export async function completeOAuth(request) {
     await consumeState(payload.rowId).catch(() => undefined)
   }
 
-  const session = await buildAppSession(tokenResponse.user, tokenResponse.access_token)
-  if (!session) {
+  if (!tokenResponse.user?.id || !(await loadProfile(tokenResponse.user.id))) {
     await authPublic('/auth/v1/logout?scope=global', {
       method: 'POST',
       token: tokenResponse.access_token,
@@ -143,7 +142,9 @@ export async function completeOAuth(request) {
     }).catch(() => undefined)
     throw new HttpError(403, 'This social identity is not linked to a WRS profile.', 'oauth-profile-required')
   }
-  await recordSessionMetadata(session.userId, tokenResponse.access_token, true)
+  await recordSessionMetadata(tokenResponse.user.id, tokenResponse.access_token, true)
+  const session = await buildAppSession(tokenResponse.user, tokenResponse.access_token)
+  if (!session) throw new HttpError(401, 'Unable to establish a revocable WRS session.', 'invalid-session')
   await recordSecurityEvent(session.userId, 'oauth.login.succeeded', { provider: payload.provider })
   return { session, cookies: [...sessionCookies(tokenResponse, true), clearOAuthCookie()] }
 }
