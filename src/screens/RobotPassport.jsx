@@ -14,7 +14,6 @@ export default function RobotPassport() {
 
   useEffect(() => {
     let active = true
-    setLoading(true)
     robotState
       .loadPassport()
       .then((value) => {
@@ -25,16 +24,28 @@ export default function RobotPassport() {
       .catch((reason) => {
         if (!active) return
         setPassport(null)
-        setError(reason instanceof Error ? reason.message : 'Robot passport could not be verified.')
+        setError(
+          reason instanceof Error ? reason.message : 'Robot passport could not be verified.',
+        )
       })
-      .finally(() => active && setLoading(false))
+      .finally(() => {
+        if (active) setLoading(false)
+      })
     return () => {
       active = false
     }
   }, [robotState.robot?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (robotState.loading || loading) {
-    return <AppShell title="Robot Passport" back avatar={false}><StateView kind="loading" title="Verifying robot passport" desc="Reading the current authoritative identity projection." /></AppShell>
+    return (
+      <AppShell title="Robot Passport" back avatar={false}>
+        <StateView
+          kind="loading"
+          title="Verifying robot passport"
+          desc="Reading the current authoritative identity projection."
+        />
+      </AppShell>
+    )
   }
 
   if (!passport) {
@@ -43,8 +54,16 @@ export default function RobotPassport() {
         <StateView
           kind="locked"
           title="Robot passport unavailable"
-          desc={error || robotState.error || 'Complete robot provisioning before requesting a passport.'}
-          action={<Button to={robotState.robot ? '/robot' : '/onboarding'}>{robotState.robot ? 'Back to robot' : 'Complete onboarding'}</Button>}
+          desc={
+            error ||
+            robotState.error ||
+            'Complete robot provisioning before requesting a passport.'
+          }
+          action={
+            <Button to={robotState.robot ? '/robot' : '/onboarding'}>
+              {robotState.robot ? 'Back to robot' : 'Complete onboarding'}
+            </Button>
+          }
         />
       </AppShell>
     )
@@ -56,7 +75,9 @@ export default function RobotPassport() {
     setError('')
     try {
       const descriptor = await robotState.exportPassportPdf()
-      if (!descriptor?.url) throw new Error('The passport export service did not return a signed PDF URL.')
+      if (!descriptor?.url) {
+        throw new Error('The passport export service did not return a signed PDF URL.')
+      }
       window.location.assign(descriptor.url)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Passport PDF export failed.')
@@ -78,7 +99,11 @@ export default function RobotPassport() {
   ]
 
   return (
-    <AppShell title={passport.authoritative ? 'Robot Passport' : 'Demo Robot Passport'} back avatar={false}>
+    <AppShell
+      title={passport.authoritative ? 'Robot Passport' : 'Demo Robot Passport'}
+      back
+      avatar={false}
+    >
       <section>
         <Card className="relative overflow-hidden p-card-padding">
           <div className="flex items-center gap-4">
@@ -89,12 +114,18 @@ export default function RobotPassport() {
             />
             <div className="min-w-0 flex-1">
               <p className="text-label-sm text-outline">World Robotic System</p>
-              <h2 className="truncate font-headline-md text-headline-md text-on-surface">{passport.name}</h2>
-              <p className="truncate font-data text-data-sm text-tertiary">{passport.publicVerificationId}</p>
+              <h2 className="truncate font-headline-md text-headline-md text-on-surface">
+                {passport.name}
+              </h2>
+              <p className="truncate font-data text-data-sm text-tertiary">
+                {passport.publicVerificationId}
+              </p>
             </div>
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Badge t={passport.authoritative ? 'tertiary' : 'outline'}>{passport.authoritative ? 'Authoritative passport' : 'Demo only'}</Badge>
+            <Badge t={passport.authoritative ? 'tertiary' : 'outline'}>
+              {passport.authoritative ? 'Authoritative passport' : 'Demo only'}
+            </Badge>
             <Badge t="primary">{passport.robotClass}</Badge>
             <Badge t="secondary">Level {passport.level}</Badge>
           </div>
@@ -112,7 +143,9 @@ export default function RobotPassport() {
           {rows.map(([key, value]) => (
             <div key={key} className="flex items-center justify-between gap-4 px-5 py-3.5">
               <span className="text-body-md text-on-surface-variant">{key}</span>
-              <span className="max-w-[58%] break-all text-right text-label-md text-on-surface">{value}</span>
+              <span className="max-w-[58%] break-all text-right text-label-md text-on-surface">
+                {value}
+              </span>
             </div>
           ))}
         </Card>
@@ -123,8 +156,12 @@ export default function RobotPassport() {
         {passport.skills.length ? (
           <div className="flex flex-wrap gap-2">
             {passport.skills.map((skill) => (
-              <span key={`${skill.slug}:${skill.version}`} className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-label-sm text-on-surface-variant">
-                {skill.name} · {skill.version}{skill.verified ? ' · verified' : ''}
+              <span
+                key={`${skill.slug}:${skill.version}`}
+                className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-label-sm text-on-surface-variant"
+              >
+                {skill.name} · {skill.version}
+                {skill.verified ? ' · verified' : ''}
               </span>
             ))}
           </div>
@@ -138,18 +175,27 @@ export default function RobotPassport() {
         {passport.certifications.length ? (
           <div className="space-y-2">
             {passport.certifications.map((certification) => (
-              <Card key={certification.verificationReference} className="flex items-center gap-3 p-3.5">
+              <Card
+                key={certification.verificationReference}
+                className="flex items-center gap-3 p-3.5"
+              >
                 <Icon name="workspace_premium" className="text-tertiary" fill />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-body-md text-on-surface">{certification.name}</p>
-                  <p className="text-label-sm text-outline">{certification.issuer} · {certification.status}</p>
+                  <p className="text-label-sm text-outline">
+                    {certification.issuer} · {certification.status}
+                  </p>
                 </div>
-                <span className="font-data text-data-sm text-outline">{certification.verificationReference}</span>
+                <span className="font-data text-data-sm text-outline">
+                  {certification.verificationReference}
+                </span>
               </Card>
             ))}
           </div>
         ) : (
-          <p className="text-body-sm text-outline">No authoritative certification records are present.</p>
+          <p className="text-body-sm text-outline">
+            No authoritative certification records are present.
+          </p>
         )}
       </section>
 
@@ -160,7 +206,9 @@ export default function RobotPassport() {
             {passport.history.map((event) => (
               <Card key={event.id} className="p-4">
                 <p className="text-body-md text-on-surface">{event.publicSummary}</p>
-                <p className="mt-1 text-label-sm text-outline">{event.eventType} · {new Date(event.occurredAt).toLocaleDateString()}</p>
+                <p className="mt-1 text-label-sm text-outline">
+                  {event.eventType} · {new Date(event.occurredAt).toLocaleDateString()}
+                </p>
               </Card>
             ))}
           </div>
@@ -169,7 +217,14 @@ export default function RobotPassport() {
         )}
       </section>
 
-      {error && <p role="alert" className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error">{error}</p>}
+      {error && (
+        <p
+          role="alert"
+          className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error"
+        >
+          {error}
+        </p>
+      )}
       <Button
         variant="ghost"
         full
@@ -178,7 +233,9 @@ export default function RobotPassport() {
         disabled={!passport.authoritative}
         onClick={exportPdf}
       >
-        {passport.authoritative ? 'Download Verified Passport PDF' : 'PDF unavailable for demo passport'}
+        {passport.authoritative
+          ? 'Download Verified Passport PDF'
+          : 'PDF unavailable for demo passport'}
       </Button>
     </AppShell>
   )
