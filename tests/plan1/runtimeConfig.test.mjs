@@ -1,3 +1,4 @@
+// RED contract: these tests intentionally precede the safety implementation.
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
