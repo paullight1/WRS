@@ -1,7 +1,7 @@
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../_lib/http.js'
-import { loadRobotState, validateRobotInput } from '../../_lib/robot.js'
-import { requireSession } from '../../_lib/session.js'
-import { serviceRpc } from '../../_lib/supabase.js'
+import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../../server/http.js'
+import { loadRobotState, validateRobotInput } from '../../../server/robot.js'
+import { requireSession } from '../../../server/session.js'
+import { serviceRpc } from '../../../server/supabase.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
