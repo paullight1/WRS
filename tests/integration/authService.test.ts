@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { AuthService, type AuthRepository } from '../../src/services/auth/AuthService'
-import type { AuthSession, NormalizedRegistration, OAuthCallbackInput, OAuthProvider, VerificationKind } from '../../src/domain/auth/types'
+import type { AuthSession, OAuthProvider, VerificationKind } from '../../src/domain/auth/types'
 
 const liveSession: AuthSession = {
   id: 'session-1',
@@ -18,7 +18,7 @@ const liveSession: AuthSession = {
 function repository(overrides: Partial<AuthRepository> = {}): AuthRepository {
   return {
     rateLimit: vi.fn().mockResolvedValue(true),
-    createPendingAccount: vi.fn(async (_input: NormalizedRegistration) => ({ userId: 'user-1', status: 'pending', emailVerified: false, phoneVerified: false })),
+    createPendingAccount: vi.fn(async () => ({ userId: 'user-1', status: 'pending', emailVerified: false, phoneVerified: false })),
     issueVerification: vi.fn(async (_userId: string, kind: VerificationKind) => ({ id: `${kind}-challenge`, kind, expiresAt: '2099-01-01T00:00:00.000Z', resendAvailableAt: '2099-01-01T00:00:00.000Z' })),
     verifyChallenge: vi.fn().mockResolvedValue(liveSession),
     signIn: vi.fn().mockResolvedValue(liveSession),
@@ -26,7 +26,7 @@ function repository(overrides: Partial<AuthRepository> = {}): AuthRepository {
     requestPasswordReset: vi.fn().mockResolvedValue(undefined),
     resetPassword: vi.fn().mockResolvedValue(true),
     beginOAuth: vi.fn(async (provider: OAuthProvider) => ({ provider, authorizationUrl: 'https://identity.example/authorize', state: 'opaque-state' })),
-    completeOAuth: vi.fn(async (_input: OAuthCallbackInput) => liveSession),
+    completeOAuth: vi.fn(async () => liveSession),
     enrollMfa: vi.fn().mockResolvedValue({ enrollmentId: 'mfa-1', provisioningUri: 'otpauth://totp/test', recoveryCodes: ['one'] }),
     verifyMfa: vi.fn().mockResolvedValue({ ...liveSession, mfaEnabled: true }),
     disableMfa: vi.fn().mockResolvedValue(true),
