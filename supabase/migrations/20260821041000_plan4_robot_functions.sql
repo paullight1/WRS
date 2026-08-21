@@ -18,16 +18,29 @@ declare
   v_config public.robot_configurations%rowtype;
   v_existing_key text;
   v_robot_class text;
+  v_required text[] := array['robot.core'];
+  v_cap text;
+  v_value text;
 begin
   if p_user_id is null or nullif(trim(p_idempotency_key), '') is null then
     raise exception 'user and idempotency key are required';
+  end if;
+
+  -- Serialize provisioning per user so concurrent retries cannot create two
+  -- robots or split onboarding/configuration/passport state.
+  perform 1
+  from public.user_profiles
+  where user_id = p_user_id
+  for update;
+  if not found then
+    raise exception 'user not found';
   end if;
 
   if v_package not in ('starter','builder','professional','enterprise','elite','visionary') then
     raise exception 'invalid package';
   end if;
 
-  select o.completion_idempotency_key, r.*
+  select o.completion_idempotency_key, r
     into v_existing_key, v_robot
   from public.robot_onboarding o
   left join public.robots r on r.id = o.completed_robot_id
@@ -44,6 +57,12 @@ begin
       'robotId', v_robot.id,
       'configurationVersion', v_config.version
     );
+  end if;
+
+  if v_robot.id is null then
+    select * into v_robot
+    from public.robots
+    where owner_user_id = p_user_id;
   end if;
 
   if v_robot.id is not null then
@@ -64,6 +83,37 @@ begin
   ) then
     return jsonb_build_object('status', 'entitlement-required', 'packageSlug', v_package);
   end if;
+
+  if lower(coalesce(p_input->>'voiceProfileId', '')) like '%custom%' then
+    v_required := array_append(v_required, 'voice.custom');
+  end if;
+
+  if coalesce((p_input->'tuning'->>'speed')::numeric, 0) > 90
+     or coalesce((p_input->'tuning'->>'battery')::numeric, 0) > 90
+     or coalesce((p_input->'tuning'->>'sensor')::numeric, 0) > 90 then
+    v_required := array_append(v_required, 'tuning.advanced');
+  end if;
+
+  for v_value in
+    select value from jsonb_each_text(coalesce(p_input->'parts', '{}'::jsonb))
+  loop
+    if lower(v_value) like '%visionary%' then
+      v_required := array_append(v_required, 'robot.visionary-modules');
+    elsif lower(v_value) like '%elite%' then
+      v_required := array_append(v_required, 'robot.elite-modules');
+    end if;
+  end loop;
+
+  foreach v_cap in array v_required loop
+    if not exists (
+      select 1
+      from public.package_capabilities pc
+      where pc.package_slug = v_package
+        and pc.capability_slug = v_cap
+    ) then
+      return jsonb_build_object('status', 'capability-locked', 'capability', v_cap);
+    end if;
+  end loop;
 
   v_robot_class := case v_package
     when 'starter' then 'Explorer Robot'
@@ -200,6 +250,10 @@ begin
   where robot_id = p_robot_id
   for update;
 
+  if v_current.robot_id is null then
+    raise exception 'robot configuration not found';
+  end if;
+
   if v_current.version <> p_expected_version then
     return jsonb_build_object(
       'status', 'conflict',
@@ -217,7 +271,9 @@ begin
     v_required := array_append(v_required, 'tuning.advanced');
   end if;
 
-  for v_value in select value from jsonb_each_text(coalesce(p_input->'parts', '{}'::jsonb)) loop
+  for v_value in
+    select value from jsonb_each_text(coalesce(p_input->'parts', '{}'::jsonb))
+  loop
     if lower(v_value) like '%visionary%' then
       v_required := array_append(v_required, 'robot.visionary-modules');
     elsif lower(v_value) like '%elite%' then
@@ -280,7 +336,8 @@ declare
   v_result public.robot_xp_events%rowtype;
 begin
   if not exists (
-    select 1 from public.robots r
+    select 1
+    from public.robots r
     where r.id = v_robot_id and r.owner_user_id = p_user_id
   ) then
     raise exception 'robot ownership mismatch';
@@ -302,7 +359,9 @@ begin
     if v_original.id is null then
       raise exception 'original XP event not found';
     end if;
-    if exists (select 1 from public.robot_xp_events where reversal_of = v_reversal_of) then
+    if exists (
+      select 1 from public.robot_xp_events where reversal_of = v_reversal_of
+    ) then
       raise exception 'XP event already reversed';
     end if;
     if v_amount <> -v_original.amount then
