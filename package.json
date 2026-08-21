@@ -14,7 +14,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "format:check": "prettier --check src/lib src/domain src/services src/infrastructure tests .github/workflows eslint.config.js playwright.config.js vitest.config.js vite.config.js",
     "test": "npm run test:unit && npm run test:integration",
-    "test:contracts": "node --test tests/plan1/*.test.mjs tests/plan2/*.test.mjs tests/plan3/*.test.mjs",
+    "test:contracts": "node --test tests/plan1/*.test.mjs tests/plan2/*.test.mjs tests/plan3/*.test.mjs tests/plan4/*.test.mjs",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
