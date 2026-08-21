@@ -22,6 +22,7 @@ test('unsafe production configuration fails closed at build time', () => {
     VITE_WRS_AUTHORITY_URL: '',
     VITE_WRS_PAYMENT_SERVICE: '',
     VITE_WRS_IDENTITY_SERVICE: '',
+    VITE_WRS_ROBOT_SERVICE: '',
     VITE_WRS_DATA_SERVICE: '',
     VITE_WRS_REWARD_SERVICE: '',
     VITE_WRS_DEPLOYMENT_SERVICE: '',
