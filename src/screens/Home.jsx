@@ -30,7 +30,9 @@ const STORE_KEY = 'wrs.shortcuts'
 const loadShortcuts = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY))
-    if (Array.isArray(saved) && saved.length) return saved.filter((id) => CATALOGUE.some((item) => item.id === id))
+    if (Array.isArray(saved) && saved.length) {
+      return saved.filter((id) => CATALOGUE.some((item) => item.id === id))
+    }
   } catch {
     // Use deterministic defaults when local preferences are unavailable.
   }
@@ -44,7 +46,9 @@ export default function Home() {
   const [editing, setEditing] = useState(false)
 
   useEffect(() => {
-    if (consumeWelcome()) setWelcome(true)
+    queueMicrotask(() => {
+      if (consumeWelcome()) setWelcome(true)
+    })
   }, [])
 
   const persist = (next) => {
@@ -61,16 +65,26 @@ export default function Home() {
   const full = ids.length >= MAX_SHORTCUTS
 
   return (
-    <AppShell title="Home" subtitle={robotState.isDemo ? 'Demo workspace' : 'Verified WRS workspace'}>
+    <AppShell
+      title="Home"
+      subtitle={robotState.isDemo ? 'Demo workspace' : 'Verified WRS workspace'}
+    >
       <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
 
       {robotState.loading ? (
-        <StateView kind="loading" title="Loading your robot" desc="Reading the latest confirmed robot state." />
+        <StateView
+          kind="loading"
+          title="Loading your robot"
+          desc="Reading the latest confirmed robot state."
+        />
       ) : !robotState.robot ? (
         <StateView
           kind="locked"
           title={robotState.isDemo ? 'Create your demo robot' : 'Robot provisioning is not complete'}
-          desc={robotState.error || 'Complete onboarding before robot identity and configuration can appear here.'}
+          desc={
+            robotState.error ||
+            'Complete onboarding before robot identity and configuration can appear here.'
+          }
           action={<Button to="/onboarding">Open onboarding</Button>}
         />
       ) : (
@@ -86,9 +100,12 @@ export default function Home() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <h2 className="truncate font-headline-md text-headline-md text-on-surface">{robotState.robot.name}</h2>
+                    <h2 className="truncate font-headline-md text-headline-md text-on-surface">
+                      {robotState.robot.name}
+                    </h2>
                     <p className="mt-1 text-body-sm text-on-surface-variant">
-                      {packageDefinition(robotState.robot.packageSlug).robotClass} · {robotState.robot.packageSlug}
+                      {packageDefinition(robotState.robot.packageSlug).robotClass} ·{' '}
+                      {robotState.robot.packageSlug}
                     </p>
                   </div>
                   <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>
@@ -96,8 +113,12 @@ export default function Home() {
                   </Badge>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button to="/robot" size="sm">Open Robot</Button>
-                  <Button to="/robot/passport" variant="ghost" size="sm">Passport</Button>
+                  <Button to="/robot" size="sm">
+                    Open Robot
+                  </Button>
+                  <Button to="/robot/passport" variant="ghost" size="sm">
+                    Passport
+                  </Button>
                 </div>
               </div>
             </div>
@@ -113,7 +134,11 @@ export default function Home() {
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-4">
           <h2 className="font-headline-md text-headline-md text-on-surface">Shortcuts</h2>
-          <button type="button" onClick={() => setEditing(!editing)} className="shrink-0 text-label-md text-primary hover:underline">
+          <button
+            type="button"
+            onClick={() => setEditing(!editing)}
+            className="shrink-0 text-label-md text-primary hover:underline"
+          >
             {editing ? 'Done' : 'Edit'}
           </button>
         </div>
@@ -124,7 +149,13 @@ export default function Home() {
               {editing ? (
                 <div className="flex flex-col items-center gap-2 py-1 text-center">
                   <span className="relative">
-                    <IconTile icon={action.icon} accent={action.c} size={52} radius={16} iconSize={28} />
+                    <IconTile
+                      icon={action.icon}
+                      accent={action.c}
+                      size={52}
+                      radius={16}
+                      iconSize={28}
+                    />
                     <button
                       type="button"
                       onClick={() => persist(ids.filter((id) => id !== action.id))}
@@ -134,12 +165,25 @@ export default function Home() {
                       <Icon name="remove" className="text-[16px]" />
                     </button>
                   </span>
-                  <span className="text-label-md leading-tight text-on-surface">{action.label}</span>
+                  <span className="text-label-md leading-tight text-on-surface">
+                    {action.label}
+                  </span>
                 </div>
               ) : (
-                <Link to={action.to} className="flex flex-col items-center gap-2 rounded-xl py-1 text-center active:scale-[.94]">
-                  <IconTile icon={action.icon} accent={action.c} size={52} radius={16} iconSize={28} />
-                  <span className="text-label-md leading-tight text-on-surface">{action.label}</span>
+                <Link
+                  to={action.to}
+                  className="flex flex-col items-center gap-2 rounded-xl py-1 text-center active:scale-[.94]"
+                >
+                  <IconTile
+                    icon={action.icon}
+                    accent={action.c}
+                    size={52}
+                    radius={16}
+                    iconSize={28}
+                  />
+                  <span className="text-label-md leading-tight text-on-surface">
+                    {action.label}
+                  </span>
                 </Link>
               )}
             </li>
@@ -158,7 +202,8 @@ export default function Home() {
                   onClick={() => !full && persist([...ids, action.id])}
                   className="tap flex items-center gap-2 rounded-full border border-white/12 px-3 py-2 text-label-md text-on-surface disabled:opacity-45"
                 >
-                  <Icon name={action.icon} className="text-[18px]" /> {action.label} <Icon name="add" className="text-[16px] text-outline" />
+                  <Icon name={action.icon} className="text-[18px]" /> {action.label}{' '}
+                  <Icon name="add" className="text-[16px] text-outline" />
                 </button>
               ))}
             </div>
@@ -173,7 +218,9 @@ export default function Home() {
             <div>
               <p className="text-title text-on-surface">Authoritative boundaries</p>
               <p className="mt-1 text-body-sm text-on-surface-variant">
-                WRS no longer mixes demo wallet balances, fabricated XP, deployment performance or training progress into the production home screen. Open each service area to see only the state that service can verify.
+                WRS no longer mixes demo wallet balances, fabricated XP, deployment performance or
+                training progress into the production home screen. Open each service area to see
+                only the state that service can verify.
               </p>
             </div>
           </div>
