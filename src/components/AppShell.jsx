@@ -192,8 +192,10 @@ export function Drawer({ open, onClose }) {
 
   return (
     <>
-      <div
+      <button
+        type="button"
         onClick={onClose}
+        aria-label="Close menu"
         className={`fixed inset-0 z-scrim bg-black/60 transition-opacity duration-slow lg:hidden ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
