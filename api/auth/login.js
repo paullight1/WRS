@@ -1,7 +1,7 @@
-import { enforceRateLimit, issueMissingVerificationChallenges, loadProfile, recordSecurityEvent } from '../_lib/auth.js'
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../_lib/http.js'
-import { buildAppSession, recordSessionMetadata, sessionCookies } from '../_lib/session.js'
-import { authPublic } from '../_lib/supabase.js'
+import { enforceRateLimit, issueMissingVerificationChallenges, loadProfile, recordSecurityEvent } from '../../server/auth.js'
+import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
+import { buildAppSession, recordSessionMetadata, sessionCookies } from '../../server/session.js'
+import { authPublic } from '../../server/supabase.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
