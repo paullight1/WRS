@@ -3,6 +3,7 @@ const MODES = new Set(['demo', 'staging', 'production'])
 const SERVICE_ENV = {
   payments: 'VITE_WRS_PAYMENT_SERVICE',
   identity: 'VITE_WRS_IDENTITY_SERVICE',
+  robots: 'VITE_WRS_ROBOT_SERVICE',
   data: 'VITE_WRS_DATA_SERVICE',
   rewards: 'VITE_WRS_REWARD_SERVICE',
   deployments: 'VITE_WRS_DEPLOYMENT_SERVICE',
