@@ -1,4 +1,8 @@
-import { requiredCapabilities, validateOnboardingCompletion, validateRobotConfiguration } from '../../domain/robot/configuration'
+import {
+  requiredCapabilities,
+  validateOnboardingCompletion,
+  validateRobotConfiguration,
+} from '../../domain/robot/configuration'
 import { hasCapability } from '../../domain/robot/packages'
 import { createReversalEvent, projectXpEvents, validateXpAward } from '../../domain/robot/progression'
 import type {
@@ -46,7 +50,8 @@ export class RobotService {
 
   saveOnboardingDraft(userId: string, draft: OnboardingDraft) {
     const issues = validateOnboardingCompletion({ ...draft })
-    if (draft.step < 0 || draft.step > 5) issues.push({ field: 'step', code: 'invalid-step', message: 'Invalid onboarding step.' })
+    if (draft.step < 0 || draft.step > 5)
+      issues.push({ field: 'step', code: 'invalid-step', message: 'Invalid onboarding step.' })
     if (issues.length) throw new Error(issues[0].message)
     return this.repository.saveOnboardingDraft(userId, draft)
   }
@@ -74,7 +79,8 @@ export class RobotService {
   ): Promise<ConfigurationSaveResult> {
     const issues = validateRobotConfiguration(input)
     if (issues.length) throw new Error(issues[0].message)
-    if (!Number.isInteger(expectedVersion) || expectedVersion < 1) throw new Error('A valid configuration version is required.')
+    if (!Number.isInteger(expectedVersion) || expectedVersion < 1)
+      throw new Error('A valid configuration version is required.')
 
     const robot = await this.repository.getRobotOwned(userId, robotId)
     if (!robot) return { status: 'forbidden' }

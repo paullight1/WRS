@@ -66,11 +66,7 @@ export default function Customize() {
       <AppShell title="Customize Robot" back avatar={false}>
         <StateView
           kind="locked"
-          title={
-            robotState.isDemo
-              ? 'Create the demo robot first'
-              : 'Authoritative robot state is unavailable'
-          }
+          title={robotState.isDemo ? 'Create the demo robot first' : 'Authoritative robot state is unavailable'}
           desc={robotState.error || 'Complete onboarding before changing robot configuration.'}
           action={<Button to="/onboarding">Open onboarding</Button>}
         />
@@ -97,9 +93,7 @@ export default function Customize() {
       if (result.status === 'saved') {
         setDraft(initialConfiguration(result.configuration))
         setToast(
-          robotState.isDemo
-            ? 'Demo configuration stored on this device'
-            : 'Configuration confirmed by robot service',
+          robotState.isDemo ? 'Demo configuration stored on this device' : 'Configuration confirmed by robot service',
         )
         setTimeout(() => setToast(''), 2400)
         return
@@ -112,9 +106,7 @@ export default function Customize() {
         return
       }
       if (result.status === 'capability-locked') {
-        setMessage(
-          `Your active package does not include ${result.capability}. The server rejected the change.`,
-        )
+        setMessage(`Your active package does not include ${result.capability}. The server rejected the change.`)
         return
       }
       setMessage('This account is not authorized to modify that robot.')
@@ -188,10 +180,7 @@ export default function Customize() {
                     className="flex w-full items-center justify-between gap-3 text-left"
                   >
                     <span className="text-body-md text-on-surface">{module.name}</span>
-                    <Icon
-                      name={activeModule === module.key ? 'expand_less' : 'expand_more'}
-                      className="text-outline"
-                    />
+                    <Icon name={activeModule === module.key ? 'expand_less' : 'expand_more'} className="text-outline" />
                   </button>
                   {activeModule === module.key && (
                     <div className="mt-3 grid gap-2 sm:grid-cols-3">
@@ -204,12 +193,8 @@ export default function Customize() {
                             onClick={() => setPart(module.key, option.id)}
                             className={`rounded-xl border p-3 text-left ${active ? 'border-tertiary/60 bg-tertiary/10' : 'border-white/10 bg-white/[.02]'}`}
                           >
-                            <span className="block text-label-md text-on-surface">
-                              {option.name}
-                            </span>
-                            <span className="mt-1 block text-label-sm text-outline">
-                              {option.desc}
-                            </span>
+                            <span className="block text-label-md text-on-surface">{option.name}</span>
+                            <span className="mt-1 block text-label-sm text-outline">{option.desc}</span>
                           </button>
                         )
                       })}
@@ -231,10 +216,7 @@ export default function Customize() {
                 const id = `robot-tuning-${key}`
                 return (
                   <div key={key} className="block">
-                    <label
-                      htmlFor={id}
-                      className="mb-2 flex justify-between text-label-sm text-on-surface-variant"
-                    >
+                    <label htmlFor={id} className="mb-2 flex justify-between text-label-sm text-on-surface-variant">
                       <span>{label}</span>
                       <span>{draft.tuning[key]}%</span>
                     </label>
@@ -252,8 +234,8 @@ export default function Customize() {
                 )
               })}
               <p className="text-label-sm text-outline">
-                Tuning above standard limits requires the corresponding active package capability
-                and is revalidated server-side.
+                Tuning above standard limits requires the corresponding active package capability and is revalidated
+                server-side.
               </p>
             </Card>
           </section>
@@ -268,9 +250,7 @@ export default function Customize() {
               <button
                 type="button"
                 key={palette.name}
-                onClick={() =>
-                  setDraft((current) => ({ ...current, palette: palette.name }))
-                }
+                onClick={() => setDraft((current) => ({ ...current, palette: palette.name }))}
                 className={`surface flex items-center gap-3 rounded-2xl p-4 text-left ${draft.palette === palette.name ? 'border-tertiary/50 bg-tertiary/5' : ''}`}
               >
                 <span className="flex -space-x-2">
@@ -297,9 +277,7 @@ export default function Customize() {
               <button
                 type="button"
                 key={voice.id}
-                onClick={() =>
-                  setDraft((current) => ({ ...current, voiceProfileId: voice.id }))
-                }
+                onClick={() => setDraft((current) => ({ ...current, voiceProfileId: voice.id }))}
                 className={`surface flex w-full items-center justify-between gap-3 rounded-2xl p-4 text-left ${draft.voiceProfileId === voice.id ? 'border-tertiary/50 bg-tertiary/5' : ''}`}
               >
                 <span>
@@ -309,11 +287,7 @@ export default function Customize() {
                   </span>
                 </span>
                 <Icon
-                  name={
-                    draft.voiceProfileId === voice.id
-                      ? 'check_circle'
-                      : 'radio_button_unchecked'
-                  }
+                  name={draft.voiceProfileId === voice.id ? 'check_circle' : 'radio_button_unchecked'}
                   className="text-tertiary"
                 />
               </button>
@@ -330,18 +304,11 @@ export default function Customize() {
               <button
                 type="button"
                 key={personality.name}
-                onClick={() =>
-                  setDraft((current) => ({ ...current, personality: personality.name }))
-                }
+                onClick={() => setDraft((current) => ({ ...current, personality: personality.name }))}
                 className={`surface rounded-2xl p-4 text-center ${draft.personality === personality.name ? 'border-primary/60 bg-primary-container/20' : ''}`}
               >
-                <Icon
-                  name={personality.icon}
-                  className="mx-auto text-[26px] text-primary"
-                />
-                <span className="mt-2 block text-label-md text-on-surface">
-                  {personality.name}
-                </span>
+                <Icon name={personality.icon} className="mx-auto text-[26px] text-primary" />
+                <span className="mt-2 block text-label-md text-on-surface">{personality.name}</span>
               </button>
             ))}
           </div>
@@ -349,10 +316,7 @@ export default function Customize() {
       )}
 
       {message && (
-        <p
-          role="alert"
-          className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error"
-        >
+        <p role="alert" className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error">
           {message}
         </p>
       )}

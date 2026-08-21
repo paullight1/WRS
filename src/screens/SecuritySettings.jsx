@@ -43,23 +43,45 @@ export default function SecuritySettings() {
       <section>
         <SectionTitle>Two-factor authentication</SectionTitle>
         <Card className="space-y-4 p-card-padding">
-          <p className="text-body-md text-on-surface-variant">Status: <strong className="text-on-surface">{auth.session?.mfaEnabled ? 'Enabled' : 'Not enabled'}</strong></p>
+          <p className="text-body-md text-on-surface-variant">
+            Status: <strong className="text-on-surface">{auth.session?.mfaEnabled ? 'Enabled' : 'Not enabled'}</strong>
+          </p>
           {!auth.session?.mfaEnabled && !enrollment && <Button onClick={start}>Enroll authenticator</Button>}
           {enrollment && (
             <>
-              <p className="break-all rounded-xl bg-black/25 p-3 font-data text-label-sm text-on-surface-variant">{enrollment.provisioningUri}</p>
-              <Field label="6-digit authenticator code" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" />
+              <p className="break-all rounded-xl bg-black/25 p-3 font-data text-label-sm text-on-surface-variant">
+                {enrollment.provisioningUri}
+              </p>
+              <Field
+                label="6-digit authenticator code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                inputMode="numeric"
+              />
               <Button onClick={verify}>Verify and enable</Button>
-              <div><p className="text-label-sm text-outline">Store recovery codes offline. Each is single-use.</p>{enrollment.recoveryCodes?.map((item) => <code key={item} className="mr-2 text-label-sm text-tertiary">{item}</code>)}</div>
+              <div>
+                <p className="text-label-sm text-outline">Store recovery codes offline. Each is single-use.</p>
+                {enrollment.recoveryCodes?.map((item) => (
+                  <code key={item} className="mr-2 text-label-sm text-tertiary">
+                    {item}
+                  </code>
+                ))}
+              </div>
             </>
           )}
           {auth.session?.mfaEnabled && (
             <>
               <Field label="Current factor or recovery code" value={code} onChange={(e) => setCode(e.target.value)} />
-              <Button variant="danger" onClick={disable}>Disable two-factor authentication</Button>
+              <Button variant="danger" onClick={disable}>
+                Disable two-factor authentication
+              </Button>
             </>
           )}
-          {message && <p role="status" className="text-label-sm text-on-surface-variant">{message}</p>}
+          {message && (
+            <p role="status" className="text-label-sm text-on-surface-variant">
+              {message}
+            </p>
+          )}
         </Card>
       </section>
     </AppShell>

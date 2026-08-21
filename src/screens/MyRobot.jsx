@@ -11,7 +11,11 @@ export default function MyRobot() {
   const [tab, setTab] = useState('Overview')
 
   if (robotState.loading) {
-    return <AppShell title="My Robot"><StateView kind="loading" title="Loading robot" desc="Reading current robot ownership and configuration." /></AppShell>
+    return (
+      <AppShell title="My Robot">
+        <StateView kind="loading" title="Loading robot" desc="Reading current robot ownership and configuration." />
+      </AppShell>
+    )
   }
 
   if (!robotState.robot) {
@@ -55,7 +59,9 @@ export default function MyRobot() {
             <h2 className="font-headline-lg text-headline-lg font-bold text-on-surface">{robot.name}</h2>
             <p className="mt-1 text-label-md text-on-surface-variant">{definition.robotClass}</p>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>{robotState.isDemo ? 'Demo robot' : robot.lifecycle}</Badge>
+              <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>
+                {robotState.isDemo ? 'Demo robot' : robot.lifecycle}
+              </Badge>
               <Badge t="primary">{definition.name}</Badge>
               <Badge t="outline">ID {robot.id}</Badge>
             </div>
@@ -97,15 +103,21 @@ export default function MyRobot() {
             </Card>
           </section>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Button to="/robot/customize" full icon="tune">Customize Robot</Button>
-            <Button to="/robot/passport" variant="ghost" full icon="badge">Open Passport</Button>
+            <Button to="/robot/customize" full icon="tune">
+              Customize Robot
+            </Button>
+            <Button to="/robot/passport" variant="ghost" full icon="badge">
+              Open Passport
+            </Button>
           </div>
         </>
       )}
 
       {tab === 'Configuration' && (
         <section>
-          <SectionTitle action={configuration ? `v${configuration.version}` : 'Unavailable'}>Confirmed configuration</SectionTitle>
+          <SectionTitle action={configuration ? `v${configuration.version}` : 'Unavailable'}>
+            Confirmed configuration
+          </SectionTitle>
           {configuration ? (
             <Card className="divide-y divide-white/8">
               {[
@@ -124,7 +136,11 @@ export default function MyRobot() {
               ))}
             </Card>
           ) : (
-            <StateView kind="empty" title="No configuration record" desc="The robot service has not returned a confirmed configuration." />
+            <StateView
+              kind="empty"
+              title="No configuration record"
+              desc="The robot service has not returned a confirmed configuration."
+            />
           )}
         </section>
       )}
@@ -141,7 +157,8 @@ export default function MyRobot() {
             ))}
           </div>
           <p className="mt-3 text-label-sm text-outline">
-            Capability checks are repeated server-side when configuration, marketplace or deployment operations are attempted. UI visibility is not authorization.
+            Capability checks are repeated server-side when configuration, marketplace or deployment operations are
+            attempted. UI visibility is not authorization.
           </p>
         </section>
       )}
@@ -161,12 +178,16 @@ export default function MyRobot() {
                   <p className="text-body-md text-on-surface">{label}</p>
                   <p className="text-label-sm text-outline">{description}</p>
                 </div>
-                <Button to={to} size="sm" variant="ghost">Open</Button>
+                <Button to={to} size="sm" variant="ghost">
+                  Open
+                </Button>
               </div>
             ))}
           </Card>
           <p className="mt-3 text-label-sm text-outline">
-            Example: this robot {hasCapability(robot.packageSlug, 'deployment.standard') ? 'has' : 'does not have'} the package capability for standard deployment, but a deployment still requires independent eligibility and contract approval.
+            Example: this robot {hasCapability(robot.packageSlug, 'deployment.standard') ? 'has' : 'does not have'} the
+            package capability for standard deployment, but a deployment still requires independent eligibility and
+            contract approval.
           </p>
         </section>
       )}

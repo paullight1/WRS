@@ -23,9 +23,7 @@ export function validateRobotName(name: string): RobotValidationIssue[] {
   return []
 }
 
-export function validateRobotConfiguration(
-  input: RobotConfigurationInput,
-): RobotValidationIssue[] {
+export function validateRobotConfiguration(input: RobotConfigurationInput): RobotValidationIssue[] {
   const issues: RobotValidationIssue[] = []
   if (!input.palette.trim()) {
     issues.push({ field: 'palette', code: 'required', message: 'Choose a palette.' })
@@ -41,15 +39,17 @@ export function validateRobotConfiguration(
   }
   for (const [key, value] of Object.entries(input.tuning)) {
     if (!Number.isFinite(value) || value < 0 || value > 100) {
-      issues.push({ field: `tuning.${key}`, code: 'invalid-tuning', message: 'Tuning values must be between 0 and 100.' })
+      issues.push({
+        field: `tuning.${key}`,
+        code: 'invalid-tuning',
+        message: 'Tuning values must be between 0 and 100.',
+      })
     }
   }
   return issues
 }
 
-export function validateOnboardingCompletion(
-  input: OnboardingCompletionInput,
-): RobotValidationIssue[] {
+export function validateOnboardingCompletion(input: OnboardingCompletionInput): RobotValidationIssue[] {
   const issues = [...validateRobotName(input.name), ...validateRobotConfiguration(input)]
   if (!isPackageSlug(input.requestedPackageSlug)) {
     issues.push({ field: 'requestedPackageSlug', code: 'invalid-package', message: 'Choose a supported package.' })

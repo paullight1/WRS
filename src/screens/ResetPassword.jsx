@@ -34,10 +34,28 @@ export default function ResetPassword() {
     <div className="grid min-h-screen place-items-center px-margin-page py-12">
       <Card className="w-full max-w-sm space-y-4 p-card-padding">
         <h1 className="font-headline-md text-headline-md text-on-surface">Set a new password</h1>
-        <Field label="New password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
-        <Field label="Confirm password" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
-        {error && <p role="alert" className="text-label-sm text-error">{error}</p>}
-        <Button full loading={loading} onClick={submit}>Update password</Button>
+        <Field
+          label="New password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
+        />
+        <Field
+          label="Confirm password"
+          type="password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          autoComplete="new-password"
+        />
+        {error && (
+          <p role="alert" className="text-label-sm text-error">
+            {error}
+          </p>
+        )}
+        <Button full loading={loading} onClick={submit}>
+          Update password
+        </Button>
       </Card>
     </div>
   )

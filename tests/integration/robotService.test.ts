@@ -50,7 +50,9 @@ function repository(overrides: Partial<RobotRepository> = {}): RobotRepository {
     completeOnboardingAtomically: vi.fn().mockResolvedValue({ status: 'completed', robot, configuration }),
     getRobotOwned: vi.fn().mockResolvedValue(robot),
     getActiveRobot: vi.fn().mockResolvedValue({ robot, configuration }),
-    saveConfigurationAtomically: vi.fn().mockResolvedValue({ status: 'saved', configuration } satisfies ConfigurationSaveResult),
+    saveConfigurationAtomically: vi
+      .fn()
+      .mockResolvedValue({ status: 'saved', configuration } satisfies ConfigurationSaveResult),
     getPassportOwned: vi.fn().mockResolvedValue(null),
     requestPassportPdf: vi.fn().mockResolvedValue(null),
     appendXpEvent: vi.fn(async (event) => {
@@ -92,12 +94,7 @@ describe('RobotService', () => {
 
   it('rejects configuration writes for another users robot', async () => {
     const repo = repository({ getRobotOwned: vi.fn().mockResolvedValue(null) })
-    const result = await new RobotService(repo).saveConfiguration(
-      'user-2',
-      robot.id,
-      configuration,
-      2,
-    )
+    const result = await new RobotService(repo).saveConfiguration('user-2', robot.id, configuration, 2)
     expect(result).toEqual({ status: 'forbidden' })
     expect(repo.saveConfigurationAtomically).not.toHaveBeenCalled()
   })
@@ -118,12 +115,7 @@ describe('RobotService', () => {
     const repo = repository({
       saveConfigurationAtomically: vi.fn().mockResolvedValue({ status: 'conflict', current: configuration }),
     })
-    const result = await new RobotService(repo).saveConfiguration(
-      'user-1',
-      robot.id,
-      configuration,
-      1,
-    )
+    const result = await new RobotService(repo).saveConfiguration('user-1', robot.id, configuration, 1)
     expect(result).toEqual({ status: 'conflict', current: configuration })
   })
 
@@ -156,23 +148,9 @@ describe('RobotService', () => {
       idempotencyKey: 'lesson-1:user-1',
       createdAt: '2026-08-21T06:00:00.000Z',
     })
-    await service.reverseXp(
-      'user-1',
-      robot.id,
-      'xp-1',
-      'reverse-1',
-      'reverse:xp-1',
-      '2026-08-21T06:10:00.000Z',
-    )
+    await service.reverseXp('user-1', robot.id, 'xp-1', 'reverse-1', 'reverse:xp-1', '2026-08-21T06:10:00.000Z')
     await expect(
-      service.reverseXp(
-        'user-1',
-        robot.id,
-        'xp-1',
-        'reverse-2',
-        'reverse:xp-1:again',
-        '2026-08-21T06:11:00.000Z',
-      ),
+      service.reverseXp('user-1', robot.id, 'xp-1', 'reverse-2', 'reverse:xp-1:again', '2026-08-21T06:11:00.000Z'),
     ).rejects.toThrow(/already reversed/i)
   })
 })

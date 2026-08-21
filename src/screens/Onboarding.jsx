@@ -21,9 +21,7 @@ export default function Onboarding() {
   const [name, setName] = useState(() => draft?.name ?? 'WRS-Pro-001')
   const [eye, setEye] = useState('#00dbe7')
   const [personality, setPersonality] = useState(() => draft?.personality ?? 'Logical')
-  const [packageSlug, setPackageSlug] = useState(
-    () => draft?.requestedPackageSlug ?? 'professional',
-  )
+  const [packageSlug, setPackageSlug] = useState(() => draft?.requestedPackageSlug ?? 'professional')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -80,9 +78,7 @@ export default function Onboarding() {
         await persistStep(nextStep)
         setStep(nextStep)
       } catch (error) {
-        setMessage(
-          error instanceof Error ? error.message : 'Unable to save onboarding progress.',
-        )
+        setMessage(error instanceof Error ? error.message : 'Unable to save onboarding progress.')
       } finally {
         setSaving(false)
       }
@@ -101,11 +97,7 @@ export default function Onboarding() {
       armWelcome()
       nav('/home', { replace: true })
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'Robot provisioning could not be confirmed.',
-      )
+      setMessage(error instanceof Error ? error.message : 'Robot provisioning could not be confirmed.')
     } finally {
       setSaving(false)
     }
@@ -149,9 +141,7 @@ export default function Onboarding() {
 
         {step === 0 && (
           <div className="text-center">
-            <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">
-              Set up your robot
-            </h1>
+            <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Set up your robot</h1>
             <p className="mt-3 text-body-md leading-relaxed text-on-surface-variant">
               {robotState.isDemo
                 ? 'This demo stores setup state on this device only. No paid entitlement or live robot is created.'
@@ -183,17 +173,15 @@ export default function Onboarding() {
               ))}
             </div>
             <p className="mt-3 text-label-sm text-outline">
-              Selecting a package here does not purchase or activate it. The server verifies the
-              account entitlement at completion.
+              Selecting a package here does not purchase or activate it. The server verifies the account entitlement at
+              completion.
             </p>
           </div>
         )}
 
         {step === 2 && (
           <div>
-            <h1 className="mb-4 font-headline-lg-mobile text-headline-lg-mobile text-on-surface">
-              Name your robot
-            </h1>
+            <h1 className="mb-4 font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Name your robot</h1>
             <Card className="p-card-padding">
               <input
                 value={name}
@@ -208,9 +196,7 @@ export default function Onboarding() {
 
         {step === 3 && (
           <div>
-            <h1 className="mb-4 font-headline-lg-mobile text-headline-lg-mobile text-on-surface">
-              Choose appearance
-            </h1>
+            <h1 className="mb-4 font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Choose appearance</h1>
             <Card className="p-card-padding">
               <p className="mb-4 text-label-sm text-outline">Optic colour</p>
               <div className="flex justify-between gap-3">
@@ -234,9 +220,7 @@ export default function Onboarding() {
 
         {step === 4 && (
           <div>
-            <h1 className="mb-4 font-headline-lg-mobile text-headline-lg-mobile text-on-surface">
-              Pick a personality
-            </h1>
+            <h1 className="mb-4 font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Pick a personality</h1>
             <div className="grid grid-cols-2 gap-3">
               {personalities.map((item) => (
                 <button
@@ -245,10 +229,7 @@ export default function Onboarding() {
                   onClick={() => setPersonality(item.name)}
                   className={`surface flex flex-col items-center gap-2 rounded-2xl p-5 transition-all ${personality === item.name ? 'border-primary/50 bg-primary-container/15' : ''}`}
                 >
-                  <Icon
-                    name={item.icon}
-                    className={personality === item.name ? 'text-primary' : 'text-outline'}
-                  />
+                  <Icon name={item.icon} className={personality === item.name ? 'text-primary' : 'text-outline'} />
                   <span className="text-label-md text-on-surface">{item.name}</span>
                 </button>
               ))}
@@ -267,39 +248,24 @@ export default function Onboarding() {
             </p>
             <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.03] p-4 text-left text-body-sm text-on-surface-variant">
               <p>
-                Completion requests one atomic server transaction for entitlement validation,
-                robot creation, configuration and passport projection.
+                Completion requests one atomic server transaction for entitlement validation, robot creation,
+                configuration and passport projection.
               </p>
               <p className="mt-2">
-                No Robot ID, passport, wallet or training entitlement is claimed until that
-                transaction succeeds.
+                No Robot ID, passport, wallet or training entitlement is claimed until that transaction succeeds.
               </p>
             </div>
           </div>
         )}
 
         {message && (
-          <p
-            role="alert"
-            className="mt-5 rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error"
-          >
+          <p role="alert" className="mt-5 rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error">
             {message}
           </p>
         )}
 
-        <Button
-          full
-          size="lg"
-          className="mt-8"
-          onClick={next}
-          loading={saving}
-          trailingIcon="arrow_forward"
-        >
-          {step === steps.length - 1
-            ? robotState.isDemo
-              ? 'Create Demo Robot'
-              : 'Provision Robot'
-            : 'Continue'}
+        <Button full size="lg" className="mt-8" onClick={next} loading={saving} trailingIcon="arrow_forward">
+          {step === steps.length - 1 ? (robotState.isDemo ? 'Create Demo Robot' : 'Provision Robot') : 'Continue'}
         </Button>
       </div>
     </div>

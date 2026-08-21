@@ -24,9 +24,7 @@ export default function RobotPassport() {
       .catch((reason) => {
         if (!active) return
         setPassport(null)
-        setError(
-          reason instanceof Error ? reason.message : 'Robot passport could not be verified.',
-        )
+        setError(reason instanceof Error ? reason.message : 'Robot passport could not be verified.')
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -54,11 +52,7 @@ export default function RobotPassport() {
         <StateView
           kind="locked"
           title="Robot passport unavailable"
-          desc={
-            error ||
-            robotState.error ||
-            'Complete robot provisioning before requesting a passport.'
-          }
+          desc={error || robotState.error || 'Complete robot provisioning before requesting a passport.'}
           action={
             <Button to={robotState.robot ? '/robot' : '/onboarding'}>
               {robotState.robot ? 'Back to robot' : 'Complete onboarding'}
@@ -99,11 +93,7 @@ export default function RobotPassport() {
   ]
 
   return (
-    <AppShell
-      title={passport.authoritative ? 'Robot Passport' : 'Demo Robot Passport'}
-      back
-      avatar={false}
-    >
+    <AppShell title={passport.authoritative ? 'Robot Passport' : 'Demo Robot Passport'} back avatar={false}>
       <section>
         <Card className="relative overflow-hidden p-card-padding">
           <div className="flex items-center gap-4">
@@ -114,12 +104,8 @@ export default function RobotPassport() {
             />
             <div className="min-w-0 flex-1">
               <p className="text-label-sm text-outline">World Robotic System</p>
-              <h2 className="truncate font-headline-md text-headline-md text-on-surface">
-                {passport.name}
-              </h2>
-              <p className="truncate font-data text-data-sm text-tertiary">
-                {passport.publicVerificationId}
-              </p>
+              <h2 className="truncate font-headline-md text-headline-md text-on-surface">{passport.name}</h2>
+              <p className="truncate font-data text-data-sm text-tertiary">{passport.publicVerificationId}</p>
             </div>
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
@@ -143,9 +129,7 @@ export default function RobotPassport() {
           {rows.map(([key, value]) => (
             <div key={key} className="flex items-center justify-between gap-4 px-5 py-3.5">
               <span className="text-body-md text-on-surface-variant">{key}</span>
-              <span className="max-w-[58%] break-all text-right text-label-md text-on-surface">
-                {value}
-              </span>
+              <span className="max-w-[58%] break-all text-right text-label-md text-on-surface">{value}</span>
             </div>
           ))}
         </Card>
@@ -175,10 +159,7 @@ export default function RobotPassport() {
         {passport.certifications.length ? (
           <div className="space-y-2">
             {passport.certifications.map((certification) => (
-              <Card
-                key={certification.verificationReference}
-                className="flex items-center gap-3 p-3.5"
-              >
+              <Card key={certification.verificationReference} className="flex items-center gap-3 p-3.5">
                 <Icon name="workspace_premium" className="text-tertiary" fill />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-body-md text-on-surface">{certification.name}</p>
@@ -186,16 +167,12 @@ export default function RobotPassport() {
                     {certification.issuer} · {certification.status}
                   </p>
                 </div>
-                <span className="font-data text-data-sm text-outline">
-                  {certification.verificationReference}
-                </span>
+                <span className="font-data text-data-sm text-outline">{certification.verificationReference}</span>
               </Card>
             ))}
           </div>
         ) : (
-          <p className="text-body-sm text-outline">
-            No authoritative certification records are present.
-          </p>
+          <p className="text-body-sm text-outline">No authoritative certification records are present.</p>
         )}
       </section>
 
@@ -218,10 +195,7 @@ export default function RobotPassport() {
       </section>
 
       {error && (
-        <p
-          role="alert"
-          className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error"
-        >
+        <p role="alert" className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error">
           {error}
         </p>
       )}
@@ -233,9 +207,7 @@ export default function RobotPassport() {
         disabled={!passport.authoritative}
         onClick={exportPdf}
       >
-        {passport.authoritative
-          ? 'Download Verified Passport PDF'
-          : 'PDF unavailable for demo passport'}
+        {passport.authoritative ? 'Download Verified Passport PDF' : 'PDF unavailable for demo passport'}
       </Button>
     </AppShell>
   )

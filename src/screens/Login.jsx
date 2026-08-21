@@ -57,21 +57,49 @@ export default function Login() {
         </div>
 
         <Card as="form" onSubmit={submit} className="space-y-4 p-card-padding">
-          <Field value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Email or Phone Number" icon="alternate_email" type="text" autoComplete="username" />
-          <Field value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" icon="lock" type="password" autoComplete="current-password" />
-          {error && <p role="alert" className="text-label-sm text-error">{error}</p>}
+          <Field
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder="Email or Phone Number"
+            icon="alternate_email"
+            type="text"
+            autoComplete="username"
+          />
+          <Field
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            icon="lock"
+            type="password"
+            autoComplete="current-password"
+          />
+          {error && (
+            <p role="alert" className="text-label-sm text-error">
+              {error}
+            </p>
+          )}
 
           <div className="flex items-center justify-between">
-            <button type="button" onClick={() => setRemember(!remember)} className="flex items-center gap-2 text-label-sm text-on-surface-variant">
-              <span className={`grid h-4 w-4 place-items-center rounded border transition-colors ${remember ? 'border-primary bg-primary-container' : 'border-outline'}`}>
+            <button
+              type="button"
+              onClick={() => setRemember(!remember)}
+              className="flex items-center gap-2 text-label-sm text-on-surface-variant"
+            >
+              <span
+                className={`grid h-4 w-4 place-items-center rounded border transition-colors ${remember ? 'border-primary bg-primary-container' : 'border-outline'}`}
+              >
                 {remember && <Icon name="check" className="text-[12px] text-white" />}
               </span>
               Remember me
             </button>
-            <Link to="/forgot-password" className="text-label-sm text-primary hover:text-tertiary">Forgot Password?</Link>
+            <Link to="/forgot-password" className="text-label-sm text-primary hover:text-tertiary">
+              Forgot Password?
+            </Link>
           </div>
 
-          <Button full size="lg" type="submit" loading={loading}>Login</Button>
+          <Button full size="lg" type="submit" loading={loading}>
+            Login
+          </Button>
 
           {auth.oauthEnabled && (
             <>
@@ -81,14 +109,20 @@ export default function Login() {
                 <span className="h-px flex-1 bg-white/10" />
               </div>
               <div className="flex justify-center gap-4">
-                <SocialButton label="Continue with Google" onClick={() => auth.beginOAuth('google')}><span className="text-title font-bold text-on-surface">G</span></SocialButton>
-                <SocialButton label="Continue with Apple" onClick={() => auth.beginOAuth('apple')}><Icon name="phone_iphone" className="text-on-surface" /></SocialButton>
+                <SocialButton label="Continue with Google" onClick={() => auth.beginOAuth('google')}>
+                  <span className="text-title font-bold text-on-surface">G</span>
+                </SocialButton>
+                <SocialButton label="Continue with Apple" onClick={() => auth.beginOAuth('apple')}>
+                  <Icon name="phone_iphone" className="text-on-surface" />
+                </SocialButton>
               </div>
             </>
           )}
         </Card>
 
-        <Button to="/register" variant="ghost" full size="lg" className="mt-4">Create New Account</Button>
+        <Button to="/register" variant="ghost" full size="lg" className="mt-4">
+          Create New Account
+        </Button>
       </div>
     </div>
   )

@@ -27,11 +27,7 @@ export class SupabaseRobotRepository implements RobotRepository {
     return this.port.call<OnboardingDraft>('robot.onboarding.save', { userId, draft })
   }
 
-  completeOnboardingAtomically(
-    userId: string,
-    input: OnboardingCompletionInput,
-    idempotencyKey: string,
-  ) {
+  completeOnboardingAtomically(userId: string, input: OnboardingCompletionInput, idempotencyKey: string) {
     return this.port.call<OnboardingCompletionResult>('robot.onboarding.completeAtomic', {
       userId,
       input,
@@ -45,10 +41,9 @@ export class SupabaseRobotRepository implements RobotRepository {
   }
 
   getActiveRobot(userId: string) {
-    return this.port.call<{ robot: RobotRecord; configuration: RobotConfiguration } | null>(
-      'robot.getActive',
-      { userId },
-    )
+    return this.port.call<{ robot: RobotRecord; configuration: RobotConfiguration } | null>('robot.getActive', {
+      userId,
+    })
   }
 
   saveConfigurationAtomically(

@@ -26,11 +26,26 @@ export default function ForgotPassword() {
     <div className="grid min-h-screen place-items-center px-margin-page py-12">
       <Card className="w-full max-w-sm space-y-4 p-card-padding">
         <h1 className="font-headline-md text-headline-md text-on-surface">Recover your account</h1>
-        <p className="text-body-sm text-on-surface-variant">For privacy, WRS gives the same response whether or not an account exists.</p>
-        <Field label="Email or phone" value={identifier} onChange={(e) => setIdentifier(e.target.value)} autoComplete="username" />
-        {message && <p role="status" className="text-label-sm text-on-surface-variant">{message}</p>}
-        <Button full loading={loading} onClick={submit}>Send recovery instructions</Button>
-        <Link to="/login" className="block text-center text-label-sm text-primary">Back to login</Link>
+        <p className="text-body-sm text-on-surface-variant">
+          For privacy, WRS gives the same response whether or not an account exists.
+        </p>
+        <Field
+          label="Email or phone"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          autoComplete="username"
+        />
+        {message && (
+          <p role="status" className="text-label-sm text-on-surface-variant">
+            {message}
+          </p>
+        )}
+        <Button full loading={loading} onClick={submit}>
+          Send recovery instructions
+        </Button>
+        <Link to="/login" className="block text-center text-label-sm text-primary">
+          Back to login
+        </Link>
       </Card>
     </div>
   )

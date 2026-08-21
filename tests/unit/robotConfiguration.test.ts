@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { requiredCapabilities, validateOnboardingCompletion, validateRobotConfiguration } from '../../src/domain/robot/configuration'
+import {
+  requiredCapabilities,
+  validateOnboardingCompletion,
+  validateRobotConfiguration,
+} from '../../src/domain/robot/configuration'
 
 const base = {
   palette: 'Oceania Flow',

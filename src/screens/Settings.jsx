@@ -50,11 +50,7 @@ export default function Settings() {
             icon="shield_lock"
             t="tertiary"
             title="Two-factor authentication"
-            subtitle={
-              auth.session?.mfaEnabled
-                ? 'Enabled — available for protected action step-up'
-                : 'Not enabled'
-            }
+            subtitle={auth.session?.mfaEnabled ? 'Enabled — available for protected action step-up' : 'Not enabled'}
             to="/settings/security"
           />
           <Toggle
@@ -69,21 +65,9 @@ export default function Settings() {
       <section>
         <SectionTitle>Preferences</SectionTitle>
         <List>
-          <Row
-            title="Language"
-            value="English"
-            right={<Icon name="chevron_right" className="text-outline" />}
-          />
-          <Row
-            title="Currency"
-            value="USD"
-            right={<Icon name="chevron_right" className="text-outline" />}
-          />
-          <Row
-            title="Time zone"
-            value="WAT (UTC+1)"
-            right={<Icon name="chevron_right" className="text-outline" />}
-          />
+          <Row title="Language" value="English" right={<Icon name="chevron_right" className="text-outline" />} />
+          <Row title="Currency" value="USD" right={<Icon name="chevron_right" className="text-outline" />} />
+          <Row title="Time zone" value="WAT (UTC+1)" right={<Icon name="chevron_right" className="text-outline" />} />
           <Toggle
             checked={settings.notifications}
             onChange={set('notifications')}
@@ -104,18 +88,10 @@ export default function Settings() {
         {robot && configuration ? (
           <List>
             <Row title="Robot name" value={robot.name} to="/robot" />
-            <Row
-              title="Robot class"
-              value={packageDefinition(robot.packageSlug).robotClass}
-              to="/robot"
-            />
+            <Row title="Robot class" value={packageDefinition(robot.packageSlug).robotClass} to="/robot" />
             <Row title="Voice profile" value={configuration.voiceProfileId} to="/robot/customize" />
             <Row title="Personality" value={configuration.personality} to="/robot/customize" />
-            <Row
-              title="Configuration version"
-              value={`v${configuration.version}`}
-              to="/robot/customize"
-            />
+            <Row title="Configuration version" value={`v${configuration.version}`} to="/robot/customize" />
             <Toggle
               checked={settings.safety}
               onChange={set('safety')}
@@ -151,12 +127,7 @@ export default function Settings() {
             label="Data-sharing consent preview"
             desc="Authoritative consent lifecycle is Plan 6"
           />
-          <Row
-            icon="delete_sweep"
-            t="outline"
-            title="Delete biometric data"
-            subtitle={deleteDataPolicy.reason}
-          />
+          <Row icon="delete_sweep" t="outline" title="Delete biometric data" subtitle={deleteDataPolicy.reason} />
           <Row
             icon="download"
             t="outline"
@@ -167,16 +138,11 @@ export default function Settings() {
       </section>
 
       <Disclosure icon="shield">
-        Authentication, verification, MFA and robot configuration shown here come from their
-        authoritative session/service boundaries. WRS does not claim sensitive account/data
-        deletion until the backend confirms it and records an audit event.
+        Authentication, verification, MFA and robot configuration shown here come from their authoritative
+        session/service boundaries. WRS does not claim sensitive account/data deletion until the backend confirms it and
+        records an audit event.
       </Disclosure>
-      <Button
-        variant="danger"
-        full
-        icon="delete_forever"
-        disabled={!deleteAccountPolicy.enabled}
-      >
+      <Button variant="danger" full icon="delete_forever" disabled={!deleteAccountPolicy.enabled}>
         Delete account unavailable
       </Button>
     </AppShell>

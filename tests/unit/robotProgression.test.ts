@@ -19,22 +19,14 @@ const event = (overrides: Partial<XpEvent> = {}): XpEvent => ({
 
 describe('robot XP progression', () => {
   it('ignores duplicate idempotency keys', () => {
-    const projection = projectXpEvents([
-      event(),
-      event({ id: 'xp-duplicate' }),
-    ])
+    const projection = projectXpEvents([event(), event({ id: 'xp-duplicate' })])
     expect(projection.totalXp).toBe(250)
     expect(projection.ignoredEventIds).toContain('xp-duplicate')
   })
 
   it('reverses with a compensating event rather than editing the original', () => {
     const original = event()
-    const reversal = createReversalEvent(
-      original,
-      'xp-reversal',
-      'reverse:xp-1',
-      '2026-08-21T06:10:00.000Z',
-    )
+    const reversal = createReversalEvent(original, 'xp-reversal', 'reverse:xp-1', '2026-08-21T06:10:00.000Z')
     const projection = projectXpEvents([original, reversal])
     expect(reversal.amount).toBe(-250)
     expect(reversal.reversalOf).toBe('xp-1')

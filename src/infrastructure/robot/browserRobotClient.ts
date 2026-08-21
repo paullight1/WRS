@@ -34,11 +34,7 @@ export const browserRobotClient = {
       method: 'POST',
       body: JSON.stringify({ input, idempotencyKey }),
     }),
-  saveConfiguration: (
-    robotId: string,
-    input: RobotConfigurationInput,
-    expectedVersion: number,
-  ) =>
+  saveConfiguration: (robotId: string, input: RobotConfigurationInput, expectedVersion: number) =>
     request<ConfigurationSaveResult>(`/api/robots/${encodeURIComponent(robotId)}/configuration`, {
       method: 'PUT',
       body: JSON.stringify({ input, expectedVersion }),

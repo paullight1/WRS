@@ -26,9 +26,7 @@ export function UserAvatar({ size = 40, className = '' }) {
 
 export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
   const navigate = useNavigate()
-  const [scrolled, setScrolled] = useState(
-    () => typeof window !== 'undefined' && window.scrollY > 4,
-  )
+  const [scrolled, setScrolled] = useState(() => typeof window !== 'undefined' && window.scrollY > 4)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4)
@@ -53,11 +51,7 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
             <Icon name="arrow_back" className="text-on-surface" />
           </button>
         ) : avatar ? (
-          <Link
-            to="/profile"
-            className="tap -ml-1 grid shrink-0 place-items-center"
-            aria-label="Your profile"
-          >
+          <Link to="/profile" className="tap -ml-1 grid shrink-0 place-items-center" aria-label="Your profile">
             <UserAvatar size={36} />
           </Link>
         ) : null}
@@ -126,9 +120,7 @@ export function BottomNav() {
                   >
                     <Icon name={item.icon} fill={isActive} className="text-[22px]" />
                   </span>
-                  <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : ''}`}>
-                    {item.label}
-                  </span>
+                  <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : ''}`}>{item.label}</span>
                 </>
               )}
             </NavLink>
@@ -221,9 +213,7 @@ export function Drawer({ open, onClose }) {
             <UserAvatar size={40} />
             <span className="min-w-0">
               <span className="block truncate text-title text-on-surface">{accountTitle}</span>
-              <span className="block truncate font-data text-data-sm text-on-surface-variant">
-                {accountId}
-              </span>
+              <span className="block truncate font-data text-data-sm text-on-surface-variant">{accountId}</span>
             </span>
           </Link>
         </div>
@@ -288,23 +278,15 @@ function DemoDataBanner() {
       <div>
         <p className="text-label-md text-on-surface">{demoDataLabel}</p>
         <p className="mt-0.5 text-body-sm text-on-surface-variant">
-          Balances, payouts, deployments, rewards and any demo-only records are illustrative and
-          are not live account data.
+          Balances, payouts, deployments, rewards and any demo-only records are illustrative and are not live account
+          data.
         </p>
       </div>
     </div>
   )
 }
 
-export default function AppShell({
-  title,
-  subtitle,
-  back,
-  right,
-  avatar = true,
-  children,
-  wide = false,
-}) {
+export default function AppShell({ title, subtitle, back, right, avatar = true, children, wide = false }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
@@ -326,9 +308,7 @@ export default function AppShell({
           onMenu={() => setDrawerOpen(true)}
         />
         <main
-          className={`mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${
-            wide ? 'max-w-[1080px]' : 'max-w-[720px]'
-          }`}
+          className={`mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`}
         >
           <DemoDataBanner />
           <div className="space-y-7">{children}</div>

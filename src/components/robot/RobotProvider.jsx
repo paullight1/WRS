@@ -73,9 +73,7 @@ function buildDemoPassport(robot, configuration) {
 
 export function RobotProvider({ children }) {
   const auth = useAuth()
-  const [state, setState] = useState(() =>
-    runtimeConfig.isDemo ? readDemoState() : emptyState,
-  )
+  const [state, setState] = useState(() => (runtimeConfig.isDemo ? readDemoState() : emptyState))
   const [loading, setLoading] = useState(() => !runtimeConfig.isDemo)
   const [error, setError] = useState('')
 
@@ -109,10 +107,7 @@ export function RobotProvider({ children }) {
 
     setLoading(true)
     try {
-      const [active, draft] = await Promise.all([
-        browserRobotClient.active(),
-        browserRobotClient.onboarding(),
-      ])
+      const [active, draft] = await Promise.all([browserRobotClient.active(), browserRobotClient.onboarding()])
       const next = {
         robot: active.robot,
         configuration: active.configuration,
@@ -291,11 +286,7 @@ export function RobotProvider({ children }) {
       }
 
       try {
-        const result = await browserRobotClient.saveConfiguration(
-          robot.id,
-          input,
-          configuration.version,
-        )
+        const result = await browserRobotClient.saveConfiguration(robot.id, input, configuration.version)
         if (result.status === 'saved') {
           setState((current) => ({ ...current, configuration: result.configuration }))
         } else if (result.status === 'conflict') {

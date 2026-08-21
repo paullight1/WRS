@@ -1,10 +1,4 @@
-export type PackageSlug =
-  | 'starter'
-  | 'builder'
-  | 'professional'
-  | 'enterprise'
-  | 'elite'
-  | 'visionary'
+export type PackageSlug = 'starter' | 'builder' | 'professional' | 'enterprise' | 'elite' | 'visionary'
 
 export type RobotLifecycle = 'pending' | 'active' | 'suspended' | 'retired'
 export type EntitlementStatus = 'pending' | 'active' | 'refunded' | 'revoked' | 'expired'

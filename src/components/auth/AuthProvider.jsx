@@ -21,13 +21,9 @@ const demoSession = {
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => (runtimeConfig.isDemo ? demoSession : null))
-  const [loading, setLoading] = useState(
-    () => !runtimeConfig.isDemo && runtimeConfig.services.identity,
-  )
+  const [loading, setLoading] = useState(() => !runtimeConfig.isDemo && runtimeConfig.services.identity)
   const [error, setError] = useState(() =>
-    !runtimeConfig.isDemo && !runtimeConfig.services.identity
-      ? 'Authoritative identity service is unavailable.'
-      : '',
+    !runtimeConfig.isDemo && !runtimeConfig.services.identity ? 'Authoritative identity service is unavailable.' : '',
   )
 
   const refresh = useCallback(async () => {
@@ -187,11 +183,7 @@ export function ProtectedRoute({ children, policy = 'authenticated', requireVeri
   const auth = useAuth()
   const location = useLocation()
   if (auth.loading) {
-    return (
-      <div className="grid min-h-screen place-items-center text-on-surface-variant">
-        Verifying session…
-      </div>
-    )
+    return <div className="grid min-h-screen place-items-center text-on-surface-variant">Verifying session…</div>
   }
   const effectivePolicy = requireVerified ? 'verified' : policy
   const decision = authorizeSession(auth.session, effectivePolicy)

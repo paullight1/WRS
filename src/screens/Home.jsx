@@ -65,26 +65,16 @@ export default function Home() {
   const full = ids.length >= MAX_SHORTCUTS
 
   return (
-    <AppShell
-      title="Home"
-      subtitle={robotState.isDemo ? 'Demo workspace' : 'Verified WRS workspace'}
-    >
+    <AppShell title="Home" subtitle={robotState.isDemo ? 'Demo workspace' : 'Verified WRS workspace'}>
       <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
 
       {robotState.loading ? (
-        <StateView
-          kind="loading"
-          title="Loading your robot"
-          desc="Reading the latest confirmed robot state."
-        />
+        <StateView kind="loading" title="Loading your robot" desc="Reading the latest confirmed robot state." />
       ) : !robotState.robot ? (
         <StateView
           kind="locked"
           title={robotState.isDemo ? 'Create your demo robot' : 'Robot provisioning is not complete'}
-          desc={
-            robotState.error ||
-            'Complete onboarding before robot identity and configuration can appear here.'
-          }
+          desc={robotState.error || 'Complete onboarding before robot identity and configuration can appear here.'}
           action={<Button to="/onboarding">Open onboarding</Button>}
         />
       ) : (
@@ -104,8 +94,7 @@ export default function Home() {
                       {robotState.robot.name}
                     </h2>
                     <p className="mt-1 text-body-sm text-on-surface-variant">
-                      {packageDefinition(robotState.robot.packageSlug).robotClass} ·{' '}
-                      {robotState.robot.packageSlug}
+                      {packageDefinition(robotState.robot.packageSlug).robotClass} · {robotState.robot.packageSlug}
                     </p>
                   </div>
                   <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>
@@ -149,13 +138,7 @@ export default function Home() {
               {editing ? (
                 <div className="flex flex-col items-center gap-2 py-1 text-center">
                   <span className="relative">
-                    <IconTile
-                      icon={action.icon}
-                      accent={action.c}
-                      size={52}
-                      radius={16}
-                      iconSize={28}
-                    />
+                    <IconTile icon={action.icon} accent={action.c} size={52} radius={16} iconSize={28} />
                     <button
                       type="button"
                       onClick={() => persist(ids.filter((id) => id !== action.id))}
@@ -165,25 +148,15 @@ export default function Home() {
                       <Icon name="remove" className="text-[16px]" />
                     </button>
                   </span>
-                  <span className="text-label-md leading-tight text-on-surface">
-                    {action.label}
-                  </span>
+                  <span className="text-label-md leading-tight text-on-surface">{action.label}</span>
                 </div>
               ) : (
                 <Link
                   to={action.to}
                   className="flex flex-col items-center gap-2 rounded-xl py-1 text-center active:scale-[.94]"
                 >
-                  <IconTile
-                    icon={action.icon}
-                    accent={action.c}
-                    size={52}
-                    radius={16}
-                    iconSize={28}
-                  />
-                  <span className="text-label-md leading-tight text-on-surface">
-                    {action.label}
-                  </span>
+                  <IconTile icon={action.icon} accent={action.c} size={52} radius={16} iconSize={28} />
+                  <span className="text-label-md leading-tight text-on-surface">{action.label}</span>
                 </Link>
               )}
             </li>
@@ -218,9 +191,8 @@ export default function Home() {
             <div>
               <p className="text-title text-on-surface">Authoritative boundaries</p>
               <p className="mt-1 text-body-sm text-on-surface-variant">
-                WRS no longer mixes demo wallet balances, fabricated XP, deployment performance or
-                training progress into the production home screen. Open each service area to see
-                only the state that service can verify.
+                WRS no longer mixes demo wallet balances, fabricated XP, deployment performance or training progress
+                into the production home screen. Open each service area to see only the state that service can verify.
               </p>
             </div>
           </div>

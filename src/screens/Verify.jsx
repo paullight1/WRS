@@ -12,7 +12,10 @@ export default function Verify() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const userId = location.state?.userId || auth.session?.userId || ''
-  const challenge = useMemo(() => location.state?.challenges?.find((item) => item.kind === 'phone') || location.state?.challenges?.[0] || null, [location.state])
+  const challenge = useMemo(
+    () => location.state?.challenges?.find((item) => item.kind === 'phone') || location.state?.challenges?.[0] || null,
+    [location.state],
+  )
 
   const setDigit = (i, value) => {
     const next = [...code]
@@ -52,18 +55,42 @@ export default function Verify() {
       <Atmosphere />
       <div className="w-full max-w-sm">
         <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Verify your account</h1>
-        <p className="mb-6 mt-2 text-body-md text-on-surface-variant">Verification is challenge-backed and single-use.</p>
+        <p className="mb-6 mt-2 text-body-md text-on-surface-variant">
+          Verification is challenge-backed and single-use.
+        </p>
         <Card className="space-y-5 p-card-padding">
           <div className="flex justify-between gap-2">
             {code.map((digit, i) => (
-              <input key={i} id={`otp-${i}`} value={digit} onChange={(e) => setDigit(i, e.target.value)} inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} aria-label={`Verification digit ${i + 1}`} className="h-14 w-full rounded-xl border border-white/10 bg-black/30 text-center font-data text-data-lg text-on-surface outline-none transition-all focus:border-tertiary" />
+              <input
+                key={i}
+                id={`otp-${i}`}
+                value={digit}
+                onChange={(e) => setDigit(i, e.target.value)}
+                inputMode="numeric"
+                autoComplete={i === 0 ? 'one-time-code' : 'off'}
+                aria-label={`Verification digit ${i + 1}`}
+                className="h-14 w-full rounded-xl border border-white/10 bg-black/30 text-center font-data text-data-lg text-on-surface outline-none transition-all focus:border-tertiary"
+              />
             ))}
           </div>
-          {error && <p role="status" className="text-center text-label-sm text-on-surface-variant">{error}</p>}
-          <Button full size="lg" loading={loading} onClick={verify}>Verify & Continue</Button>
-          <Button full variant="ghost" onClick={resend}>Resend code</Button>
+          {error && (
+            <p role="status" className="text-center text-label-sm text-on-surface-variant">
+              {error}
+            </p>
+          )}
+          <Button full size="lg" loading={loading} onClick={verify}>
+            Verify & Continue
+          </Button>
+          <Button full variant="ghost" onClick={resend}>
+            Resend code
+          </Button>
         </Card>
-        <div className="mt-5"><Disclosure>Only the authoritative verification service can mark email or phone verified. A URL or client value cannot do so.</Disclosure></div>
+        <div className="mt-5">
+          <Disclosure>
+            Only the authoritative verification service can mark email or phone verified. A URL or client value cannot
+            do so.
+          </Disclosure>
+        </div>
       </div>
     </div>
   )
