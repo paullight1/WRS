@@ -12,9 +12,23 @@ import { getSensitiveActionPolicy } from '../lib/sensitiveActions.js'
 export default function ActiveDeployment() {
   const { id } = useParams()
   const pausePolicy = getSensitiveActionPolicy('deployment.pause')
-  const past = deploymentHistory.find((x) => x.id === id)
-  const live = activeDeployments.find((x) => x.id === id)
-  const d = live || past || activeDeployments[0]
+  const past = id ? deploymentHistory.find((x) => x.id === id) : null
+  const live = id ? activeDeployments.find((x) => x.id === id) : activeDeployments[0]
+  const d = live || past
+
+  if (!d) {
+    return (
+      <AppShell title="Deployment not found" back avatar={false}>
+        <StateView
+          kind="noResults"
+          title="This deployment record is unavailable"
+          desc="WRS does not substitute another deployment when an ID is unknown or unauthorized."
+          action={<Button to="/deploy">Back to deployments</Button>}
+        />
+      </AppShell>
+    )
+  }
+
   const isHistory = !live && !!past
   const site = worksiteFor(d.industry)
 
