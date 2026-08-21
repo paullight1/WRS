@@ -18,6 +18,15 @@ function secureCookie() {
   return process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
 }
 
+export function clearOAuthCookie() {
+  return serializeCookie(OAUTH_COOKIE, '', {
+    secure: secureCookie(),
+    sameSite: 'Lax',
+    maxAge: 0,
+    expires: new Date(0),
+  })
+}
+
 function allowedProviders() {
   return new Set(
     String(process.env.WRS_OAUTH_PROVIDERS || '')
@@ -136,11 +145,5 @@ export async function completeOAuth(request) {
   }
   await recordSessionMetadata(session.userId, tokenResponse.access_token, true)
   await recordSecurityEvent(session.userId, 'oauth.login.succeeded', { provider: payload.provider })
-  const clear = serializeCookie(OAUTH_COOKIE, '', {
-    secure: secureCookie(),
-    sameSite: 'Lax',
-    maxAge: 0,
-    expires: new Date(0),
-  })
-  return { session, cookies: [...sessionCookies(tokenResponse, true), clear] }
+  return { session, cookies: [...sessionCookies(tokenResponse, true), clearOAuthCookie()] }
 }
