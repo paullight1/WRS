@@ -18,7 +18,7 @@ const liveSession: AuthSession = {
 function repository(overrides: Partial<AuthRepository> = {}): AuthRepository {
   return {
     rateLimit: vi.fn().mockResolvedValue(true),
-    createPendingAccount: vi.fn(async () => ({ userId: 'user-1', status: 'pending', emailVerified: false, phoneVerified: false })),
+    createPendingAccount: vi.fn(async () => ({ userId: 'user-1', status: 'pending' as const, emailVerified: false, phoneVerified: false })),
     issueVerification: vi.fn(async (_userId: string, kind: VerificationKind) => ({ id: `${kind}-challenge`, kind, expiresAt: '2099-01-01T00:00:00.000Z', resendAvailableAt: '2099-01-01T00:00:00.000Z' })),
     verifyChallenge: vi.fn().mockResolvedValue(liveSession),
     signIn: vi.fn().mockResolvedValue(liveSession),
