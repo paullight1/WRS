@@ -160,7 +160,7 @@ export async function issueVerificationChallenge(userId, kind, contact) {
   return { id: token, kind, expiresAt: expiresAt.toISOString(), resendAvailableAt: resendAvailableAt.toISOString() }
 }
 
-async function loadChallenge(userId, kind, token) {
+async function consumeChallengeAttempt(userId, kind, token) {
   const payload = verifySignedToken(token, challengeSecret())
   if (
     payload?.v !== 1 ||
@@ -172,33 +172,20 @@ async function loadChallenge(userId, kind, token) {
   ) {
     throw new HttpError(400, 'Verification challenge is invalid or expired.', 'invalid-challenge')
   }
-  const { data } = await serviceRest(
-    `/rest/v1/verification_requests?id=eq.${encodeURIComponent(payload.id)}&user_id=eq.${encodeURIComponent(userId)}&kind=eq.${encodeURIComponent(kind)}&select=*&limit=1`,
-  )
-  const row = Array.isArray(data) ? data[0] || null : null
-  if (
-    !row ||
-    row.consumed_at ||
-    row.superseded_at ||
-    Number(row.attempt_count || 0) >= 10 ||
-    new Date(row.expires_at).getTime() <= Date.now() ||
-    row.secret_hash !== sha256(payload.ref)
-  ) {
+  const { data: accepted } = await serviceRpc('wrs_consume_verification_attempt', {
+    p_request_id: payload.id,
+    p_user_id: userId,
+    p_kind: kind,
+    p_secret_hash: sha256(payload.ref),
+  })
+  if (accepted !== true) {
     throw new HttpError(400, 'Verification challenge is invalid or expired.', 'invalid-challenge')
   }
-  return { payload, row }
-}
-
-async function markChallengeAttempt(id, count) {
-  await serviceRest(`/rest/v1/verification_requests?id=eq.${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
-    body: { attempt_count: count },
-  })
+  return payload
 }
 
 async function markChallengeConsumed(id) {
-  await serviceRest(`/rest/v1/verification_requests?id=eq.${encodeURIComponent(id)}`, {
+  await serviceRest(`/rest/v1/verification_requests?id=eq.${encodeURIComponent(id)}&consumed_at=is.null`, {
     method: 'PATCH',
     headers: { Prefer: 'return=minimal' },
     body: { consumed_at: new Date().toISOString() },
@@ -225,12 +212,14 @@ async function markProfileVerified(userId, kind) {
 export async function verifyChallenge(userId, kind, challengeToken, code) {
   const normalizedCode = String(code || '').trim()
   if (!OTP.test(normalizedCode)) throw new HttpError(400, 'Enter the six-digit verification code.', 'invalid-code')
-  const { row } = await loadChallenge(userId, kind, challengeToken)
-  await markChallengeAttempt(row.id, Number(row.attempt_count || 0) + 1)
+  const challenge = await consumeChallengeAttempt(userId, kind, challengeToken)
   const profile = await loadProfile(userId)
   if (!profile) throw new HttpError(404, 'Account verification context is unavailable.', 'verification-unavailable')
   const contact = kind === 'email' ? profile.normalized_email : profile.normalized_phone
-  const body = kind === 'email' ? { email: contact, token: normalizedCode, type: 'email' } : { phone: contact, token: normalizedCode, type: 'sms' }
+  const body =
+    kind === 'email'
+      ? { email: contact, token: normalizedCode, type: 'email' }
+      : { phone: contact, token: normalizedCode, type: 'sms' }
   let tokenResponse
   try {
     const { data } = await authPublic('/auth/v1/verify', {
@@ -240,11 +229,11 @@ export async function verifyChallenge(userId, kind, challengeToken, code) {
       errorMessage: 'The code is invalid or expired.',
     })
     tokenResponse = data
-  } catch (error) {
+  } catch {
     await recordSecurityEvent(userId, 'verification.failed', { kind }).catch(() => undefined)
     throw new HttpError(400, 'The code is invalid or expired.', 'verification-failed')
   }
-  await markChallengeConsumed(row.id)
+  await markChallengeConsumed(challenge.id)
   await markProfileVerified(userId, kind)
   await recordSecurityEvent(userId, 'verification.succeeded', { kind })
   return tokenResponse
@@ -260,6 +249,12 @@ export async function resendVerification(userId, kind) {
   if (current && new Date(current.resend_available_at).getTime() > Date.now()) {
     throw new HttpError(429, 'Please wait before requesting another code.', 'resend-cooldown')
   }
+  await supersedeOpenChallenges(userId, kind)
+  const contact = kind === 'email' ? profile.normalized_email : profile.normalized_phone
+  return issueVerificationChallenge(userId, kind, contact)
+}
+
+async function supersedeOpenChallenges(userId, kind) {
   await serviceRest(
     `/rest/v1/verification_requests?user_id=eq.${encodeURIComponent(userId)}&kind=eq.${encodeURIComponent(kind)}&consumed_at=is.null&superseded_at=is.null`,
     {
@@ -268,8 +263,6 @@ export async function resendVerification(userId, kind) {
       body: { superseded_at: new Date().toISOString() },
     },
   )
-  const contact = kind === 'email' ? profile.normalized_email : profile.normalized_phone
-  return issueVerificationChallenge(userId, kind, contact)
 }
 
 export async function createPendingAccount(registration) {
@@ -328,22 +321,12 @@ export async function issueMissingVerificationChallenges(user) {
   const profile = await loadProfile(user.id)
   if (!profile) return []
   const challenges = []
-  if (!profile.email_verified_at) challenges.push(await resendOrIssue(user.id, 'email', profile.normalized_email))
-  if (!profile.phone_verified_at) challenges.push(await resendOrIssue(user.id, 'phone', profile.normalized_phone))
+  if (!profile.email_verified_at) challenges.push(await replaceChallenge(user.id, 'email', profile.normalized_email))
+  if (!profile.phone_verified_at) challenges.push(await replaceChallenge(user.id, 'phone', profile.normalized_phone))
   return challenges
 }
 
-async function resendOrIssue(userId, kind, contact) {
-  const { data } = await serviceRest(
-    `/rest/v1/verification_requests?user_id=eq.${encodeURIComponent(userId)}&kind=eq.${encodeURIComponent(kind)}&consumed_at=is.null&superseded_at=is.null&select=id,resend_available_at&order=created_at.desc&limit=1`,
-  )
-  const current = Array.isArray(data) ? data[0] || null : null
-  if (current && new Date(current.resend_available_at).getTime() > Date.now()) {
-    await serviceRest(`/rest/v1/verification_requests?id=eq.${encodeURIComponent(current.id)}`, {
-      method: 'PATCH',
-      headers: { Prefer: 'return=minimal' },
-      body: { superseded_at: new Date().toISOString() },
-    })
-  }
+async function replaceChallenge(userId, kind, contact) {
+  await supersedeOpenChallenges(userId, kind)
   return issueVerificationChallenge(userId, kind, contact)
 }
