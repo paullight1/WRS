@@ -5,6 +5,10 @@ DECLARE
   relation_name text;
   routine_name text;
   function_definition text;
+  test_user uuid := '11111111-1111-4111-8111-111111111111'::uuid;
+  test_request uuid := '22222222-2222-4222-8222-222222222222'::uuid;
+  test_recovery uuid := '33333333-3333-4333-8333-333333333333'::uuid;
+  attempt_count integer;
 BEGIN
   foreach relation_name in array ARRAY[
     'public.user_profiles',
@@ -120,6 +124,8 @@ BEGIN
 
   foreach routine_name in array ARRAY[
     'public.wrs_consume_auth_rate_limit(text,text,integer,integer)',
+    'public.wrs_consume_verification_attempt(uuid,uuid,text,text)',
+    'public.wrs_consume_mfa_recovery_code(uuid,text)',
     'public.wrs_complete_robot_onboarding(uuid,jsonb,text)',
     'public.wrs_save_robot_configuration(uuid,uuid,jsonb,bigint)',
     'public.wrs_append_robot_xp_event(uuid,jsonb)',
@@ -149,6 +155,78 @@ BEGIN
   end if;
   if public.wrs_consume_auth_rate_limit('test', 'subject', 60, 1) is distinct from false then
     raise exception 'auth rate-limit bucket did not enforce its limit';
+  end if;
+
+  insert into auth.users(id, email, phone)
+  values (test_user, 'atomic@example.test', '+2348000000001');
+
+  insert into public.user_profiles(
+    user_id,
+    full_name,
+    normalized_email,
+    normalized_phone,
+    status,
+    terms_version,
+    privacy_version
+  ) values (
+    test_user,
+    'Atomic Test',
+    'atomic@example.test',
+    '+2348000000001',
+    'pending',
+    'test',
+    'test'
+  );
+
+  insert into public.verification_requests(
+    id,
+    user_id,
+    kind,
+    secret_hash,
+    expires_at,
+    resend_available_at
+  ) values (
+    test_request,
+    test_user,
+    'email',
+    'expected-secret-hash',
+    now() + interval '10 minutes',
+    now()
+  );
+
+  if public.wrs_consume_verification_attempt(
+    test_request,
+    test_user,
+    'email',
+    'expected-secret-hash'
+  ) is distinct from true then
+    raise exception 'valid verification attempt was not atomically accepted';
+  end if;
+
+  select attempt_count into attempt_count
+  from public.verification_requests
+  where id = test_request;
+  if attempt_count <> 1 then
+    raise exception 'verification attempt count was not atomically incremented';
+  end if;
+
+  if public.wrs_consume_verification_attempt(
+    test_request,
+    test_user,
+    'email',
+    'wrong-secret-hash'
+  ) is distinct from false then
+    raise exception 'verification attempt accepted the wrong secret hash';
+  end if;
+
+  insert into public.mfa_recovery_codes(id, user_id, code_hash)
+  values (test_recovery, test_user, 'recovery-hash');
+
+  if public.wrs_consume_mfa_recovery_code(test_user, 'recovery-hash') is distinct from true then
+    raise exception 'valid MFA recovery code was not consumed';
+  end if;
+  if public.wrs_consume_mfa_recovery_code(test_user, 'recovery-hash') is distinct from false then
+    raise exception 'MFA recovery code was reusable';
   end if;
 
   if public.wrs_robot_level_for_xp(0) <> 1
