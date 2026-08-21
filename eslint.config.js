@@ -1,6 +1,6 @@
 import js from '@eslint/js'
+import jsxA11y from '@htmlacademy/eslint-plugin-jsx-a11y'
 import globals from 'globals'
-import jsxA11y from 'eslint-plugin-jsx-a11y'
 import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
@@ -18,7 +18,6 @@ export default [
   },
   {
     files: productionFiles,
-    ...js.configs.recommended,
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -30,6 +29,7 @@ export default [
       'jsx-a11y': jsxA11y,
     },
     rules: {
+      ...js.configs.recommended.rules,
       ...reactHooks.configs.flat.recommended.rules,
       ...jsxA11y.flatConfigs.recommended.rules,
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
