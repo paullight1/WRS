@@ -35,7 +35,7 @@ test('demo robot lifecycle persists onboarding, customization and passport state
   await expect(page.getByRole('heading', { name: 'Set up your robot' })).toBeVisible()
   await page.getByRole('button', { name: 'Continue' }).click()
   await expect(page.getByRole('heading', { name: /Select the package/i })).toBeVisible()
-  await page.getByRole('button', { name: /Professional Package/i }).click()
+  await page.getByRole('button').filter({ hasText: 'Professional' }).filter({ hasText: '$100' }).click()
   await page.getByRole('button', { name: 'Continue' }).click()
 
   const name = page.getByLabel('Robot name')
