@@ -21,8 +21,14 @@ const demoSession = {
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => (runtimeConfig.isDemo ? demoSession : null))
-  const [loading, setLoading] = useState(() => !runtimeConfig.isDemo)
-  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(
+    () => !runtimeConfig.isDemo && runtimeConfig.services.identity,
+  )
+  const [error, setError] = useState(() =>
+    !runtimeConfig.isDemo && !runtimeConfig.services.identity
+      ? 'Authoritative identity service is unavailable.'
+      : '',
+  )
 
   const refresh = useCallback(async () => {
     if (runtimeConfig.isDemo) return demoSession
@@ -32,6 +38,7 @@ export function AuthProvider({ children }) {
       setLoading(false)
       return null
     }
+    setLoading(true)
     try {
       const result = await browserAuthClient.session()
       setSession(result.session)
@@ -47,8 +54,27 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    if (!runtimeConfig.isDemo) void refresh()
-  }, [refresh])
+    if (runtimeConfig.isDemo || !runtimeConfig.services.identity) return undefined
+    let active = true
+    browserAuthClient
+      .session()
+      .then((result) => {
+        if (!active) return
+        setSession(result.session)
+        setError('')
+      })
+      .catch(() => {
+        if (!active) return
+        setSession(null)
+        setError('Unable to verify your session.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const api = useMemo(
     () => ({
@@ -98,7 +124,9 @@ export function AuthProvider({ children }) {
         setSession(null)
       },
       requestPasswordReset(identifier) {
-        if (runtimeConfig.isDemo) return Promise.resolve({ message: 'Demo recovery request recorded.' })
+        if (runtimeConfig.isDemo) {
+          return Promise.resolve({ message: 'Demo recovery request recorded.' })
+        }
         return browserAuthClient.requestPasswordReset(identifier)
       },
       resetPassword(token, password) {
@@ -111,13 +139,21 @@ export function AuthProvider({ children }) {
       },
       enrollMfa() {
         if (runtimeConfig.isDemo) {
-          return Promise.resolve({ enrollmentId: 'demo-mfa', provisioningUri: 'otpauth://totp/WRS:demo?secret=DEMOONLY', recoveryCodes: ['DEMO-RECOVERY'] })
+          return Promise.resolve({
+            enrollmentId: 'demo-mfa',
+            provisioningUri: 'otpauth://totp/WRS:demo?secret=DEMOONLY',
+            recoveryCodes: ['DEMO-RECOVERY'],
+          })
         }
         return browserAuthClient.enrollMfa()
       },
       async verifyMfa(enrollmentId, code) {
         if (runtimeConfig.isDemo) {
-          const next = { ...demoSession, mfaEnabled: true, mfaSatisfiedAt: new Date().toISOString() }
+          const next = {
+            ...demoSession,
+            mfaEnabled: true,
+            mfaSatisfiedAt: new Date().toISOString(),
+          }
           setSession(next)
           return next
         }
@@ -150,12 +186,22 @@ export function useAuth() {
 export function ProtectedRoute({ children, policy = 'authenticated', requireVerified = false }) {
   const auth = useAuth()
   const location = useLocation()
-  if (auth.loading) return <div className="grid min-h-screen place-items-center text-on-surface-variant">Verifying session…</div>
+  if (auth.loading) {
+    return (
+      <div className="grid min-h-screen place-items-center text-on-surface-variant">
+        Verifying session…
+      </div>
+    )
+  }
   const effectivePolicy = requireVerified ? 'verified' : policy
   const decision = authorizeSession(auth.session, effectivePolicy)
   if (decision.allowed) return children
-  if (decision.reason === 'unverified') return <Navigate to="/verify" replace state={{ from: location.pathname }} />
-  if (decision.reason === 'kyc-required') return <Navigate to="/settings" replace state={{ reason: 'kyc-required' }} />
+  if (decision.reason === 'unverified') {
+    return <Navigate to="/verify" replace state={{ from: location.pathname }} />
+  }
+  if (decision.reason === 'kyc-required') {
+    return <Navigate to="/settings" replace state={{ reason: 'kyc-required' }} />
+  }
   if (decision.reason === 'forbidden') return <Navigate to="/home" replace />
   return <Navigate to="/login" replace state={{ from: location.pathname }} />
 }
