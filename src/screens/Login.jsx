@@ -33,7 +33,18 @@ export default function Login() {
     setLoading(true)
     setError('')
     try {
-      await auth.login(identifier, password, remember)
+      const result = await auth.login(identifier, password, remember)
+      if (!result.session.emailVerified || !result.session.phoneVerified) {
+        nav('/verify', {
+          replace: true,
+          state: {
+            from: location.state?.from || '/home',
+            userId: result.session.userId,
+            challenges: result.challenges,
+          },
+        })
+        return
+      }
       nav(location.state?.from || '/home', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.')
