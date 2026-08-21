@@ -29,7 +29,8 @@ test('application surfaces clearly identify demo data', async ({ page }) => {
 })
 
 test('demo robot lifecycle persists onboarding, customization and passport state', async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.removeItem('wrs.demo.robot-state.v1'))
+  await page.goto('/')
+  await page.evaluate(() => window.localStorage.removeItem('wrs.demo.robot-state.v1'))
   await page.goto('/onboarding')
 
   await expect(page.getByRole('heading', { name: 'Set up your robot' })).toBeVisible()
