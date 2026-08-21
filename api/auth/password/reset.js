@@ -1,5 +1,6 @@
 import { enforceRateLimit, passwordIssues, recordSecurityEvent } from '../../_lib/auth.js'
 import { assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../_lib/http.js'
+import { revokeAllUserSessionMetadata } from '../../_lib/session.js'
 import { authPublic } from '../../_lib/supabase.js'
 
 export default functionHandler(async (request) => {
@@ -24,6 +25,7 @@ export default functionHandler(async (request) => {
   } catch {
     throw new HttpError(400, 'Reset token is invalid or expired.', 'invalid-reset')
   }
+  if (!user?.id) throw new HttpError(400, 'Reset token is invalid or expired.', 'invalid-reset')
 
   await authPublic('/auth/v1/user', {
     method: 'PUT',
@@ -32,12 +34,13 @@ export default functionHandler(async (request) => {
     exposeError: false,
     errorMessage: 'Password could not be updated.',
   })
+  await revokeAllUserSessionMetadata(user.id)
   await authPublic('/auth/v1/logout?scope=global', {
     method: 'POST',
     token,
     exposeError: false,
     errorMessage: 'Session revocation failed.',
   }).catch(() => undefined)
-  await recordSecurityEvent(user?.id || null, 'password.changed')
+  await recordSecurityEvent(user.id, 'password.changed')
   return json({ ok: true })
 })
