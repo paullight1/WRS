@@ -1,4 +1,4 @@
-name: Plan 1 Safety Gate
+name: Production Hardening Bootstrap
 
 on:
   pull_request:
@@ -10,15 +10,15 @@ permissions:
   contents: read
 
 jobs:
-  safety-tests:
+  contract-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
-      - name: Run Plan 1 safety tests
-        run: node --test tests/plan1/*.test.mjs
+      - name: Run Plan 1 and Plan 2 contract tests
+        run: node --test tests/plan1/*.test.mjs tests/plan2/*.test.mjs
