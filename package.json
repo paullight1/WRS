@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src/lib src/domain src/services src/infrastructure tests --max-warnings=0",
+    "lint": "eslint \"src/lib/**/*.{js,mjs}\" \"src/domain/**/*.{js,mjs,ts}\" \"src/services/**/*.{js,mjs,ts}\" \"src/infrastructure/**/*.{js,mjs,ts}\" \"tests/**/*.{js,mjs,jsx,ts,tsx}\" --no-error-on-unmatched-pattern --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "format:check": "prettier --check src/lib src/domain src/services src/infrastructure tests .github/workflows eslint.config.js playwright.config.js vitest.config.js vite.config.js",
     "test": "npm run test:unit && npm run test:integration",
