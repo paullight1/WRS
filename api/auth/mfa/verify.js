@@ -1,6 +1,6 @@
-import { verifyMfa } from '../../_lib/mfa.js'
-import { appendCookies, assertSameOrigin, functionHandler, json, readJson, requireMethod } from '../../_lib/http.js'
-import { requireSession } from '../../_lib/session.js'
+import { verifyMfa } from '../../../server/mfa.js'
+import { appendCookies, assertSameOrigin, functionHandler, json, readJson, requireMethod } from '../../../server/http.js'
+import { requireSession } from '../../../server/session.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
