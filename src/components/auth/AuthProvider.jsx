@@ -78,16 +78,17 @@ export function AuthProvider({ children }) {
       loading,
       error,
       isDemo: runtimeConfig.isDemo,
-      oauthEnabled: !runtimeConfig.isDemo && runtimeConfig.services.identity,
+      oauthEnabled:
+        !runtimeConfig.isDemo && runtimeConfig.services.identity && runtimeConfig.oauthEnabled === true,
       refresh,
       async login(identifier, password, rememberMe) {
         if (runtimeConfig.isDemo) {
           setSession(demoSession)
-          return demoSession
+          return { session: demoSession, challenges: [] }
         }
         const result = await browserAuthClient.login(identifier, password, rememberMe)
         setSession(result.session)
-        return result.session
+        return result
       },
       async register(input) {
         if (runtimeConfig.isDemo) {
@@ -101,6 +102,18 @@ export function AuthProvider({ children }) {
         }
         return browserAuthClient.register(input)
       },
+      startVerification() {
+        if (runtimeConfig.isDemo) {
+          return Promise.resolve({
+            userId: 'demo-user',
+            challenges: [
+              { id: 'demo-email', kind: 'email' },
+              { id: 'demo-phone', kind: 'phone' },
+            ],
+          })
+        }
+        return browserAuthClient.startVerification()
+      },
       async verifyAccount(userId, challengeId, kind, code) {
         if (runtimeConfig.isDemo) {
           if (!/^\d{6}$/.test(code)) throw new Error('Enter a six-digit code.')
@@ -111,18 +124,16 @@ export function AuthProvider({ children }) {
         setSession(result.session)
         return result.session
       },
-      resendVerification(userId, kind) {
-        if (runtimeConfig.isDemo) return Promise.resolve({ challengeId: `demo-${kind}` })
-        return browserAuthClient.resendVerification(userId, kind)
+      resendVerification(userId, kind, challengeId) {
+        if (runtimeConfig.isDemo) return Promise.resolve({ challenge: { id: `demo-${kind}`, kind } })
+        return browserAuthClient.resendVerification(userId, kind, challengeId)
       },
       async logout() {
         if (!runtimeConfig.isDemo) await browserAuthClient.logout()
         setSession(null)
       },
       requestPasswordReset(identifier) {
-        if (runtimeConfig.isDemo) {
-          return Promise.resolve({ message: 'Demo recovery request recorded.' })
-        }
+        if (runtimeConfig.isDemo) return Promise.resolve({ message: 'Demo recovery request recorded.' })
         return browserAuthClient.requestPasswordReset(identifier)
       },
       resetPassword(token, password) {
@@ -145,11 +156,7 @@ export function AuthProvider({ children }) {
       },
       async verifyMfa(enrollmentId, code) {
         if (runtimeConfig.isDemo) {
-          const next = {
-            ...demoSession,
-            mfaEnabled: true,
-            mfaSatisfiedAt: new Date().toISOString(),
-          }
+          const next = { ...demoSession, mfaEnabled: true, mfaSatisfiedAt: new Date().toISOString() }
           setSession(next)
           return next
         }
@@ -163,8 +170,9 @@ export function AuthProvider({ children }) {
           setSession(next)
           return next
         }
-        await browserAuthClient.disableMfa(code)
-        return refresh()
+        const result = await browserAuthClient.disableMfa(code)
+        setSession(result.session)
+        return result.session
       },
     }),
     [error, loading, refresh, session],
