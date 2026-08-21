@@ -1,4 +1,4 @@
-import { completeOAuth } from '../../_lib/oauth.js'
+import { clearOAuthCookie, completeOAuth } from '../../_lib/oauth.js'
 import { appendCookies, redirect } from '../../_lib/http.js'
 
 export default {
@@ -10,7 +10,7 @@ export default {
     } catch (error) {
       console.error('OAuth callback rejected', error)
       const reason = encodeURIComponent(error?.code || 'oauth-failed')
-      return redirect(`${origin}/login?error=${reason}`)
+      return appendCookies(redirect(`${origin}/login?error=${reason}`), [clearOAuthCookie()])
     }
   },
 }
