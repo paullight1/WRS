@@ -8,7 +8,7 @@ DECLARE
   test_user uuid := '11111111-1111-4111-8111-111111111111'::uuid;
   test_request uuid := '22222222-2222-4222-8222-222222222222'::uuid;
   test_recovery uuid := '33333333-3333-4333-8333-333333333333'::uuid;
-  attempt_count integer;
+  v_attempt_count integer;
 BEGIN
   foreach relation_name in array ARRAY[
     'public.user_profiles',
@@ -203,10 +203,10 @@ BEGIN
     raise exception 'valid verification attempt was not atomically accepted';
   end if;
 
-  select attempt_count into attempt_count
-  from public.verification_requests
-  where id = test_request;
-  if attempt_count <> 1 then
+  select vr.attempt_count into v_attempt_count
+  from public.verification_requests vr
+  where vr.id = test_request;
+  if v_attempt_count <> 1 then
     raise exception 'verification attempt count was not atomically incremented';
   end if;
 
