@@ -1,5 +1,5 @@
-import { clearOAuthCookie, completeOAuth } from '../../_lib/oauth.js'
-import { appendCookies, redirect } from '../../_lib/http.js'
+import { clearOAuthCookie, completeOAuth } from '../../../server/oauth.js'
+import { appendCookies, redirect } from '../../../server/http.js'
 
 export default {
   async fetch(request) {
