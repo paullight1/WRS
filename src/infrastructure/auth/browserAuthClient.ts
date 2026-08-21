@@ -1,6 +1,7 @@
 import type { AuthSession, OAuthProvider, RegistrationInput, VerificationKind } from '../../domain/auth/types'
 
 type Json = Record<string, unknown>
+type VerificationChallengeSummary = { id: string; kind: VerificationKind }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
@@ -16,12 +17,12 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const browserAuthClient = {
   session: () => request<{ session: AuthSession | null }>('/api/auth/session'),
   register: (input: RegistrationInput) =>
-    request<{ userId: string; challenges: { id: string; kind: VerificationKind }[] }>('/api/auth/register', {
+    request<{ userId: string; challenges: VerificationChallengeSummary[] }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(input),
     }),
   login: (identifier: string, password: string, rememberMe: boolean) =>
-    request<{ session: AuthSession }>('/api/auth/login', {
+    request<{ session: AuthSession; challenges: VerificationChallengeSummary[] }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ identifier, password, rememberMe }),
     }),
@@ -31,8 +32,11 @@ export const browserAuthClient = {
       method: 'POST',
       body: JSON.stringify({ userId, challengeId, kind, code }),
     }),
-  resendVerification: (userId: string, kind: VerificationKind) =>
-    request<Json>('/api/auth/verification/resend', { method: 'POST', body: JSON.stringify({ userId, kind }) }),
+  resendVerification: (userId: string, kind: VerificationKind, challengeId: string) =>
+    request<{ challenge: VerificationChallengeSummary }>('/api/auth/verification/resend', {
+      method: 'POST',
+      body: JSON.stringify({ userId, kind, challengeId }),
+    }),
   requestPasswordReset: (identifier: string) =>
     request<Json>('/api/auth/password/forgot', { method: 'POST', body: JSON.stringify({ identifier }) }),
   resetPassword: (token: string, password: string) =>
@@ -53,5 +57,5 @@ export const browserAuthClient = {
       body: JSON.stringify({ enrollmentId, code }),
     }),
   disableMfa: (code: string) =>
-    request<Json>('/api/auth/mfa/disable', { method: 'POST', body: JSON.stringify({ code }) }),
+    request<{ session: AuthSession }>('/api/auth/mfa/disable', { method: 'POST', body: JSON.stringify({ code }) }),
 }
