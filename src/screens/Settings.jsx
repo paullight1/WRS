@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
 import { Button, Disclosure, Icon, List, Row, SectionTitle, Toggle } from '../components/ui.jsx'
+import { getSensitiveActionPolicy } from '../lib/sensitiveActions.js'
 
 export default function Settings() {
+  const deleteDataPolicy = getSensitiveActionPolicy('account.deleteData')
+  const deleteAccountPolicy = getSensitiveActionPolicy('account.deleteAccount')
   const [s, setS] = useState({
     twoFactor: true,
     biometric: false,
@@ -15,67 +18,25 @@ export default function Settings() {
   const set = (k) => (v) => setS({ ...s, [k]: v })
 
   return (
-    <AppShell title="Settings" back avatar={false}>
-      <section>
-        <SectionTitle>Account</SectionTitle>
-        <List>
-          <Row icon="person" t="outline" title="Personal details" subtitle="Name, email, phone, country" onClick={() => {}} />
-          <Row icon="lock" t="outline" title="Password" subtitle="Changed 3 months ago" onClick={() => {}} />
-          <Toggle checked={s.twoFactor} onChange={set('twoFactor')} label="Two-factor authentication" desc="Required for withdrawals" />
-          <Toggle checked={s.biometric} onChange={set('biometric')} label="Biometric login" desc="Face or fingerprint unlock" />
-        </List>
-      </section>
+    <AppShell title="Settings demo" back avatar={false}>
+      <section><SectionTitle>Account</SectionTitle><List><Row icon="person" t="outline" title="Personal details" subtitle="Demo profile — editing is not connected" /><Row icon="lock" t="outline" title="Password" subtitle="Live password management arrives with identity service" /><Toggle checked={s.twoFactor} onChange={set('twoFactor')} label="Two-factor authentication preview" desc="Local demo preference only" /><Toggle checked={s.biometric} onChange={set('biometric')} label="Biometric login preview" desc="Local demo preference only" /></List></section>
 
-      <section>
-        <SectionTitle>Preferences</SectionTitle>
-        <List>
-          <Row title="Language" value="English" onClick={() => {}} right={<Icon name="chevron_right" className="text-outline" />} />
-          <Row title="Currency" value="USD" onClick={() => {}} right={<Icon name="chevron_right" className="text-outline" />} />
-          <Row title="Time zone" value="WAT (UTC+1)" onClick={() => {}} right={<Icon name="chevron_right" className="text-outline" />} />
-          <Toggle checked={s.notifications} onChange={set('notifications')} label="Push notifications" desc="Robot, deployment and wallet alerts" />
-          <Toggle checked={s.marketing} onChange={set('marketing')} label="Campaign updates" desc="Occasional promotional messages" />
-        </List>
-      </section>
+      <section><SectionTitle>Preferences</SectionTitle><List><Row title="Language" value="English" right={<Icon name="chevron_right" className="text-outline" />} /><Row title="Currency" value="USD" right={<Icon name="chevron_right" className="text-outline" />} /><Row title="Time zone" value="WAT (UTC+1)" right={<Icon name="chevron_right" className="text-outline" />} /><Toggle checked={s.notifications} onChange={set('notifications')} label="Push notifications preview" desc="Local demo preference only" /><Toggle checked={s.marketing} onChange={set('marketing')} label="Campaign updates preview" desc="Local demo preference only" /></List></section>
 
-      <section>
-        <SectionTitle>Robot</SectionTitle>
-        <List>
-          <Row title="Robot name" value="WRS-Pro-001" onClick={() => {}} right={<Icon name="chevron_right" className="text-outline" />} />
-          <Row title="Voice profile" value="Custom EN/YO" onClick={() => {}} right={<Icon name="chevron_right" className="text-outline" />} />
-          <Row title="Personality" value="Logical" onClick={() => {}} right={<Icon name="chevron_right" className="text-outline" />} />
-          <Row title="Deployment preference" value="Logistics" onClick={() => {}} right={<Icon name="chevron_right" className="text-outline" />} />
-          <Toggle checked={s.safety} onChange={set('safety')} label="Safety controls" desc="Halt deployment on anomaly" />
-        </List>
-      </section>
+      <section><SectionTitle>Robot</SectionTitle><List><Row title="Robot name" value="WRS-Pro-001" /><Row title="Voice profile" value="Custom EN/YO" /><Row title="Personality" value="Logical" /><Row title="Deployment preference" value="Logistics" /><Toggle checked={s.safety} onChange={set('safety')} label="Safety controls preview" desc="Local demo preference only" /></List></section>
 
       <section>
         <SectionTitle>Privacy &amp; data</SectionTitle>
         <List>
-          <Toggle
-            checked={s.trainingConsent}
-            onChange={set('trainingConsent')}
-            label="Training consent"
-            desc="Use my data to improve my own robot"
-          />
-          <Toggle
-            checked={s.dataSharing}
-            onChange={set('dataSharing')}
-            label="Data-sharing consent"
-            desc="Include approved data in licensed datasets"
-          />
-          <Row icon="delete_sweep" t="outline" title="Delete biometric data" subtitle="Voice, facial and movement captures" onClick={() => {}} />
-          <Row icon="download" t="outline" title="Download my data" subtitle="Full export as JSON" onClick={() => {}} />
+          <Toggle checked={s.trainingConsent} onChange={set('trainingConsent')} label="Training consent preview" desc="Not persisted or used for live capture" />
+          <Toggle checked={s.dataSharing} onChange={set('dataSharing')} label="Data-sharing consent preview" desc="Not persisted or used for dataset licensing" />
+          <Row icon="delete_sweep" t="outline" title="Delete biometric data" subtitle={deleteDataPolicy.reason} />
+          <Row icon="download" t="outline" title="Download my data" subtitle="Unavailable until the authoritative data export service is connected" />
         </List>
       </section>
 
-      <Disclosure icon="shield">
-        Biometric, facial, voice, movement and language data require explicit consent, are stored securely, and can be
-        deleted at any time.
-      </Disclosure>
-
-      <Button variant="danger" full icon="delete_forever">
-        Delete account
-      </Button>
+      <Disclosure icon="shield">WRS does not claim that biometric deletion or account deletion occurred until the authoritative backend confirms it and writes an audit record.</Disclosure>
+      <Button variant="danger" full icon="delete_forever" disabled={!deleteAccountPolicy.enabled}>Delete account unavailable</Button>
     </AppShell>
   )
 }
