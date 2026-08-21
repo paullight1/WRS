@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { randomToken, sha256, signedToken, verifySignedToken } from './crypto.js'
 import { HttpError, parseCookies, serializeCookie } from './http.js'
 import { recordSecurityEvent } from './auth.js'
-import { buildAppSession, sessionCookies } from './session.js'
+import { buildAppSession, recordSessionMetadata, sessionCookies } from './session.js'
 import { authPublic, serviceRest, supabaseBaseUrl } from './supabase.js'
 
 const OAUTH_COOKIE = 'wrs_oauth'
@@ -134,6 +134,7 @@ export async function completeOAuth(request) {
     }).catch(() => undefined)
     throw new HttpError(403, 'This social identity is not linked to a WRS profile.', 'oauth-profile-required')
   }
+  await recordSessionMetadata(session.userId, tokenResponse.access_token, true)
   await recordSecurityEvent(session.userId, 'oauth.login.succeeded', { provider: payload.provider })
   const clear = serializeCookie(OAUTH_COOKIE, '', {
     secure: secureCookie(),
