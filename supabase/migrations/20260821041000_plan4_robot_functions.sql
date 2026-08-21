@@ -17,6 +17,7 @@ declare
   v_robot public.robots%rowtype;
   v_config public.robot_configurations%rowtype;
   v_existing_key text;
+  v_completed_robot_id uuid;
   v_robot_class text;
   v_required text[] := array['robot.core'];
   v_cap text;
@@ -40,12 +41,17 @@ begin
     raise exception 'invalid package';
   end if;
 
-  select o.completion_idempotency_key, r
-    into v_existing_key, v_robot
+  select o.completion_idempotency_key, o.completed_robot_id
+    into v_existing_key, v_completed_robot_id
   from public.robot_onboarding o
-  left join public.robots r on r.id = o.completed_robot_id
   where o.user_id = p_user_id
-  for update of o;
+  for update;
+
+  if v_completed_robot_id is not null then
+    select * into v_robot
+    from public.robots
+    where id = v_completed_robot_id;
+  end if;
 
   if v_existing_key = p_idempotency_key and v_robot.id is not null then
     select * into v_config
