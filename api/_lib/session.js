@@ -102,6 +102,15 @@ async function sessionMetadata(accessToken) {
   return Array.isArray(data) ? data[0] || null : null
 }
 
+function metadataIsActive(metadata, userId) {
+  return Boolean(
+    metadata &&
+      metadata.user_id === userId &&
+      !metadata.revoked_at &&
+      new Date(metadata.expires_at).getTime() > Date.now(),
+  )
+}
+
 export async function revokeSessionMetadata(accessToken) {
   const sessionId = authSessionId(accessToken)
   if (!sessionId) return
@@ -128,8 +137,7 @@ export async function buildAppSession(user, accessToken) {
     hasVerifiedMfa(user.id),
     sessionMetadata(accessToken),
   ])
-  if (!profile || !metadata || metadata.user_id !== user.id || metadata.revoked_at) return null
-  if (new Date(metadata.expires_at).getTime() <= Date.now()) return null
+  if (!profile || !metadataIsActive(metadata, user.id)) return null
   const claims = decodeAccessClaims(accessToken)
   const issuedAt = Number(claims.iat || 0)
   const expiresAt = Number(claims.exp || 0)
@@ -167,11 +175,23 @@ export async function resolveSession(request) {
   let accessToken = cookies[ACCESS_COOKIE] || ''
   const refreshToken = cookies[REFRESH_COOKIE] || ''
   const rememberMe = cookies[REMEMBER_COOKIE] === '1'
+  const previousMetadata = accessToken ? await sessionMetadata(accessToken) : null
+  if (previousMetadata?.revoked_at) {
+    return { session: null, user: null, accessToken: '', cookies: clearSessionCookies() }
+  }
+
   let user = await validateAccess(accessToken)
   let rotatedCookies = []
-  let session = user ? await buildAppSession(user, accessToken) : null
+  let session = null
 
-  if ((!user || !session) && refreshToken) {
+  if (user) {
+    if (!metadataIsActive(previousMetadata, user.id)) {
+      return { session: null, user: null, accessToken: '', cookies: clearSessionCookies() }
+    }
+    session = await buildAppSession(user, accessToken)
+  }
+
+  if (!user && refreshToken) {
     try {
       const oldAccessToken = accessToken
       const { data } = await authPublic('/auth/v1/token?grant_type=refresh_token', {
