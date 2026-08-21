@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from './auth/AuthProvider.jsx'
 import { Icon } from './ui.jsx'
 import { user, robot } from '../data/mock.js'
 import { runtimeConfig } from '../lib/runtimeConfig.js'
@@ -139,6 +140,8 @@ const drawerGroups = [
 
 export function Drawer({ open, onClose }) {
   const loc = useLocation()
+  const navigate = useNavigate()
+  const auth = useAuth()
   useEffect(() => { onClose?.() }, [loc.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -151,6 +154,12 @@ export function Drawer({ open, onClose }) {
       document.body.style.overflow = ''
     }
   }, [open, onClose])
+
+  const logout = async () => {
+    await auth.logout()
+    onClose?.()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <>
@@ -183,9 +192,9 @@ export function Drawer({ open, onClose }) {
           <NavLink to="/settings" className="tap flex items-center gap-3 rounded-xl px-4 text-title text-on-surface-variant transition-colors duration-fast hover:bg-white/[.06]">
             <Icon name="settings" className="text-[21px]" /> Settings
           </NavLink>
-          <Link to="/app" className="tap flex items-center gap-3 rounded-xl px-4 text-title text-error transition-colors duration-fast hover:bg-error/10">
+          <button type="button" onClick={logout} className="tap flex w-full items-center gap-3 rounded-xl px-4 text-title text-error transition-colors duration-fast hover:bg-error/10">
             <Icon name="logout" className="text-[21px]" /> Log out
-          </Link>
+          </button>
         </div>
       </aside>
     </>
