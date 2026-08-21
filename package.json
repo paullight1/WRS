@@ -18,26 +18,26 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
-    "audit": "npm audit --audit-level=high",
-    "ci": "npm run lint && npm run typecheck && npm run format:check && npm run test:contracts && npm test && npm run build"
+    "audit": "npm audit --audit-level=moderate",
+    "ci": "npm run lint && npm run typecheck && npm run format:check && npm run test:contracts && npm test && npm run build && npm run audit"
   },
   "dependencies": {
     "@react-three/fiber": "^8.18.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2",
+    "react-router-dom": "^7.18.2",
     "three": "^0.169.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.8.1",
+    "@htmlacademy/eslint-plugin-jsx-a11y": "^6.11.0",
     "@playwright/test": "^1.62.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@vitejs/plugin-react": "^6.0.5",
     "autoprefixer": "^10.4.20",
-    "eslint": "^9.39.5",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint": "^10.8.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.11.0",
     "jsdom": "^30.0.1",
