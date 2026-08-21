@@ -2,10 +2,12 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 
-const source = fs.readFileSync(
-  new URL('../../supabase/migrations/20260821043000_plan4_passport_projection.sql', import.meta.url),
-  'utf8',
-).toLowerCase()
+const source = fs
+  .readFileSync(
+    new URL('../../supabase/migrations/20260821043000_plan4_passport_projection.sql', import.meta.url),
+    'utf8',
+  )
+  .toLowerCase()
 
 test('owner passport projection requires server authority and ownership', () => {
   assert.match(source, /wrs_get_robot_passport/)
@@ -15,12 +17,7 @@ test('owner passport projection requires server authority and ownership', () => 
 })
 
 test('owner passport projection assembles verified domain records', () => {
-  for (const table of [
-    'robot_public_passports',
-    'robot_skills',
-    'robot_certifications',
-    'robot_history_events',
-  ]) {
+  for (const table of ['robot_public_passports', 'robot_skills', 'robot_certifications', 'robot_history_events']) {
     assert.ok(source.includes(table), `passport projection missing ${table}`)
   }
   assert.match(source, /'authoritative', true/)
