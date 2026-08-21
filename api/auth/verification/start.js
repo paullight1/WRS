@@ -1,6 +1,6 @@
-import { enforceRateLimit, issueMissingVerificationChallenges } from '../../_lib/auth.js'
-import { assertSameOrigin, functionHandler, json, requireMethod } from '../../_lib/http.js'
-import { requireSession } from '../../_lib/session.js'
+import { enforceRateLimit, issueMissingVerificationChallenges } from '../../../server/auth.js'
+import { assertSameOrigin, functionHandler, json, requireMethod } from '../../../server/http.js'
+import { requireSession } from '../../../server/session.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
