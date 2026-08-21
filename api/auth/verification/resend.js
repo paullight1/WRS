@@ -1,7 +1,7 @@
-import { enforceRateLimit, resendVerification } from '../../_lib/auth.js'
-import { sha256, verifySignedToken } from '../../_lib/crypto.js'
-import { assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../_lib/http.js'
-import { serviceRest } from '../../_lib/supabase.js'
+import { enforceRateLimit, resendVerification } from '../../../server/auth.js'
+import { sha256, verifySignedToken } from '../../../server/crypto.js'
+import { assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../../server/http.js'
+import { serviceRest } from '../../../server/supabase.js'
 
 function verificationSecret() {
   const secret = process.env.WRS_AUTH_CHALLENGE_SECRET || process.env.WRS_SERVER_SIGNING_SECRET
