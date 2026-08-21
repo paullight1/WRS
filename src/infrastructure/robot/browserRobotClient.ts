@@ -35,14 +35,14 @@ export const browserRobotClient = {
       body: JSON.stringify({ input, idempotencyKey }),
     }),
   saveConfiguration: (robotId: string, input: RobotConfigurationInput, expectedVersion: number) =>
-    request<ConfigurationSaveResult>(`/api/robots/${encodeURIComponent(robotId)}/configuration`, {
+    request<ConfigurationSaveResult>('/api/robot/configuration', {
       method: 'PUT',
-      body: JSON.stringify({ input, expectedVersion }),
+      body: JSON.stringify({ robotId, input, expectedVersion }),
     }),
   passport: (robotId: string) =>
-    request<{ passport: RobotPassport }>(`/api/robots/${encodeURIComponent(robotId)}/passport`),
+    request<{ passport: RobotPassport }>(`/api/robot/passport?robotId=${encodeURIComponent(robotId)}`),
   passportPdf: (robotId: string) =>
-    request<PassportPdfDescriptor>(`/api/robots/${encodeURIComponent(robotId)}/passport/pdf`, {
+    request<PassportPdfDescriptor>(`/api/robot/passport/pdf?robotId=${encodeURIComponent(robotId)}`, {
       method: 'POST',
       body: '{}',
     }),
