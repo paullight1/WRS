@@ -33,6 +33,7 @@ export function parseRuntimeConfig(env = {}) {
     isStaging: mode === 'staging',
     isProduction: mode === 'production',
     authorityUrl: String(env.VITE_WRS_AUTHORITY_URL || '').trim(),
+    oauthEnabled: enabled(env.VITE_WRS_OAUTH_ENABLED),
     services: Object.freeze(services),
   })
 }
