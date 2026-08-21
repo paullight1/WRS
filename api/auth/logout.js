@@ -1,7 +1,7 @@
-import { recordSecurityEvent } from '../_lib/auth.js'
-import { appendCookies, assertSameOrigin, functionHandler, json, requireMethod } from '../_lib/http.js'
-import { clearSessionCookies, resolveSession, revokeSessionMetadata } from '../_lib/session.js'
-import { authPublic } from '../_lib/supabase.js'
+import { recordSecurityEvent } from '../../server/auth.js'
+import { appendCookies, assertSameOrigin, functionHandler, json, requireMethod } from '../../server/http.js'
+import { clearSessionCookies, resolveSession, revokeSessionMetadata } from '../../server/session.js'
+import { authPublic } from '../../server/supabase.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
