@@ -5,6 +5,8 @@ import { recordSecurityEvent } from './auth.js'
 import { buildAppSession, recordSessionMetadata, sessionCookies } from './session.js'
 import { authPublic, authSecret, serviceRest } from './supabase.js'
 
+const PENDING_ENROLLMENT_TTL_MS = 10 * 60_000
+
 function recoveryCodes(count = 8) {
   return Array.from({ length: count }, () => {
     const raw = randomBytes(8).toString('hex').toUpperCase()
@@ -34,6 +36,39 @@ async function loadFactor(userId, factorId = null) {
   return Array.isArray(data) ? data[0] || null : null
 }
 
+async function loadPendingFactor(userId) {
+  const { data } = await serviceRest(
+    `/rest/v1/user_mfa_factors?user_id=eq.${encodeURIComponent(userId)}&status=eq.pending&select=*&order=created_at.desc&limit=1`,
+  )
+  return Array.isArray(data) ? data[0] || null : null
+}
+
+async function invalidateRecoveryCodes(userId) {
+  await serviceRest(`/rest/v1/mfa_recovery_codes?user_id=eq.${encodeURIComponent(userId)}&used_at=is.null`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=minimal' },
+    body: { used_at: new Date().toISOString() },
+  })
+}
+
+async function retirePendingFactor(resolved, factor) {
+  await authPublic(`/auth/v1/factors/${encodeURIComponent(factor.provider_factor_id)}`, {
+    method: 'DELETE',
+    token: resolved.accessToken,
+    exposeError: false,
+    errorMessage: 'Expired authenticator enrollment could not be reset.',
+  }).catch(() => undefined)
+  await serviceRest(
+    `/rest/v1/user_mfa_factors?user_id=eq.${encodeURIComponent(resolved.user.id)}&provider_factor_id=eq.${encodeURIComponent(factor.provider_factor_id)}`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: { status: 'disabled', disabled_at: new Date().toISOString() },
+    },
+  )
+  await invalidateRecoveryCodes(resolved.user.id)
+}
+
 async function challengeAndVerify(accessToken, factorId, code) {
   const challenge = await authPublic(`/auth/v1/factors/${encodeURIComponent(factorId)}/challenge`, {
     method: 'POST',
@@ -57,6 +92,15 @@ async function challengeAndVerify(accessToken, factorId, code) {
 export async function enrollMfa(resolved) {
   const existing = await loadFactor(resolved.user.id)
   if (existing) throw new HttpError(409, 'A verified authenticator is already enrolled.', 'mfa-already-enabled')
+
+  const pending = await loadPendingFactor(resolved.user.id)
+  if (pending) {
+    const age = Date.now() - new Date(pending.created_at).getTime()
+    if (Number.isFinite(age) && age < PENDING_ENROLLMENT_TTL_MS) {
+      throw new HttpError(409, 'An authenticator enrollment is already in progress.', 'mfa-enrollment-pending')
+    }
+    await retirePendingFactor(resolved, pending)
+  }
 
   const result = await authPublic('/auth/v1/factors', {
     method: 'POST',
@@ -124,14 +168,6 @@ async function consumeRecoveryCode(userId, code) {
     body: { used_at: new Date().toISOString() },
   })
   return true
-}
-
-async function invalidateRecoveryCodes(userId) {
-  await serviceRest(`/rest/v1/mfa_recovery_codes?user_id=eq.${encodeURIComponent(userId)}&used_at=is.null`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
-    body: { used_at: new Date().toISOString() },
-  })
 }
 
 export async function disableMfa(resolved, code) {
