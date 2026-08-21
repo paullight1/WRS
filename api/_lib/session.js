@@ -67,10 +67,15 @@ async function hasVerifiedMfa(userId) {
   return Array.isArray(data) && data.length > 0
 }
 
+function authSessionId(accessToken) {
+  const sessionId = String(decodeAccessClaims(accessToken).session_id || '')
+  return UUID.test(sessionId) ? sessionId : null
+}
+
 export async function recordSessionMetadata(userId, accessToken, rememberMe = false) {
   const claims = decodeAccessClaims(accessToken)
   const sessionId = String(claims.session_id || '')
-  if (!UUID.test(sessionId)) return
+  if (!UUID.test(sessionId)) throw new HttpError(401, 'Provider session identifier is missing.', 'invalid-session')
   const expires = Number(claims.exp || 0)
   const expiresAt = expires ? new Date(expires * 1000) : new Date(Date.now() + 3600_000)
   await serviceRest('/rest/v1/user_sessions?on_conflict=auth_session_id', {
@@ -80,16 +85,35 @@ export async function recordSessionMetadata(userId, accessToken, rememberMe = fa
       user_id: userId,
       auth_session_id: sessionId,
       remember_me: rememberMe,
+      mfa_satisfied_at:
+        claims.aal === 'aal2' && Number(claims.iat || 0) ? new Date(Number(claims.iat) * 1000).toISOString() : null,
       expires_at: expiresAt.toISOString(),
       revoked_at: null,
     },
   })
 }
 
+async function sessionMetadata(accessToken) {
+  const sessionId = authSessionId(accessToken)
+  if (!sessionId) return null
+  const { data } = await serviceRest(
+    `/rest/v1/user_sessions?auth_session_id=eq.${encodeURIComponent(sessionId)}&select=*&limit=1`,
+  )
+  return Array.isArray(data) ? data[0] || null : null
+}
+
 export async function revokeSessionMetadata(accessToken) {
-  const sessionId = String(decodeAccessClaims(accessToken).session_id || '')
-  if (!UUID.test(sessionId)) return
+  const sessionId = authSessionId(accessToken)
+  if (!sessionId) return
   await serviceRest(`/rest/v1/user_sessions?auth_session_id=eq.${encodeURIComponent(sessionId)}`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=minimal' },
+    body: { revoked_at: new Date().toISOString() },
+  })
+}
+
+export async function revokeAllUserSessionMetadata(userId) {
+  await serviceRest(`/rest/v1/user_sessions?user_id=eq.${encodeURIComponent(userId)}&revoked_at=is.null`, {
     method: 'PATCH',
     headers: { Prefer: 'return=minimal' },
     body: { revoked_at: new Date().toISOString() },
@@ -98,23 +122,29 @@ export async function revokeSessionMetadata(accessToken) {
 
 export async function buildAppSession(user, accessToken) {
   if (!user?.id) return null
-  const [profile, roles, mfaEnabled] = await Promise.all([loadProfile(user.id), loadRoles(user.id), hasVerifiedMfa(user.id)])
-  if (!profile) return null
+  const [profile, roles, mfaEnabled, metadata] = await Promise.all([
+    loadProfile(user.id),
+    loadRoles(user.id),
+    hasVerifiedMfa(user.id),
+    sessionMetadata(accessToken),
+  ])
+  if (!profile || !metadata || metadata.user_id !== user.id || metadata.revoked_at) return null
+  if (new Date(metadata.expires_at).getTime() <= Date.now()) return null
   const claims = decodeAccessClaims(accessToken)
   const issuedAt = Number(claims.iat || 0)
   const expiresAt = Number(claims.exp || 0)
   return {
-    id: claims.session_id || `${user.id}:${issuedAt || 'session'}`,
+    id: claims.session_id,
     userId: user.id,
     status: profile.status || 'pending',
     emailVerified: Boolean(profile.email_verified_at),
     phoneVerified: Boolean(profile.phone_verified_at),
     mfaEnabled,
     mfaSatisfiedAt:
-      mfaEnabled && claims.aal === 'aal2' && issuedAt ? new Date(issuedAt * 1000).toISOString() : null,
+      mfaEnabled && claims.aal === 'aal2' && issuedAt ? new Date(issuedAt * 1000).toISOString() : metadata.mfa_satisfied_at,
     kycStatus: profile.kyc_status || 'unverified',
     roles,
-    expiresAt: expiresAt ? new Date(expiresAt * 1000).toISOString() : new Date(Date.now() + 3600_000).toISOString(),
+    expiresAt: expiresAt ? new Date(expiresAt * 1000).toISOString() : metadata.expires_at,
   }
 }
 
@@ -139,9 +169,11 @@ export async function resolveSession(request) {
   const rememberMe = cookies[REMEMBER_COOKIE] === '1'
   let user = await validateAccess(accessToken)
   let rotatedCookies = []
+  let session = user ? await buildAppSession(user, accessToken) : null
 
-  if (!user && refreshToken) {
+  if ((!user || !session) && refreshToken) {
     try {
+      const oldAccessToken = accessToken
       const { data } = await authPublic('/auth/v1/token?grant_type=refresh_token', {
         method: 'POST',
         body: { refresh_token: refreshToken },
@@ -151,16 +183,23 @@ export async function resolveSession(request) {
       accessToken = data.access_token
       user = data.user || (await validateAccess(accessToken))
       if (user) {
-        rotatedCookies = sessionCookies(data, rememberMe)
+        const oldSessionId = authSessionId(oldAccessToken)
+        const newSessionId = authSessionId(accessToken)
+        if (oldSessionId && newSessionId && oldSessionId !== newSessionId) {
+          await revokeSessionMetadata(oldAccessToken).catch(() => undefined)
+        }
         await recordSessionMetadata(user.id, accessToken, rememberMe)
+        rotatedCookies = sessionCookies(data, rememberMe)
+        session = await buildAppSession(user, accessToken)
       }
     } catch {
       return { session: null, user: null, accessToken: '', cookies: clearSessionCookies() }
     }
   }
 
-  if (!user) return { session: null, user: null, accessToken: '', cookies: [] }
-  const session = await buildAppSession(user, accessToken)
+  if (!user || !session) {
+    return { session: null, user: null, accessToken: '', cookies: clearSessionCookies() }
+  }
   return { session, user, accessToken, cookies: rotatedCookies, rememberMe }
 }
 
