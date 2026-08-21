@@ -1,5 +1,5 @@
 import { enforceRateLimit, verifyChallenge } from '../_lib/auth.js'
-import { appendCookies, assertSameOrigin, functionHandler, json, readJson, requireMethod } from '../_lib/http.js'
+import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../_lib/http.js'
 import { buildAppSession, recordSessionMetadata, sessionCookies } from '../_lib/session.js'
 
 export default functionHandler(async (request) => {
@@ -12,7 +12,8 @@ export default functionHandler(async (request) => {
   const code = String(body.code || '')
   await enforceRateLimit(request, `verify:${kind}`, userId, 10, 10 * 60)
   const tokenResponse = await verifyChallenge(userId, kind, challengeId, code)
-  const session = await buildAppSession(tokenResponse.user, tokenResponse.access_token)
   await recordSessionMetadata(userId, tokenResponse.access_token, false)
+  const session = await buildAppSession(tokenResponse.user, tokenResponse.access_token)
+  if (!session) throw new HttpError(401, 'Unable to establish a revocable WRS session.', 'invalid-session')
   return appendCookies(json({ session }), sessionCookies(tokenResponse, false))
 })
