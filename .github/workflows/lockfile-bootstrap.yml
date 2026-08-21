@@ -1,0 +1,28 @@
+name: Plan 2 Lockfile Bootstrap
+
+on:
+  push:
+    branches:
+      - prod/plans-01-04
+    paths:
+      - package.json
+      - .github/workflows/lockfile-bootstrap.yml
+
+permissions:
+  contents: read
+
+jobs:
+  generate-lockfile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm install --package-lock-only --ignore-scripts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-lock
+          path: package-lock.json
