@@ -1,6 +1,6 @@
 import { enforceRateLimit, issueMissingVerificationChallenges, recordSecurityEvent } from '../_lib/auth.js'
 import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../_lib/http.js'
-import { buildAppSession, sessionCookies } from '../_lib/session.js'
+import { buildAppSession, recordSessionMetadata, sessionCookies } from '../_lib/session.js'
 import { authPublic } from '../_lib/supabase.js'
 
 export default functionHandler(async (request) => {
@@ -31,6 +31,7 @@ export default functionHandler(async (request) => {
   const user = tokenResponse.user
   const session = await buildAppSession(user, tokenResponse.access_token)
   if (!session) throw new HttpError(403, 'This account is not provisioned for WRS.', 'profile-required')
+  await recordSessionMetadata(user.id, tokenResponse.access_token, rememberMe)
   const challenges = !session.emailVerified || !session.phoneVerified ? await issueMissingVerificationChallenges(user) : []
   await recordSecurityEvent(user.id, 'login.succeeded')
   return appendCookies(json({ session, challenges }), sessionCookies(tokenResponse, rememberMe))
