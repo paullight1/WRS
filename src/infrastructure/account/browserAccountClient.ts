@@ -1,4 +1,10 @@
-import { AccountService, type AccountRepository, type AccountSettings, type SupportTicketInput } from '../../services/account/AccountService'
+import {
+  AccountService,
+  type AccountRepository,
+  type AccountSettings,
+  type SupportAttachmentInput,
+  type SupportTicketInput,
+} from '../../services/account/AccountService'
 import type { AccountProfileInput } from '../../domain/account/profile'
 
 type Json = Record<string, unknown>
@@ -34,6 +40,12 @@ const repository: AccountRepository = {
     request<Json>('/api/support/ticket', { method: 'POST', body: JSON.stringify({ action: 'create', ...input }) }),
   addTicketMessage: (ticketId: string, message: string) =>
     request<Json>('/api/support/ticket', { method: 'POST', body: JSON.stringify({ action: 'message', ticketId, message }) }),
+  createSupportAttachment: (input: SupportAttachmentInput) =>
+    request<Json>('/api/support/attachment', { method: 'POST', body: JSON.stringify(input) }),
+  async uploadSupportAttachment(signedUrl: string, file: Blob, mimeType: string) {
+    const response = await fetch(signedUrl, { method: 'PUT', headers: { 'content-type': mimeType }, body: file })
+    if (!response.ok) throw new Error('Support attachment upload failed.')
+  },
   knowledgeBase: (query: string) => request(`/api/knowledge-base?q=${encodeURIComponent(query)}`),
   operations: (scope: string) => request(`/api/admin/operations?scope=${encodeURIComponent(scope)}`),
   operationsAction: (input: Record<string, unknown>) =>
