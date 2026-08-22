@@ -8,13 +8,13 @@ import { useEffect, useState } from 'react'
  * and error paths until they ship. Screens call this and handle all three.
  */
 export function useMockFetch(value, { delay = 550 } = {}) {
-  const [state, setState] = useState({ data: null, loading: true })
+  const requestKey = String(delay)
+  const [state, setState] = useState({ key: null, data: null })
 
   useEffect(() => {
     let alive = true
-    setState({ data: null, loading: true })
     const t = setTimeout(() => {
-      if (alive) setState({ data: value, loading: false })
+      if (alive) setState({ key: requestKey, data: value })
     }, delay)
     return () => {
       alive = false
@@ -22,9 +22,10 @@ export function useMockFetch(value, { delay = 550 } = {}) {
     }
     // `value` is static mock data; re-running on identity change would loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [delay])
+  }, [delay, requestKey])
 
-  return state
+  const settled = state.key === requestKey
+  return { data: settled ? state.data : null, loading: !settled }
 }
 
 /**
@@ -36,17 +37,17 @@ export function useMockFetch(value, { delay = 550 } = {}) {
  */
 export function useMockRequest(value, { delay = 550, shouldFail = false } = {}) {
   const [attempt, setAttempt] = useState(0)
-  const [state, setState] = useState({ data: null, loading: true, error: null })
+  const requestKey = `${attempt}:${delay}:${shouldFail ? 'fail' : 'ok'}`
+  const [state, setState] = useState({ key: null, data: null, error: null })
 
   useEffect(() => {
     let alive = true
-    setState({ data: null, loading: true, error: null })
     const t = setTimeout(() => {
       if (!alive) return
       if (shouldFail) {
-        setState({ data: null, loading: false, error: 'unreachable' })
+        setState({ key: requestKey, data: null, error: 'unreachable' })
       } else {
-        setState({ data: value, loading: false, error: null })
+        setState({ key: requestKey, data: value, error: null })
       }
     }, delay)
     return () => {
@@ -55,9 +56,15 @@ export function useMockRequest(value, { delay = 550, shouldFail = false } = {}) 
     }
     // `value` is static mock data; depending on its identity would loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [delay, shouldFail, attempt])
+  }, [delay, shouldFail, attempt, requestKey])
 
-  return { ...state, retry: () => setAttempt((n) => n + 1) }
+  const settled = state.key === requestKey
+  return {
+    data: settled ? state.data : null,
+    loading: !settled,
+    error: settled ? state.error : null,
+    retry: () => setAttempt((n) => n + 1),
+  }
 }
 
 /**

@@ -1,37 +1,35 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from './auth/AuthProvider.jsx'
 import { Icon } from './ui.jsx'
-import { user, robot } from '../data/mock.js'
+import { runtimeConfig } from '../lib/runtimeConfig.js'
+import { demoDataLabel } from '../lib/mockDataPolicy.js'
 
-/** Retired: the page background is a flat surface now. Kept as a no-op so
- *  auth screens that still import it don't need touching. */
+/** Retired: the page background is a flat surface now. */
 export function Atmosphere() {
   return null
 }
 
-/* ------------------------------------------------------------------ avatar */
 export function UserAvatar({ size = 40, className = '' }) {
-  const initials = user.name.split(' ').map((n) => n[0]).join('')
+  const auth = useAuth()
+  const label = auth.isDemo ? 'DE' : 'WR'
   return (
     <span
       className={`grid shrink-0 place-items-center rounded-full bg-primary-container/35 text-label-md text-white ${className}`}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.34) }}
       aria-hidden="true"
     >
-      {initials}
+      {label}
     </span>
   )
 }
 
-/* ------------------------------------------------------------------ topbar */
 export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
   const navigate = useNavigate()
-  const [scrolled, setScrolled] = useState(false)
+  const [scrolled, setScrolled] = useState(() => typeof window !== 'undefined' && window.scrollY > 4)
 
-  // The header only grows a hairline once content passes under it.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4)
-    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -45,6 +43,7 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
       <div className="mx-auto flex max-w-[720px] items-center gap-2">
         {back ? (
           <button
+            type="button"
             onClick={() => navigate(-1)}
             className="tap -ml-2.5 grid shrink-0 place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06]"
             aria-label="Go back"
@@ -66,14 +65,14 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
           {right}
           <Link
             to="/notifications"
-            className="tap relative grid place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06]"
-            aria-label="Notifications, 3 unread"
+            className="tap grid place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06]"
+            aria-label="Notifications"
           >
             <Icon name="notifications" className="text-on-surface" />
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-background bg-tertiary" />
           </Link>
           {onMenu && (
             <button
+              type="button"
               onClick={onMenu}
               className="tap -mr-2.5 grid place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06] lg:hidden"
               aria-label="Open menu"
@@ -87,7 +86,6 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
   )
 }
 
-/* -------------------------------------------------------------- bottom nav */
 const bottomNav = [
   { to: '/home', icon: 'home', label: 'Home' },
   { to: '/robot', icon: 'smart_toy', label: 'Robot' },
@@ -103,10 +101,10 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-nav bg-surface-container-lowest pb-[max(8px,env(safe-area-inset-bottom))] pt-2 lg:hidden"
     >
       <ul className="mx-auto flex max-w-[560px] items-stretch px-2">
-        {bottomNav.map((it) => (
-          <li key={it.to} className="flex-1">
+        {bottomNav.map((item) => (
+          <li key={item.to} className="flex-1">
             <NavLink
-              to={it.to}
+              to={item.to}
               className={({ isActive }) =>
                 `tap flex w-full flex-col items-center justify-center gap-1 py-0.5 transition-colors duration-fast ${
                   isActive ? 'text-primary' : 'text-outline'
@@ -115,16 +113,14 @@ export function BottomNav() {
             >
               {({ isActive }) => (
                 <>
-                  {/* Active state: filled pill + filled glyph + weight.
-                      No rules, and never colour on its own. */}
                   <span
                     className={`grid h-8 w-16 place-items-center rounded-full transition-colors duration-fast ${
                       isActive ? 'bg-primary-container/30' : ''
                     }`}
                   >
-                    <Icon name={it.icon} fill={isActive} className="text-[22px]" />
+                    <Icon name={item.icon} fill={isActive} className="text-[22px]" />
                   </span>
-                  <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : ''}`}>{it.label}</span>
+                  <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : ''}`}>{item.label}</span>
                 </>
               )}
             </NavLink>
@@ -135,7 +131,6 @@ export function BottomNav() {
   )
 }
 
-/* ------------------------------------------------------------------ drawer */
 const drawerGroups = [
   {
     label: 'Robot',
@@ -167,13 +162,17 @@ const drawerGroups = [
 ]
 
 export function Drawer({ open, onClose }) {
-  const loc = useLocation()
-  useEffect(() => { onClose?.() }, [loc.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+  const location = useLocation()
+  const navigate = useNavigate()
+  const auth = useAuth()
 
-  // Trap escape + lock scroll while the mobile drawer is open.
   useEffect(() => {
-    if (!open) return
-    const onKey = (e) => e.key === 'Escape' && onClose?.()
+    queueMicrotask(() => onClose?.())
+  }, [location.pathname, onClose])
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (event) => event.key === 'Escape' && onClose?.()
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
@@ -182,10 +181,21 @@ export function Drawer({ open, onClose }) {
     }
   }, [open, onClose])
 
+  const logout = async () => {
+    await auth.logout()
+    onClose?.()
+    navigate('/login', { replace: true })
+  }
+
+  const accountTitle = auth.isDemo ? 'Demo account' : 'WRS account'
+  const accountId = auth.session?.userId || 'No verified session'
+
   return (
     <>
-      <div
+      <button
+        type="button"
         onClick={onClose}
+        aria-label="Close menu"
         className={`fixed inset-0 z-scrim bg-black/60 transition-opacity duration-slow lg:hidden ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
@@ -204,20 +214,20 @@ export function Drawer({ open, onClose }) {
           >
             <UserAvatar size={40} />
             <span className="min-w-0">
-              <span className="block truncate text-title text-on-surface">{user.name}</span>
-              <span className="block truncate font-data text-data-sm text-on-surface-variant">{user.wrsId}</span>
+              <span className="block truncate text-title text-on-surface">{accountTitle}</span>
+              <span className="block truncate font-data text-data-sm text-on-surface-variant">{accountId}</span>
             </span>
           </Link>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 pb-4 no-scrollbar">
-          {drawerGroups.map((g) => (
-            <div key={g.label} className="mb-4">
-              <p className="px-4 pb-1.5 text-label-sm text-outline">{g.label}</p>
-              {g.items.map((it) => (
+          {drawerGroups.map((group) => (
+            <div key={group.label} className="mb-4">
+              <p className="px-4 pb-1.5 text-label-sm text-outline">{group.label}</p>
+              {group.items.map((item) => (
                 <NavLink
-                  key={it.to}
-                  to={it.to}
+                  key={item.to}
+                  to={item.to}
                   className={({ isActive }) =>
                     `tap flex items-center gap-3 rounded-xl px-4 text-title transition-colors duration-fast ${
                       isActive
@@ -228,8 +238,8 @@ export function Drawer({ open, onClose }) {
                 >
                   {({ isActive }) => (
                     <>
-                      <Icon name={it.icon} fill={isActive} className="text-[21px]" />
-                      <span>{it.label}</span>
+                      <Icon name={item.icon} fill={isActive} className="text-[21px]" />
+                      <span>{item.label}</span>
                     </>
                   )}
                 </NavLink>
@@ -243,35 +253,53 @@ export function Drawer({ open, onClose }) {
             to="/settings"
             className="tap flex items-center gap-3 rounded-xl px-4 text-title text-on-surface-variant transition-colors duration-fast hover:bg-white/[.06]"
           >
-            <Icon name="settings" className="text-[21px]" />
-            Settings
+            <Icon name="settings" className="text-[21px]" /> Settings
           </NavLink>
-          <Link
-            to="/app"
-            className="tap flex items-center gap-3 rounded-xl px-4 text-title text-error transition-colors duration-fast hover:bg-error/10"
+          <button
+            type="button"
+            onClick={logout}
+            className="tap flex w-full items-center gap-3 rounded-xl px-4 text-title text-error transition-colors duration-fast hover:bg-error/10"
           >
-            <Icon name="logout" className="text-[21px]" />
-            Log out
-          </Link>
+            <Icon name="logout" className="text-[21px]" /> Log out
+          </button>
         </div>
       </aside>
     </>
   )
 }
 
-/* ------------------------------------------------------------------- shell */
+function DemoDataBanner() {
+  if (!runtimeConfig.isDemo) return null
+  return (
+    <div
+      role="status"
+      aria-label="Demo data"
+      className="mb-4 flex items-start gap-3 rounded-xl border border-[#f7c948]/35 bg-[#f7c948]/10 px-4 py-3 text-left"
+    >
+      <Icon name="science" className="mt-0.5 shrink-0 text-[19px] text-[#f7c948]" />
+      <div>
+        <p className="text-label-md text-on-surface">{demoDataLabel}</p>
+        <p className="mt-0.5 text-body-sm text-on-surface-variant">
+          Balances, payouts, deployments, rewards and any demo-only records are illustrative and are not live account
+          data.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function AppShell({ title, subtitle, back, right, avatar = true, children, wide = false }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const loc = useLocation()
+  const location = useLocation()
+  const closeDrawer = useCallback(() => setDrawerOpen(false), [])
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
-  }, [loc.pathname])
+  }, [location.pathname])
 
   return (
     <div className="min-h-screen">
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-
+      <Drawer open={drawerOpen} onClose={closeDrawer} />
       <div className="lg:pl-[288px]">
         <TopBar
           title={title}
@@ -281,15 +309,14 @@ export default function AppShell({ title, subtitle, back, right, avatar = true, 
           avatar={avatar}
           onMenu={() => setDrawerOpen(true)}
         />
-        {/* No page-load choreography: product loads into a task. */}
-        <main className={`mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`}>
+        <main
+          className={`mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`}
+        >
+          <DemoDataBanner />
           <div className="space-y-7">{children}</div>
         </main>
       </div>
-
       <BottomNav />
     </div>
   )
 }
-
-export { robot }

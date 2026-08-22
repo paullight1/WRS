@@ -1,52 +1,115 @@
-import AppShell, { UserAvatar } from '../components/AppShell.jsx'
-import RobotAvatar from '../components/RobotAvatar.jsx'
+import AppShell from '../components/AppShell.jsx'
+import { useAuth } from '../components/auth/AuthProvider.jsx'
+import { useRobot } from '../components/robot/RobotProvider.jsx'
+import Robot3D from '../components/robot3d/Robot3D.jsx'
 import { Badge, Button, Card, Icon, ListRow, SectionTitle } from '../components/ui.jsx'
-import { user, robot } from '../data/mock.js'
+import { packageDefinition } from '../domain/robot/packages.ts'
 
 export default function Profile() {
+  const auth = useAuth()
+  const robotState = useRobot()
+  const session = auth.session
+
   return (
     <AppShell title="Profile" back avatar={false}>
       <section>
         <Card className="relative overflow-hidden p-card-padding text-center">
           <div className="relative flex flex-col items-center">
-            <UserAvatar size={84} />
-            <h2 className="mt-3 font-headline-md text-headline-md text-on-surface">{user.name}</h2>
-            <p className="text-label-sm text-outline">WRS ID: {user.wrsId}</p>
+            <span className="grid h-[84px] w-[84px] place-items-center rounded-full bg-primary-container/35">
+              <Icon name="person" className="text-[36px] text-on-surface" />
+            </span>
+            <h2 className="mt-3 font-headline-md text-headline-md text-on-surface">
+              {auth.isDemo ? 'Demo account' : 'Verified WRS account'}
+            </h2>
+            <p className="max-w-full break-all font-data text-data-sm text-outline">
+              User ID: {session?.userId || 'Unavailable'}
+            </p>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Badge t="tertiary">
-                <Icon name="verified" className="text-[12px]" fill /> Verified
+              <Badge t={session?.emailVerified ? 'tertiary' : 'outline'}>
+                <Icon
+                  name={session?.emailVerified ? 'verified' : 'schedule'}
+                  className="text-[12px]"
+                  fill={session?.emailVerified}
+                />
+                Email {session?.emailVerified ? 'verified' : 'pending'}
               </Badge>
-              <Badge t="primary">{user.package}</Badge>
-              <Badge t="outline">{user.country}</Badge>
+              <Badge t={session?.phoneVerified ? 'tertiary' : 'outline'}>
+                Phone {session?.phoneVerified ? 'verified' : 'pending'}
+              </Badge>
+              <Badge t={session?.mfaEnabled ? 'secondary' : 'outline'}>
+                MFA {session?.mfaEnabled ? 'enabled' : 'not enabled'}
+              </Badge>
+              <Badge t={session?.kycStatus === 'verified' ? 'primary' : 'outline'}>
+                KYC {session?.kycStatus || 'unverified'}
+              </Badge>
             </div>
-            <p className="mt-3 text-label-sm text-outline">Member since {user.memberSince}</p>
           </div>
         </Card>
       </section>
 
       <section>
-        <SectionTitle action="View robot" to="/robot">
+        <SectionTitle action={robotState.robot ? 'View robot' : undefined} to={robotState.robot ? '/robot' : undefined}>
           Linked robot
         </SectionTitle>
-        <Card className="flex items-center gap-4 p-4">
-          <RobotAvatar size={64} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-body-md text-on-surface">{robot.name}</p>
-            <p className="text-label-sm text-outline">
-              Level {robot.level} · {robot.xp.toLocaleString()} XP · {robot.status}
+        {robotState.robot ? (
+          <Card className="flex items-center gap-4 p-4">
+            <Robot3D
+              size={72}
+              config={robotState.configuration || undefined}
+              label={`${robotState.robot.name}, linked robot`}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-body-md text-on-surface">{robotState.robot.name}</p>
+              <p className="text-label-sm text-outline">
+                {packageDefinition(robotState.robot.packageSlug).robotClass} · {robotState.robot.lifecycle}
+              </p>
+              <p className="truncate font-data text-data-sm text-outline">{robotState.robot.publicVerificationId}</p>
+            </div>
+            <Icon name="chevron_right" className="text-outline" />
+          </Card>
+        ) : (
+          <Card className="p-4">
+            <p className="text-body-md text-on-surface-variant">
+              {robotState.error || 'No robot has been provisioned for this account.'}
             </p>
-          </div>
-          <Icon name="chevron_right" className="text-outline" />
-        </Card>
+            <Button to="/onboarding" size="sm" className="mt-3">
+              Open onboarding
+            </Button>
+          </Card>
+        )}
       </section>
 
       <section>
         <SectionTitle>Account</SectionTitle>
         <div className="space-y-2">
-          <ListRow icon="person" t="primary" title="Personal details" subtitle="Name, email, phone, country" to="/settings" />
-          <ListRow icon="verified_user" t="tertiary" title="Verification status" subtitle="Email, phone and identity" to="/settings" />
-          <ListRow icon="security" t="secondary" title="Security" subtitle="Password and 2FA" to="/settings" />
-          <ListRow icon="account_balance_wallet" t="primary" title="Wallet" subtitle="Balance and payouts" to="/wallet" />
+          <ListRow
+            icon="verified_user"
+            t="tertiary"
+            title="Verification status"
+            subtitle="Email and phone are enforced by the authentication service"
+            to="/settings"
+          />
+          <ListRow
+            icon="security"
+            t="secondary"
+            title="Security"
+            subtitle="Password recovery and two-factor authentication"
+            to="/settings/security"
+          />
+          <ListRow
+            icon="badge"
+            t="primary"
+            title="Robot passport"
+            subtitle="Privacy-safe robot verification record"
+            to="/robot/passport"
+          />
+          <ListRow
+            icon="account_balance_wallet"
+            t="primary"
+            title="Wallet"
+            subtitle="Ledger-owned balance and payouts"
+            to="/wallet"
+          />
         </div>
       </section>
 
