@@ -1,5 +1,13 @@
 type Json = Record<string, unknown>
 
+type DeletionRequest = {
+  requestId: string
+  status: 'requested' | 'processing' | 'completed' | 'failed'
+  scope?: 'asset' | 'all-owned-assets'
+  earliestFinalizationSeconds?: number
+  message?: string
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -55,12 +63,12 @@ export const browserDataClient = {
     }),
 
   deleteAsset: (assetId: string, reason?: string) =>
-    request<{ requestId: string; status: string; deletedObjects?: number }>('/api/data/delete', {
+    request<DeletionRequest>('/api/data/delete', {
       method: 'POST',
       body: JSON.stringify({ assetId, reason }),
     }),
   deleteAll: (reason?: string) =>
-    request<{ requestId: string; status: string; deletedObjects?: number }>('/api/data/delete', {
+    request<DeletionRequest>('/api/data/delete', {
       method: 'POST',
       body: JSON.stringify({ reason }),
     }),
