@@ -31,6 +31,7 @@ export interface EcosystemRepository {
   recordProgress(enrollmentId: string, moduleId: string, completionPercent: number): Promise<Record<string, unknown>>
   community(): Promise<Record<string, unknown>>
   joinEvent(eventId: string, leaderboardOptIn: boolean): Promise<Record<string, unknown>>
+  setLeaderboard(optedIn: boolean, displayAlias: string): Promise<Record<string, unknown>>
   referrals(): Promise<Record<string, unknown>>
   acceptReferral(code: string): Promise<Record<string, unknown>>
 }
@@ -43,7 +44,9 @@ export class EcosystemService {
   }
 
   acquire(versionId: string, idempotencyKey: string) {
-    if (!versionId || idempotencyKey.trim().length < 8) throw new Error('Marketplace acquisition requires an item and idempotency key.')
+    if (!versionId || idempotencyKey.trim().length < 8) {
+      throw new Error('Marketplace acquisition requires an item and idempotency key.')
+    }
     return this.repository.acquire(versionId, idempotencyKey)
   }
 
@@ -69,7 +72,9 @@ export class EcosystemService {
   }
 
   activateBoost(boostSlug: string, idempotencyKey: string) {
-    if (!boostSlug || idempotencyKey.trim().length < 8) throw new Error('Boost activation requires a boost and idempotency key.')
+    if (!boostSlug || idempotencyKey.trim().length < 8) {
+      throw new Error('Boost activation requires a boost and idempotency key.')
+    }
     return this.repository.activateBoost(boostSlug, idempotencyKey)
   }
 
@@ -94,9 +99,17 @@ export class EcosystemService {
     return this.repository.community()
   }
 
-  joinEvent(eventId: string, leaderboardOptIn = false) {
+  joinEvent(eventId: string, reminderEnabled = false) {
     if (!eventId) throw new Error('Community event is required.')
-    return this.repository.joinEvent(eventId, leaderboardOptIn)
+    return this.repository.joinEvent(eventId, reminderEnabled)
+  }
+
+  setLeaderboard(optedIn: boolean, displayAlias: string) {
+    const alias = displayAlias.trim()
+    if (optedIn && (alias.length < 2 || alias.length > 40)) {
+      throw new Error('Leaderboard alias must be 2–40 characters.')
+    }
+    return this.repository.setLeaderboard(optedIn, alias)
   }
 
   referrals() {
@@ -105,7 +118,7 @@ export class EcosystemService {
 
   acceptReferral(code: string) {
     const normalized = code.trim().toUpperCase()
-    if (!/^[A-Z0-9]{6,24}$/.test(normalized)) throw new Error('Enter a valid referral code.')
+    if (!/^[A-Z0-9]{8,24}$/.test(normalized)) throw new Error('Enter a valid referral code.')
     return this.repository.acceptReferral(normalized)
   }
 }
