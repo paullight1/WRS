@@ -77,8 +77,9 @@ test('marketplace install requires entitlement and only approved catalogue capab
   assert.doesNotMatch(api, /body\.(?:verified|skillSlug|capabilitySlug)/)
 })
 
-test('event codes are hashed, expiry-limited and one-user-per-event redeemable', () => {
+test('event codes are hashed, expiry-limited, rate-limited and one-user-per-event redeemable', () => {
   const sql = read('supabase/migrations/20260822080000_plan8_ecosystem.sql').toLowerCase()
+  const endpoint = read('api/rewards/event-code.js')
   assert.match(sql, /event_reward_codes/)
   assert.match(sql, /code_hash/)
   assert.doesNotMatch(sql, /code_plaintext/)
@@ -86,7 +87,8 @@ test('event codes are hashed, expiry-limited and one-user-per-event redeemable',
   assert.match(sql, /max_redemptions/)
   assert.match(sql, /unique\s*\(event_id,user_id\)|unique\s*\(user_id,event_id\)/)
   assert.match(sql, /wrs_redeem_event_code/)
-  assert.match(read('api/rewards/event-code.js'), /requireSession/)
+  assert.match(endpoint, /requireSession/)
+  assert.match(endpoint, /enforceRateLimit/)
 })
 
 test('reward points are append-only, idempotent and not client-awardable', () => {
