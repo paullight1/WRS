@@ -16,10 +16,12 @@ const required = [
   'api/data/upload-grant.js',
   'api/data/submissions.js',
   'api/data/delete.js',
+  'api/data/delete/process.js',
   'api/data/export.js',
   'api/data/revenue.js',
   'api/data/licenses/distribute.js',
   'supabase/migrations/20260822060000_plan6_data_privacy.sql',
+  'supabase/migrations/20260822063000_plan6_deletion_queue.sql',
 ]
 
 test('Plan 6 has authoritative consent, data, storage and lifecycle boundaries', () => {
@@ -68,6 +70,25 @@ test('quality scoring is deterministic and cannot be client-authoritative', () =
   assert.match(quality, /agreement/i)
   assert.match(submissions, /wrs_submit_data_asset/)
   assert.doesNotMatch(submissions, /body\.qualityScore|body\.approved/)
+})
+
+test('deletion is queued until signed upload grants expire and storage deletion succeeds', () => {
+  const queue = read('supabase/migrations/20260822063000_plan6_deletion_queue.sql').toLowerCase()
+  const endpoint = read('api/data/delete.js')
+  const worker = read('api/data/delete/process.js')
+  const data = read('api/_lib/data.js')
+  assert.match(queue, /eligible_at/)
+  assert.match(queue, /interval '2 hours'/)
+  assert.match(queue, /for update skip locked/)
+  assert.match(queue, /wrs_claim_next_data_deletion/)
+  assert.match(queue, /account data deletion is in progress/)
+  assert.match(endpoint, /status: 'requested'/)
+  assert.match(endpoint, /202/)
+  assert.doesNotMatch(endpoint, /status: 'completed'/)
+  assert.match(worker, /deletePrivateObject/)
+  assert.match(worker, /completeDeletion/)
+  assert.match(data, /offset=/)
+  assert.match(data, /pageSize = 500/)
 })
 
 test('deletion and export have durable request/audit state', () => {
