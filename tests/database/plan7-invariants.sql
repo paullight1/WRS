@@ -25,14 +25,23 @@ insert into public.deployment_preferences(user_id,available,country_code,timezon
 on conflict(user_id) do update set available=excluded.available,country_code=excluded.country_code;
 
 insert into public.robot_skills(robot_id,skill_slug,name,version,verified,source_reference)
-values('00000000-0000-4000-8000-000000000711','warehouse.pick','Warehouse Picking','1',true,'plan7-skill')
+values
+  ('00000000-0000-4000-8000-000000000711','warehouse.pick','Warehouse Picking','1',true,'plan7-skill-701'),
+  ('00000000-0000-4000-8000-000000000712','warehouse.pick','Warehouse Picking','1',true,'plan7-skill-702')
 on conflict(robot_id,skill_slug,version) do update set verified=true;
 
 insert into public.robot_certifications(
   robot_id,certification_slug,name,issuer,issued_at,expires_at,verification_reference,status
-) values(
-  '00000000-0000-4000-8000-000000000711','safety-basic','Basic Site Safety','WRS Test',now()-interval '1 day',now()+interval '30 days','plan7-cert-701','active'
-) on conflict(verification_reference) do nothing;
+) values
+  (
+    '00000000-0000-4000-8000-000000000711','safety-basic','Basic Site Safety','WRS Test',
+    now()-interval '1 day',now()+interval '30 days','plan7-cert-701','active'
+  ),
+  (
+    '00000000-0000-4000-8000-000000000712','safety-basic','Basic Site Safety','WRS Test',
+    now()-interval '1 day',now()+interval '30 days','plan7-cert-702','active'
+  )
+on conflict(verification_reference) do nothing;
 
 insert into public.deployment_industries(slug,name,regulated)
 values('warehousing','Warehousing',false),('regulated-test','Regulated Test',true)
@@ -101,7 +110,7 @@ begin
     raise exception 'deployment request duplicate exists';
   end if;
 
-  -- Capacity reservation blocks another robot after the first open request.
+  -- Capacity reservation blocks another genuinely eligible robot after the first open request.
   v_result:=public.wrs_request_deployment(v_other,v_other_robot,v_opp,'plan7-capacity-other');
   if v_result->>'status'<>'full' then raise exception 'opportunity capacity was not enforced: %',v_result; end if;
 
