@@ -16,6 +16,7 @@ export type MarketplaceCatalogItem = {
 export type RewardSnapshot = {
   points: number
   boosts: Array<Record<string, unknown>>
+  catalog?: Array<Record<string, unknown>>
 }
 
 export interface EcosystemRepository {
@@ -30,7 +31,7 @@ export interface EcosystemRepository {
   enrollCourse(courseId: string): Promise<Record<string, unknown>>
   recordProgress(enrollmentId: string, moduleId: string, completionPercent: number): Promise<Record<string, unknown>>
   community(): Promise<Record<string, unknown>>
-  joinEvent(eventId: string, leaderboardOptIn: boolean): Promise<Record<string, unknown>>
+  joinEvent(eventId: string, reminderEnabled: boolean): Promise<Record<string, unknown>>
   setLeaderboard(optedIn: boolean, displayAlias: string): Promise<Record<string, unknown>>
   referrals(): Promise<Record<string, unknown>>
   acceptReferral(code: string): Promise<Record<string, unknown>>
