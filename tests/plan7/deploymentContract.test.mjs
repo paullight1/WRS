@@ -75,13 +75,17 @@ test('request, contract and state transitions are atomic/idempotent server opera
     assert.match(sql, new RegExp(state))
 })
 
-test('contract terms are snapshotted and not inferred from the UI', () => {
+test('contract terms are snapshotted and contract reads verify ownership explicitly', () => {
   const sql = read('supabase/migrations/20260822070000_plan7_deployment_engine.sql').toLowerCase()
+  const server = read('api/_lib/deployment.js')
   assert.match(sql, /terms_snapshot/)
   assert.match(sql, /deployment_contract_terms_immutable/)
   assert.match(sql, /rate_minor/)
   assert.match(sql, /currency/)
   assert.match(read('api/deployments/contract.js'), /acceptDeploymentContract/)
+  assert.match(server, /deployment_requests\(user_id\)/)
+  assert.match(server, /requestOwner !== userId/)
+  assert.doesNotMatch(server, /deployment_requests\.user_id=eq/)
 })
 
 test('telemetry and incidents are append-only server evidence', () => {
