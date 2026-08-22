@@ -59,6 +59,13 @@ export async function ownedAsset(userId, assetId) {
   return Array.isArray(data) ? data[0] || null : null
 }
 
+export async function ownedAssets(userId) {
+  const { data } = await serviceRest(
+    `/rest/v1/data_assets?user_id=eq.${encodeURIComponent(userId)}&status=neq.deleted&select=id,storage_bucket,storage_path&order=created_at.asc&limit=1000`,
+  )
+  return Array.isArray(data) ? data : []
+}
+
 export async function requestDeletion(userId, assetId, reason) {
   const { data } = await serviceRpc('wrs_request_data_deletion', {
     p_user_id: userId,
