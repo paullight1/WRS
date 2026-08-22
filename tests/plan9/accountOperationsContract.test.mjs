@@ -94,7 +94,11 @@ test('admin operations require admin authorization and create append-only audit 
 })
 
 test('production profile, settings and support screens are isolated from mock data and use the account client', () => {
-  for (const path of ['src/screens/ProfileProduction.jsx', 'src/screens/SettingsProduction.jsx', 'src/screens/SupportProduction.jsx']) {
+  for (const path of [
+    'src/screens/ProfileProduction.jsx',
+    'src/screens/SettingsProduction.jsx',
+    'src/screens/SupportProduction.jsx',
+  ]) {
     const source = read(path)
     assert.match(source, /browserAccountClient/, path)
     assert.doesNotMatch(source, /\.\.\/data\/mock\.js/, path)
