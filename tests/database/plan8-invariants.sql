@@ -124,13 +124,6 @@ begin
   end if;
 
   begin
-    update public.reward_point_events set amount=999 where user_id=v_user limit 1;
-    raise exception 'expected reward ledger append-only rejection';
-  exception when syntax_error_or_access_rule_violation then
-    -- PostgreSQL does not support UPDATE ... LIMIT; handled by the real immutable update below.
-    null;
-  end;
-  begin
     update public.reward_point_events set amount=999 where id=(select id from public.reward_point_events where user_id=v_user order by created_at limit 1);
     raise exception 'expected reward ledger append-only rejection';
   exception when others then
