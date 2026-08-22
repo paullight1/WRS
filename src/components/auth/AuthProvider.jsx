@@ -16,6 +16,7 @@ const demoSession = {
   mfaSatisfiedAt: null,
   kycStatus: 'verified',
   roles: ['user'],
+  accountDeletionPending: false,
   expiresAt: '2099-01-01T00:00:00.000Z',
 }
 
@@ -163,6 +164,16 @@ export function AuthProvider({ children }) {
         setSession(result.session)
         return result.session
       },
+      async stepUpMfa(code) {
+        if (runtimeConfig.isDemo) {
+          const next = { ...demoSession, mfaEnabled: true, mfaSatisfiedAt: new Date().toISOString() }
+          setSession(next)
+          return next
+        }
+        const result = await browserAuthClient.stepUpMfa(code)
+        setSession(result.session)
+        return result.session
+      },
       async disableMfa(code) {
         if (runtimeConfig.isDemo) {
           const next = { ...demoSession, mfaEnabled: false, mfaSatisfiedAt: null }
@@ -195,6 +206,9 @@ export function ProtectedRoute({ children, policy = 'authenticated', requireVeri
   const effectivePolicy = requireVerified ? 'verified' : policy
   const decision = authorizeSession(auth.session, effectivePolicy)
   if (decision.allowed) return children
+  if (decision.reason === 'deletion-pending') {
+    return <Navigate to="/account/deletion" replace state={{ from: location.pathname }} />
+  }
   if (decision.reason === 'unverified') {
     return <Navigate to="/verify" replace state={{ from: location.pathname }} />
   }
