@@ -9,6 +9,8 @@ import type {
 export interface DeploymentCatalogItem {
   opportunity: DeploymentOpportunity
   eligibility: { eligible: boolean; reasons: string[] }
+  request?: DeploymentRequestRecord | null
+  contractId?: string | null
 }
 
 export interface DeploymentRepository {
