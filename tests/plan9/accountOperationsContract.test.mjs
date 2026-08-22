@@ -59,6 +59,17 @@ test('account deletion is a durable queue that revokes sessions and preserves re
   assert.match(read('api/account/delete.js'), /assertSameOrigin/)
 })
 
+test('pending account deletion blocks ordinary APIs but permits explicit recovery and MFA step-up', () => {
+  const session = read('api/_lib/session.js')
+  assert.match(session, /accountDeletionPending/)
+  assert.match(session, /allowDeletionPending/)
+  assert.match(read('api/account.js'), /allowDeletionPending/)
+  assert.match(read('api/account/delete.js'), /allowDeletionPending/)
+  assert.match(read('api/auth/mfa/step-up.js'), /allowDeletionPending/)
+  assert.match(read('api/_lib/mfa.js'), /stepUpMfa/)
+  assert.doesNotMatch(read('api/wallet.js'), /allowDeletionPending/)
+})
+
 test('support tickets and messages are durable, owner-scoped and staff-updatable', () => {
   const sql = read('supabase/migrations/20260822090000_plan9_account_operations.sql').toLowerCase()
   for (const table of ['support_tickets', 'support_messages', 'support_attachments']) {
