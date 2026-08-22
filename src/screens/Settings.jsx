@@ -53,9 +53,12 @@ export default function Settings() {
     setPrivacyMessage('')
     try {
       const result = await browserDataClient.deleteAll('User requested deletion from Settings')
-      setPrivacyMessage(`Deletion ${result.requestId} completed for ${result.deletedObjects || 0} private objects.`)
+      setPrivacyMessage(
+        result.message ||
+          `Deletion ${result.requestId} is queued. Completion is recorded only after outstanding upload grants expire and private storage is swept successfully.`,
+      )
     } catch (error) {
-      setPrivacyMessage(error instanceof Error ? error.message : 'Private data deletion failed.')
+      setPrivacyMessage(error instanceof Error ? error.message : 'Private data deletion request failed.')
     } finally {
       setPrivacyBusy(false)
     }
@@ -203,9 +206,9 @@ export default function Settings() {
       </section>
 
       <Disclosure icon="shield">
-        Authentication and robot state remain owned by their services. Consent evidence is append-only; deleting private
-        data removes storage objects and tombstones assets/submissions without rewriting the historical consent audit
-        trail.
+        Authentication and robot state remain owned by their services. Consent evidence is append-only; deletion is a
+        durable queued workflow and is only recorded complete after private storage is swept and assets/submissions are
+        tombstoned.
       </Disclosure>
       <Button variant="danger" full icon="delete_forever" disabled={!deleteAccountPolicy.enabled}>
         Delete account unavailable
