@@ -6,6 +6,7 @@ import tseslint from 'typescript-eslint'
 
 const productionFiles = [
   'api/**/*.js',
+  'server/**/*.js',
   'src/lib/**/*.{js,mjs}',
   'src/domain/**/*.{js,mjs,ts}',
   'src/services/**/*.{js,mjs,ts}',
@@ -13,7 +14,7 @@ const productionFiles = [
   'src/components/auth/**/*.{js,jsx}',
   'src/components/robot/**/*.{js,jsx}',
   'src/components/AppShell.jsx',
-  'src/screens/{Login,Register,Verify,ForgotPassword,ResetPassword,SecuritySettings,Onboarding,Customize,RobotPassport,Home,MyRobot,More,Profile,Settings,ActiveDeployment}.jsx',
+  'src/screens/{Login,Register,Verify,ForgotPassword,ResetPassword,SecuritySettings,Onboarding,Customize,RobotPassport,Home,MyRobot,More,Profile,Settings,ActiveDeployment,Checkout,PaymentSuccess,Wallet}.jsx',
   'src/App.jsx',
   'tests/**/*.{js,mjs,jsx,ts,tsx}',
 ]
