@@ -13,6 +13,13 @@ export interface SupportTicketInput {
   message: string
 }
 
+export interface SupportAttachmentInput {
+  ticketId: string
+  fileName: string
+  mimeType: string
+  sizeBytes: number
+}
+
 export interface AccountRepository {
   snapshot(): Promise<AccountSnapshot>
   updateProfile(input: AccountProfileInput): Promise<Record<string, unknown>>
@@ -22,6 +29,8 @@ export interface AccountRepository {
   support(): Promise<Record<string, unknown>>
   createTicket(input: SupportTicketInput): Promise<Record<string, unknown>>
   addTicketMessage(ticketId: string, message: string): Promise<Record<string, unknown>>
+  createSupportAttachment(input: SupportAttachmentInput): Promise<Record<string, unknown>>
+  uploadSupportAttachment(signedUrl: string, file: Blob, mimeType: string): Promise<void>
   knowledgeBase(query: string): Promise<Record<string, unknown>>
   operations(scope: string): Promise<Record<string, unknown>>
   operationsAction(input: Record<string, unknown>): Promise<Record<string, unknown>>
@@ -69,6 +78,19 @@ export class AccountService {
     const body = String(message || '').trim()
     if (!ticketId || !body || body.length > 10000) throw new Error('Ticket and message are required.')
     return this.repository.addTicketMessage(ticketId, body)
+  }
+
+  createSupportAttachment(input: SupportAttachmentInput) {
+    if (!input.ticketId || !input.fileName) throw new Error('Ticket and file name are required.')
+    if (!Number.isSafeInteger(input.sizeBytes) || input.sizeBytes <= 0 || input.sizeBytes > 10_485_760) {
+      throw new Error('Support attachment must be 10 MB or smaller.')
+    }
+    return this.repository.createSupportAttachment(input)
+  }
+
+  uploadSupportAttachment(signedUrl: string, file: Blob, mimeType: string) {
+    if (!signedUrl || !file) throw new Error('Support upload grant is required.')
+    return this.repository.uploadSupportAttachment(signedUrl, file, mimeType)
   }
 
   knowledgeBase(query = '') {
