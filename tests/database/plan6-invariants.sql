@@ -23,6 +23,7 @@ declare
   v_distribution jsonb;
   v_wallet jsonb;
   v_request uuid;
+  v_claim jsonb;
   v_export jsonb;
 begin
   if public.wrs_has_active_consent(v_user,'dataset-contribution','document') then
@@ -88,18 +89,42 @@ begin
   if v_export->>'status'<>'ready' or v_export->'manifest' is null then raise exception 'data export not prepared'; end if;
   if (v_export->'manifest')::text like '%storage_path%' then raise exception 'export leaked private storage path'; end if;
 
-  -- Deletion request alone does not falsely claim asset deletion.
+  -- Deletion requests are queued until prior two-hour signed upload grants have expired.
   v_request:=public.wrs_request_data_deletion(v_user,v_asset,'test deletion');
   if (select status from public.data_assets where id=v_asset)='deleted' then raise exception 'request prematurely marked asset deleted'; end if;
+  if public.wrs_claim_next_data_deletion() is not null then raise exception 'deletion was claimable before upload-grant grace period'; end if;
+
+  -- Make the job due to simulate the worker after the grace window.
+  update public.data_deletion_requests set eligible_at=now()-interval '1 second' where id=v_request;
+  v_claim:=public.wrs_claim_next_data_deletion();
+  if v_claim->>'requestId'<>v_request::text then raise exception 'due deletion was not claimed'; end if;
   perform public.wrs_complete_data_deletion(v_request,false,jsonb_build_object('error','simulated storage failure'));
   if (select status from public.data_assets where id=v_asset)='deleted' then raise exception 'failed storage deletion marked asset deleted'; end if;
+  if (select status from public.data_deletion_requests where id=v_request)<>'failed' then raise exception 'failed deletion was not retained for retry'; end if;
 
-  v_request:=public.wrs_request_data_deletion(v_user,v_asset,'retry deletion');
+  -- A repeated user request is idempotent and returns the outstanding job.
+  if public.wrs_request_data_deletion(v_user,v_asset,'retry deletion')<>v_request then
+    raise exception 'deletion request was not idempotent';
+  end if;
+  update public.data_deletion_requests set eligible_at=now()-interval '1 second' where id=v_request;
+  v_claim:=public.wrs_claim_next_data_deletion();
+  if v_claim->>'requestId'<>v_request::text then raise exception 'failed deletion was not retryable'; end if;
   perform public.wrs_complete_data_deletion(v_request,true,jsonb_build_object('deletedObjects',1));
   if (select status from public.data_assets where id=v_asset)<>'deleted' then raise exception 'successful storage deletion did not tombstone asset'; end if;
   if (select status from public.data_submissions where id=v_submission)<>'deleted' then raise exception 'asset deletion did not tombstone submission'; end if;
+  if (select status from public.data_deletion_requests where id=v_request)<>'completed' then raise exception 'successful deletion did not complete request'; end if;
 
-  -- Consent events are immutable audit evidence.
+  -- Account-wide deletion freezes creation of new sensitive assets immediately.
+  v_request:=public.wrs_request_data_deletion(v_user,null,'account privacy sweep');
+  begin
+    perform public.wrs_register_data_asset(v_user,'dataset-contribution','document','wrs-private-data',v_user||'/document/late.pdf','application/pdf',1024);
+    raise exception 'expected deletion freeze';
+  exception when others then
+    if sqlerrm='expected deletion freeze' then raise; end if;
+    if position('deletion is in progress' in sqlerrm)=0 then raise; end if;
+  end;
+
+  -- Consent events remain immutable audit evidence after data deletion.
   begin
     update public.consent_events set action='granted' where id=v_consent;
     raise exception 'expected consent append-only rejection';
