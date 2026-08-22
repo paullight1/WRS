@@ -12,7 +12,7 @@ import { getSensitiveActionPolicy } from '../lib/sensitiveActions.js'
 const BIOMETRIC = new Set(['voice', 'movement', 'facial', 'image-labeling', 'video-labeling'])
 const UPLOAD = new Set(['skill', 'custom', 'conversation'])
 
-function DemoModule({ mod, slug, policy, isBiometric, isUpload }) {
+function DemoModule({ mod, policy, isBiometric, isUpload }) {
   const [toast, setToast] = useState('')
   const [consent, setConsent] = useState(false)
   const explain = () => {
@@ -93,7 +93,7 @@ export default function TrainingModule() {
   const policy = isUpload ? uploadPolicy : biometricPolicy
 
   if (runtimeConfig.isDemo)
-    return <DemoModule mod={mod} slug={slug} policy={policy} isBiometric={isBiometric} isUpload={isUpload} />
+    return <DemoModule mod={mod} policy={policy} isBiometric={isBiometric} isUpload={isUpload} />
 
   if (!policy.authoritative) {
     return (
