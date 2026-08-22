@@ -1,0 +1,76 @@
+name: Plan 9 Account Operations Database Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - prod/plans-05-10
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-operations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wrs_operations_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d wrs_operations_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGDATABASE: wrs_operations_test
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v5
+      - name: Bootstrap Supabase-compatible auth primitives
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          create extension if not exists pgcrypto;
+          create extension if not exists citext;
+          create schema if not exists auth;
+          do $$
+          begin
+            if not exists (select 1 from pg_roles where rolname='anon') then create role anon nologin; end if;
+            if not exists (select 1 from pg_roles where rolname='authenticated') then create role authenticated nologin; end if;
+            if not exists (select 1 from pg_roles where rolname='service_role') then create role service_role nologin bypassrls; end if;
+          end
+          $$;
+          create table if not exists auth.users (
+            id uuid primary key default gen_random_uuid(), email text, phone text, created_at timestamptz not null default now()
+          );
+          create or replace function auth.uid() returns uuid language sql stable set search_path='' as $$
+            select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
+          $$;
+          create or replace function auth.role() returns text language sql stable set search_path='' as $$
+            select nullif(current_setting('request.jwt.claim.role',true),'')
+          $$;
+          create or replace function auth.jwt() returns jsonb language sql stable set search_path='' as $$
+            select jsonb_build_object('sub',current_setting('request.jwt.claim.sub',true),'role',current_setting('request.jwt.claim.role',true))
+          $$;
+          grant usage on schema public,auth to anon,authenticated,service_role;
+          alter default privileges for role postgres in schema public grant select,insert,update,delete on tables to anon,authenticated,service_role;
+          alter default privileges for role postgres in schema public grant usage,select on sequences to anon,authenticated,service_role;
+          alter default privileges for role postgres in schema public grant execute on functions to anon,authenticated,service_role;
+          SQL
+      - name: Apply WRS migrations
+        run: |
+          set -euo pipefail
+          for migration in supabase/migrations/*.sql; do
+            echo "Applying ${migration}"
+            psql -v ON_ERROR_STOP=1 -f "${migration}"
+          done
+      - name: Verify Plan 9 account and operations invariants
+        run: psql -v ON_ERROR_STOP=1 -f tests/database/plan9-invariants.sql
