@@ -47,7 +47,8 @@ test('deployment schema covers opportunities, requests, contracts, work state, t
     'deployment_work_logs',
     'deployment_incidents',
     'deployment_settlements',
-  ]) assert.match(sql, new RegExp(`create table(?: if not exists)? public\\.${table}`), table)
+  ])
+    assert.match(sql, new RegExp(`create table(?: if not exists)? public\\.${table}`), table)
   assert.match(sql, /enable row level security/)
   assert.match(sql, /append-only|before update or delete/)
 })
@@ -70,7 +71,8 @@ test('request, contract and state transitions are atomic/idempotent server opera
   assert.match(sql, /wrs_accept_deployment_contract/)
   assert.match(hardening, /idempotency key collision/)
   assert.match(sql, /wrs_transition_deployment/)
-  for (const state of ['scheduled', 'active', 'paused', 'completed', 'cancelled', 'failed']) assert.match(sql, new RegExp(state))
+  for (const state of ['scheduled', 'active', 'paused', 'completed', 'cancelled', 'failed'])
+    assert.match(sql, new RegExp(state))
 })
 
 test('contract terms are snapshotted and not inferred from the UI', () => {

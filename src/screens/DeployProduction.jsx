@@ -73,7 +73,13 @@ export default function DeployProduction() {
         ))}
       </div>
 
-      {loading && <StateView kind="loading" title="Loading deployments" desc="Reading server-owned opportunities and contracts." />}
+      {loading && (
+        <StateView
+          kind="loading"
+          title="Loading deployments"
+          desc="Reading server-owned opportunities and contracts."
+        />
+      )}
       {!loading && error && (
         <StateView
           kind="error"
@@ -85,7 +91,12 @@ export default function DeployProduction() {
 
       {!loading && !error && tab === 'Available' && (
         <>
-          <Field placeholder="Search opportunities…" icon="search" value={query} onChange={(event) => setQuery(event.target.value)} />
+          <Field
+            placeholder="Search opportunities…"
+            icon="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
           <section>
             <SectionTitle action={`${available.length} open`}>Verified opportunities</SectionTitle>
             <div className="space-y-3">
@@ -95,7 +106,9 @@ export default function DeployProduction() {
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-label-sm text-outline">{opportunity.industryName} · {opportunity.clientName}</p>
+                        <p className="text-label-sm text-outline">
+                          {opportunity.industryName} · {opportunity.clientName}
+                        </p>
                         <h2 className="mt-1 text-title font-semibold text-on-surface">{opportunity.title}</h2>
                         <p className="mt-1 text-body-sm text-on-surface-variant">{opportunity.description}</p>
                       </div>
@@ -104,12 +117,16 @@ export default function DeployProduction() {
                       </Badge>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 text-label-sm text-outline">
-                      <span>{money(opportunity.rateMinor, opportunity.currency)} / {opportunity.rateUnit}</span>
+                      <span>
+                        {money(opportunity.rateMinor, opportunity.currency)} / {opportunity.rateUnit}
+                      </span>
                       <span>· {opportunity.minPackageSlug}+</span>
                       {opportunity.regulated && <span>· Regulated</span>}
                     </div>
                     {!eligibility.eligible && eligibility.reasons?.length > 0 && (
-                      <p className="mt-2 text-label-sm text-outline">Server eligibility: {eligibility.reasons.join(', ')}</p>
+                      <p className="mt-2 text-label-sm text-outline">
+                        Server eligibility: {eligibility.reasons.join(', ')}
+                      </p>
                     )}
                     <Button to={`/deploy/${opportunity.id}`} full className="mt-4">
                       Review opportunity
@@ -118,7 +135,11 @@ export default function DeployProduction() {
                 </Card>
               ))}
               {!available.length && (
-                <StateView kind="noResults" title="No open opportunities" desc="No server-owned deployment currently matches this search." />
+                <StateView
+                  kind="noResults"
+                  title="No open opportunities"
+                  desc="No server-owned deployment currently matches this search."
+                />
               )}
             </div>
           </section>
@@ -126,7 +147,8 @@ export default function DeployProduction() {
             <div className="flex gap-3">
               <Icon name="verified_user" className="text-tertiary" />
               <p className="text-body-sm text-on-surface-variant">
-                Rates shown here are contract rates for available work, not guaranteed earnings. Wallet value is created only after verified completed work is settled through the financial ledger.
+                Rates shown here are contract rates for available work, not guaranteed earnings. Wallet value is created
+                only after verified completed work is settled through the financial ledger.
               </p>
             </div>
           </Card>
@@ -144,15 +166,22 @@ export default function DeployProduction() {
                     <p className="font-data text-data-sm text-outline">{deployment.id}</p>
                     <h2 className="mt-1 text-title text-on-surface">Deployment {deployment.status}</h2>
                     <p className="mt-1 text-label-sm text-outline">
-                      Version {deployment.version}{deployment.scheduledStart ? ` · starts ${new Date(deployment.scheduledStart).toLocaleString()}` : ''}
+                      Version {deployment.version}
+                      {deployment.scheduledStart
+                        ? ` · starts ${new Date(deployment.scheduledStart).toLocaleString()}`
+                        : ''}
                     </p>
                   </div>
                   <Badge t={statusTone(deployment.status)}>{deployment.status}</Badge>
                 </div>
-                <Button to={`/deploy/active/${deployment.id}`} full className="mt-4">Open deployment</Button>
+                <Button to={`/deploy/active/${deployment.id}`} full className="mt-4">
+                  Open deployment
+                </Button>
               </Card>
             ))}
-            {!live.length && <StateView kind="noResults" title="No active deployments" desc="Accepted contracts will appear here." />}
+            {!live.length && (
+              <StateView kind="noResults" title="No active deployments" desc="Accepted contracts will appear here." />
+            )}
           </div>
         </section>
       )}
@@ -170,10 +199,18 @@ export default function DeployProduction() {
                   </div>
                   <Badge t={statusTone(deployment.status)}>{deployment.status}</Badge>
                 </div>
-                <Button to={`/deploy/active/${deployment.id}`} variant="ghost" full className="mt-3">View audit record</Button>
+                <Button to={`/deploy/active/${deployment.id}`} variant="ghost" full className="mt-3">
+                  View audit record
+                </Button>
               </Card>
             ))}
-            {!history.length && <StateView kind="noResults" title="No deployment history" desc="Completed, cancelled or failed deployments will be retained here." />}
+            {!history.length && (
+              <StateView
+                kind="noResults"
+                title="No deployment history"
+                desc="Completed, cancelled or failed deployments will be retained here."
+              />
+            )}
           </div>
         </section>
       )}

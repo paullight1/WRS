@@ -7,9 +7,13 @@ export default functionHandler(async (request) => {
   requireInternalBearer(request, 'WRS_DEPLOYMENT_VERIFIER_SECRET', 'Deployment verifier is not configured.')
   const body = await readJson(request, 32_000)
   const workLogId = String(body.workLogId || '').trim()
-  const status = String(body.status || '').trim().toLowerCase()
+  const status = String(body.status || '')
+    .trim()
+    .toLowerCase()
   const qualityScore = Number(body.qualityScore)
-  const verifierReference = String(body.verifierReference || '').trim().slice(0, 200)
+  const verifierReference = String(body.verifierReference || '')
+    .trim()
+    .slice(0, 200)
   if (!workLogId || !['verified', 'rejected'].includes(status)) {
     throw new HttpError(400, 'Valid work log and verification status are required.', 'verification-required')
   }

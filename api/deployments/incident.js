@@ -1,5 +1,13 @@
 import { reportDeploymentIncident } from '../../server/deployment.js'
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../../server/http.js'
 import { requireSession } from '../../server/session.js'
 
 export default functionHandler(async (request) => {
@@ -8,8 +16,12 @@ export default functionHandler(async (request) => {
   const resolved = await requireSession(request, { verified: true })
   const body = await readJson(request, 24_000)
   const deploymentId = String(body.deploymentId || '').trim()
-  const severity = String(body.severity || '').trim().toLowerCase()
-  const summary = String(body.summary || '').trim().slice(0, 1000)
+  const severity = String(body.severity || '')
+    .trim()
+    .toLowerCase()
+  const summary = String(body.summary || '')
+    .trim()
+    .slice(0, 1000)
   const idempotencyKey = String(body.idempotencyKey || '').trim()
   if (!deploymentId || !['low', 'medium', 'high', 'critical'].includes(severity) || !summary) {
     throw new HttpError(400, 'Deployment, severity and incident summary are required.', 'incident-required')

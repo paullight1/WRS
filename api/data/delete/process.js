@@ -40,7 +40,9 @@ export default functionHandler(async (request) => {
     if (!job) break
 
     try {
-      const assets = job.assetId ? [await ownedAsset(job.userId, job.assetId)].filter(Boolean) : await ownedAssets(job.userId)
+      const assets = job.assetId
+        ? [await ownedAsset(job.userId, job.assetId)].filter(Boolean)
+        : await ownedAssets(job.userId)
       const deletedObjects = await deleteObjects(assets)
       await completeDeletion(job.requestId, true, {
         deletedObjects,

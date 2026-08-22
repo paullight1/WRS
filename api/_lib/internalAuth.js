@@ -1,7 +1,11 @@
 import crypto from 'node:crypto'
 import { HttpError } from './http.js'
 
-export function requireInternalBearer(request, envName, unavailableMessage = 'Internal integration is not configured.') {
+export function requireInternalBearer(
+  request,
+  envName,
+  unavailableMessage = 'Internal integration is not configured.',
+) {
   const expected = String(process.env[envName] || '')
   if (!expected) throw new HttpError(503, unavailableMessage, 'integration-unavailable')
   const header = request.headers.get('authorization') || ''

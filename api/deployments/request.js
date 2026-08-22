@@ -1,4 +1,12 @@
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../../server/http.js'
 import { requestDeployment } from '../../server/deployment.js'
 import { requireSession } from '../../server/session.js'
 

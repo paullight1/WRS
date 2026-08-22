@@ -1,4 +1,12 @@
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../../server/http.js'
 import { recordDeploymentWork } from '../../server/deployment.js'
 import { requireSession } from '../../server/session.js'
 
@@ -8,11 +16,14 @@ export default functionHandler(async (request) => {
   const resolved = await requireSession(request, { verified: true })
   const body = await readJson(request, 32_000)
   const deploymentId = String(body.deploymentId || '').trim()
-  const taskReference = String(body.taskReference || '').trim().slice(0, 200)
+  const taskReference = String(body.taskReference || '')
+    .trim()
+    .slice(0, 200)
   const durationMinutes = Number(body.durationMinutes || 0)
   const units = Number(body.units || 0)
   const idempotencyKey = String(body.idempotencyKey || '').trim()
-  if (!deploymentId || !taskReference) throw new HttpError(400, 'Deployment work reference is required.', 'work-required')
+  if (!deploymentId || !taskReference)
+    throw new HttpError(400, 'Deployment work reference is required.', 'work-required')
   if (!Number.isInteger(durationMinutes) || durationMinutes < 0 || durationMinutes > 1440) {
     throw new HttpError(400, 'Invalid work duration.', 'invalid-duration')
   }

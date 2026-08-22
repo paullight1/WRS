@@ -58,7 +58,12 @@ export default function ActiveDeploymentProduction() {
     setBusy(true)
     setMessage('')
     try {
-      const next = await browserDeploymentClient.transition(deployment.id, state, reason, idempotency(`deployment-${state}`))
+      const next = await browserDeploymentClient.transition(
+        deployment.id,
+        state,
+        reason,
+        idempotency(`deployment-${state}`),
+      )
       setDeployment(next)
       setMessage(`Deployment state confirmed as ${next.status}.`)
     } catch (reasonValue) {
@@ -82,7 +87,9 @@ export default function ActiveDeploymentProduction() {
         idempotencyKey: idempotency('work-evidence'),
         metadata: { source: 'owner-workspace' },
       })
-      setMessage(`Work evidence ${result.workLogId} recorded as ${result.verificationStatus}. It has not created earnings yet.`)
+      setMessage(
+        `Work evidence ${result.workLogId} recorded as ${result.verificationStatus}. It has not created earnings yet.`,
+      )
       setTaskReference('')
       setDurationMinutes('')
       setUnits('0')
@@ -137,9 +144,18 @@ export default function ActiveDeploymentProduction() {
           {[
             ['Contract ID', deployment.contractId],
             ['Contract status', contract?.status || 'unavailable'],
-            ['Rate', contract ? `${money(contract.rateMinor, contract.currency)} / ${contract.rateUnit}` : 'Unavailable'],
-            ['Scheduled start', deployment.scheduledStart ? new Date(deployment.scheduledStart).toLocaleString() : 'Not specified'],
-            ['Scheduled end', deployment.scheduledEnd ? new Date(deployment.scheduledEnd).toLocaleString() : 'Not specified'],
+            [
+              'Rate',
+              contract ? `${money(contract.rateMinor, contract.currency)} / ${contract.rateUnit}` : 'Unavailable',
+            ],
+            [
+              'Scheduled start',
+              deployment.scheduledStart ? new Date(deployment.scheduledStart).toLocaleString() : 'Not specified',
+            ],
+            [
+              'Scheduled end',
+              deployment.scheduledEnd ? new Date(deployment.scheduledEnd).toLocaleString() : 'Not specified',
+            ],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-4 px-5 py-3.5">
               <span className="text-body-md text-on-surface-variant">{label}</span>
@@ -147,7 +163,9 @@ export default function ActiveDeploymentProduction() {
             </div>
           ))}
         </Card>
-        <p className="mt-2 text-label-sm text-outline">Contract rate is not a wallet balance. Only internally verified completed work can be settled.</p>
+        <p className="mt-2 text-label-sm text-outline">
+          Contract rate is not a wallet balance. Only internally verified completed work can be settled.
+        </p>
       </section>
 
       {!terminal && (
@@ -155,16 +173,28 @@ export default function ActiveDeploymentProduction() {
           <SectionTitle>Deployment controls</SectionTitle>
           <div className="grid gap-2 sm:grid-cols-2">
             {deployment.status === 'scheduled' && (
-              <Button loading={busy} onClick={() => transition('active', 'Owner started scheduled work')}>Start deployment</Button>
+              <Button loading={busy} onClick={() => transition('active', 'Owner started scheduled work')}>
+                Start deployment
+              </Button>
             )}
             {deployment.status === 'active' && (
-              <Button variant="ghost" loading={busy} onClick={() => transition('paused', 'Owner paused deployment')}>Pause</Button>
+              <Button variant="ghost" loading={busy} onClick={() => transition('paused', 'Owner paused deployment')}>
+                Pause
+              </Button>
             )}
             {deployment.status === 'paused' && (
-              <Button loading={busy} onClick={() => transition('active', 'Owner resumed deployment')}>Resume</Button>
+              <Button loading={busy} onClick={() => transition('active', 'Owner resumed deployment')}>
+                Resume
+              </Button>
             )}
             {['scheduled', 'paused'].includes(deployment.status) && (
-              <Button variant="danger" loading={busy} onClick={() => transition('cancelled', 'Owner cancelled deployment')}>Cancel deployment</Button>
+              <Button
+                variant="danger"
+                loading={busy}
+                onClick={() => transition('cancelled', 'Owner cancelled deployment')}
+              >
+                Cancel deployment
+              </Button>
             )}
           </div>
         </section>
@@ -174,13 +204,35 @@ export default function ActiveDeploymentProduction() {
         <section>
           <SectionTitle>Submit work evidence</SectionTitle>
           <Card className="space-y-3 p-card-padding">
-            <Field label="Task reference" value={taskReference} onChange={(event) => setTaskReference(event.target.value)} placeholder="e.g. pick-batch-0042" />
+            <Field
+              label="Task reference"
+              value={taskReference}
+              onChange={(event) => setTaskReference(event.target.value)}
+              placeholder="e.g. pick-batch-0042"
+            />
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Duration (minutes)" inputMode="numeric" value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)} placeholder="30" />
-              <Field label="Units completed" inputMode="decimal" value={units} onChange={(event) => setUnits(event.target.value)} placeholder="0" />
+              <Field
+                label="Duration (minutes)"
+                inputMode="numeric"
+                value={durationMinutes}
+                onChange={(event) => setDurationMinutes(event.target.value)}
+                placeholder="30"
+              />
+              <Field
+                label="Units completed"
+                inputMode="decimal"
+                value={units}
+                onChange={(event) => setUnits(event.target.value)}
+                placeholder="0"
+              />
             </div>
-            <Button full loading={busy} disabled={!taskReference.trim()} onClick={recordWork}>Record work evidence</Button>
-            <p className="text-label-sm text-outline">Submission creates append-only work evidence with pending verification. The browser cannot mark it verified or set earnings.</p>
+            <Button full loading={busy} disabled={!taskReference.trim()} onClick={recordWork}>
+              Record work evidence
+            </Button>
+            <p className="text-label-sm text-outline">
+              Submission creates append-only work evidence with pending verification. The browser cannot mark it
+              verified or set earnings.
+            </p>
           </Card>
         </section>
       )}
@@ -194,9 +246,14 @@ export default function ActiveDeploymentProduction() {
         />
       )}
 
-      {message && <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{message}</p>}
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
       <Disclosure icon="shield">
-        Owners can start, pause, resume or cancel permitted states. Completion/failure, work verification and settlement are separate internal operations and cannot be asserted from this browser.
+        Owners can start, pause, resume or cancel permitted states. Completion/failure, work verification and settlement
+        are separate internal operations and cannot be asserted from this browser.
       </Disclosure>
     </AppShell>
   )

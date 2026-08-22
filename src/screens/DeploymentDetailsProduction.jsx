@@ -80,7 +80,11 @@ export default function DeploymentDetailsProduction() {
   if (loading) {
     return (
       <AppShell title="Deployment opportunity" back avatar={false}>
-        <StateView kind="loading" title="Verifying opportunity" desc="Checking server eligibility and current contract state." />
+        <StateView
+          kind="loading"
+          title="Verifying opportunity"
+          desc="Checking server eligibility and current contract state."
+        />
       </AppShell>
     )
   }
@@ -126,8 +130,16 @@ export default function DeploymentDetailsProduction() {
             ['KYC', opportunity.requireKyc ? 'Verified required' : 'Not required'],
             ['Minimum data quality', `${opportunity.minQualityScore}%`],
             ['Skills', opportunity.requiredSkills.length ? opportunity.requiredSkills.join(', ') : 'None specified'],
-            ['Certifications', opportunity.requiredCertifications.length ? opportunity.requiredCertifications.join(', ') : 'None specified'],
-            ['Location', opportunity.allowedCountries.length ? opportunity.allowedCountries.join(', ') : 'No country restriction'],
+            [
+              'Certifications',
+              opportunity.requiredCertifications.length
+                ? opportunity.requiredCertifications.join(', ')
+                : 'None specified',
+            ],
+            [
+              'Location',
+              opportunity.allowedCountries.length ? opportunity.allowedCountries.join(', ') : 'No country restriction',
+            ],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-4 px-5 py-3.5">
               <span className="text-body-md text-on-surface-variant">{label}</span>
@@ -136,7 +148,9 @@ export default function DeploymentDetailsProduction() {
           ))}
         </Card>
         {!eligibility.eligible && (
-          <p className="mt-3 text-label-sm text-outline">Server eligibility blockers: {eligibility.reasons?.join(', ') || 'unknown'}</p>
+          <p className="mt-3 text-label-sm text-outline">
+            Server eligibility blockers: {eligibility.reasons?.join(', ') || 'unknown'}
+          </p>
         )}
       </section>
 
@@ -147,7 +161,8 @@ export default function DeploymentDetailsProduction() {
             {money(opportunity.rateMinor, opportunity.currency)} / {opportunity.rateUnit}
           </p>
           <p className="mt-2 text-body-sm text-on-surface-variant">
-            This is the opportunity's current server rate. It becomes binding only when WRS creates a contract snapshot and you accept that exact snapshot. It is not guaranteed earnings.
+            This is the opportunity's current server rate. It becomes binding only when WRS creates a contract snapshot
+            and you accept that exact snapshot. It is not guaranteed earnings.
           </p>
         </Card>
       </section>
@@ -172,13 +187,17 @@ export default function DeploymentDetailsProduction() {
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-body-md text-on-surface-variant">Rate</span>
-              <span className="text-title text-on-surface">{money(contract.rateMinor, contract.currency)} / {contract.rateUnit}</span>
+              <span className="text-title text-on-surface">
+                {money(contract.rateMinor, contract.currency)} / {contract.rateUnit}
+              </span>
             </div>
             <Disclosure icon="description">
               Contract terms are snapshotted server-side and cannot be edited by the browser after offer creation.
             </Disclosure>
             {contract.status === 'offered' && (
-              <Button full loading={busy} onClick={acceptContract}>Accept contract &amp; schedule deployment</Button>
+              <Button full loading={busy} onClick={acceptContract}>
+                Accept contract &amp; schedule deployment
+              </Button>
             )}
           </Card>
         </section>
@@ -190,12 +209,19 @@ export default function DeploymentDetailsProduction() {
         </Button>
       )}
       {item.request?.status === 'requested' && !contract && (
-        <Button full variant="ghost" onClick={load}>Check matching status</Button>
+        <Button full variant="ghost" onClick={load}>
+          Check matching status
+        </Button>
       )}
-      {message && <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{message}</p>}
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
 
       <Disclosure icon="verified_user">
-        Eligibility is rechecked at request matching and again at contract acceptance. A client-side route transition cannot create a contract, deployment, work record or wallet credit.
+        Eligibility is rechecked at request matching and again at contract acceptance. A client-side route transition
+        cannot create a contract, deployment, work record or wallet credit.
       </Disclosure>
     </AppShell>
   )

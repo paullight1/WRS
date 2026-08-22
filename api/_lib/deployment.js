@@ -180,9 +180,7 @@ export async function ownedDeployment(userId, deploymentId) {
 }
 
 export async function deploymentById(deploymentId) {
-  const { data } = await serviceRest(
-    `/rest/v1/deployments?id=eq.${encodeURIComponent(deploymentId)}&select=*&limit=1`,
-  )
+  const { data } = await serviceRest(`/rest/v1/deployments?id=eq.${encodeURIComponent(deploymentId)}&select=*&limit=1`)
   return mapDeployment(Array.isArray(data) ? data[0] || null : null)
 }
 

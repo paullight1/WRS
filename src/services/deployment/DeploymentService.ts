@@ -22,7 +22,10 @@ export interface DeploymentRepository {
   active(): Promise<DeploymentRecord[]>
   deployment(deploymentId: string): Promise<DeploymentRecord | null>
   transition(deploymentId: string, state: string, reason: string, idempotencyKey: string): Promise<DeploymentRecord>
-  recordWork(deploymentId: string, input: DeploymentWorkInput): Promise<{ workLogId: string; verificationStatus: string }>
+  recordWork(
+    deploymentId: string,
+    input: DeploymentWorkInput,
+  ): Promise<{ workLogId: string; verificationStatus: string }>
 }
 
 export class DeploymentService {
