@@ -1,0 +1,40 @@
+name: One-shot Plan 7 Format
+
+on:
+  push:
+    branches:
+      - prod/plans-05-10
+    paths:
+      - .github/workflows/format-plan7-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: prod/plans-05-10
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: >-
+          npx prettier --write
+          api/_lib/deployment.js api/_lib/internalAuth.js api/data/delete/process.js api/deployments
+          server/deployment.js src/domain/deployment src/services/deployment src/infrastructure/deployment
+          src/screens/Deploy.jsx src/screens/DeploymentDetails.jsx src/screens/ActiveDeployment.jsx
+          src/screens/DeployProduction.jsx src/screens/DeploymentDetailsProduction.jsx src/screens/ActiveDeploymentProduction.jsx
+          src/App.jsx tests/plan7 package.json eslint.config.js .github/workflows/plan7-database-gate.yml
+      - name: Commit formatting and remove formatter
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/format-plan7-once.yml
+          git add api server src tests package.json eslint.config.js .github/workflows/plan7-database-gate.yml
+          git commit -m "style: normalize Plan 7 deployment runtime"
+          git push origin HEAD:prod/plans-05-10
