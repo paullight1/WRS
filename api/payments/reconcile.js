@@ -3,7 +3,9 @@ import {
   failWithdrawal,
   pendingPayments,
   pendingWithdrawals,
+  processPaymentRefund,
   recordReconciliation,
+  reverseWithdrawal,
   settlePayment,
   settleWithdrawal,
 } from '../../server/finance.js'
@@ -31,12 +33,28 @@ export default functionHandler(async (request) => {
     const fingerprint = `reconcile:${verified.reference}:${verified.amountMinor}:${verified.currency}:${verified.status}`
     let result
     try {
-      result = await settlePayment(payment.user_id, verified, fingerprint)
+      if (verified.status === 'reversed' && payment.status === 'succeeded') {
+        result = await processPaymentRefund({
+          paymentReference: verified.reference,
+          refundReference: `provider-reversal:${verified.reference}`,
+          amountMinor: Number(payment.amount_minor),
+          currency: payment.currency,
+          eventFingerprint: fingerprint,
+          raw: verified.raw,
+        })
+      } else {
+        result = await settlePayment(payment.user_id, verified, fingerprint)
+      }
     } catch (error) {
       result = { status: 'mismatch', message: error instanceof Error ? error.message : 'settlement-error' }
     }
     const matched =
-      result.status !== 'mismatch' && (verified.status === 'success' ? result.status === 'succeeded' : true)
+      result.status !== 'mismatch' &&
+      (verified.status === 'success'
+        ? result.status === 'succeeded'
+        : verified.status === 'reversed'
+          ? ['processed', 'refunded'].includes(result.status)
+          : true)
     if (!matched) mismatches += 1
     checked += 1
     await recordReconciliation({
@@ -53,12 +71,15 @@ export default functionHandler(async (request) => {
   for (const withdrawal of withdrawals) {
     const verified = await verifyTransfer(withdrawal.provider_reference)
     let result = { status: withdrawal.status }
-    if (['success', 'successful'].includes(String(verified.status).toLowerCase())) {
+    const providerStatus = String(verified.status).toLowerCase()
+    if (['success', 'successful'].includes(providerStatus)) {
       result = await settleWithdrawal(verified)
-    } else if (['failed', 'reversed'].includes(String(verified.status).toLowerCase())) {
+    } else if (providerStatus === 'failed') {
       result = await failWithdrawal(withdrawal.id, `provider-${verified.status}`)
+    } else if (providerStatus === 'reversed') {
+      result = await reverseWithdrawal(withdrawal.provider_reference, `provider-${verified.status}`)
     }
-    const providerDone = ['success', 'successful', 'failed', 'reversed'].includes(String(verified.status).toLowerCase())
+    const providerDone = ['success', 'successful', 'failed', 'reversed'].includes(providerStatus)
     const localDone = ['succeeded', 'failed', 'reversed'].includes(String(result.status).toLowerCase())
     const matched = providerDone ? localDone : true
     if (!matched) mismatches += 1
