@@ -66,9 +66,10 @@ describe('Plan 7 deployment domain', () => {
   it('requires enterprise-or-higher capability for regulated opportunities', () => {
     const regulated = { ...requirement, regulated: true }
     expect(evaluateDeploymentEligibility(eligibleEvidence, regulated).reasons).toContain('regulated-capability')
-    expect(
-      evaluateDeploymentEligibility({ ...eligibleEvidence, packageSlug: 'enterprise' }, regulated),
-    ).toEqual({ eligible: true, reasons: [] })
+    expect(evaluateDeploymentEligibility({ ...eligibleEvidence, packageSlug: 'enterprise' }, regulated)).toEqual({
+      eligible: true,
+      reasons: [],
+    })
   })
 
   it('allows only declared deployment transitions and closes terminal states', () => {

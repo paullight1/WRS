@@ -29,7 +29,6 @@ function Metrics({ items }) {
 }
 
 function DeploymentCard({ d, history = false }) {
-  const t = tone(STATUS_TONE[d.status] || 'tertiary')
   return (
     <Card
       className={`relative overflow-hidden p-4 ${d.status === 'Active' ? 'border-success/25 bg-success/[.04]' : ''}`}
