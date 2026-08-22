@@ -1,3 +1,4 @@
+# One-shot deterministic Plan 8 cleanup. This file deletes itself after success.
 name: One-shot Plan 8 Finalize
 
 on:
