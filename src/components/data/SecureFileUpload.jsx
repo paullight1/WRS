@@ -81,8 +81,14 @@ export default function SecureFileUpload({ slug }) {
   return (
     <Card className="space-y-4 p-card-padding">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Badge t={consented ? 'tertiary' : 'outline'}>{consented ? 'Contribution consent active' : 'Consent required'}</Badge>
-        {!consented && <Button size="sm" loading={busy} onClick={grantConsent}>Grant contribution consent</Button>}
+        <Badge t={consented ? 'tertiary' : 'outline'}>
+          {consented ? 'Contribution consent active' : 'Consent required'}
+        </Badge>
+        {!consented && (
+          <Button size="sm" loading={busy} onClick={grantConsent}>
+            Grant contribution consent
+          </Button>
+        )}
       </div>
       <Disclosure icon="shield">
         Files are uploaded to a server-chosen private object path using a time-limited signed token. PDF, DOCX, CSV, TXT
@@ -97,9 +103,19 @@ export default function SecureFileUpload({ slug }) {
         aria-label="Choose private training file"
         className="block w-full text-body-sm text-on-surface-variant file:mr-3 file:rounded-xl file:border-0 file:bg-primary-container/30 file:px-4 file:py-2 file:text-label-md file:text-on-surface"
       />
-      {file && <p className="text-body-sm text-on-surface">{file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB</p>}
-      <Button full icon="upload" loading={busy} disabled={!file || !consented} onClick={upload}>Upload privately</Button>
-      {message && <p role="status" className="text-body-sm text-on-surface-variant">{message}</p>}
+      {file && (
+        <p className="text-body-sm text-on-surface">
+          {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB
+        </p>
+      )}
+      <Button full icon="upload" loading={busy} disabled={!file || !consented} onClick={upload}>
+        Upload privately
+      </Button>
+      {message && (
+        <p role="status" className="text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
     </Card>
   )
 }

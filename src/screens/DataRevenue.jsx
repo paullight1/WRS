@@ -13,8 +13,8 @@ function DemoDataRevenue() {
   return (
     <AppShell title="AI Data Revenue demo" back avatar={false}>
       <Disclosure icon="science">
-        Demo only. No commercial dataset license, customer payment, contributor allocation or wallet credit is represented
-        by this screen.
+        Demo only. No commercial dataset license, customer payment, contributor allocation or wallet credit is
+        represented by this screen.
       </Disclosure>
       <Card className="p-card-padding text-center">
         <Badge t="outline">Illustrative</Badge>
@@ -38,7 +38,8 @@ function LiveDataRevenue() {
         if (active) setAllocations(result.allocations)
       })
       .catch((reason) => {
-        if (active) setError(reason instanceof Error ? reason.message : 'Contributor distributions could not be loaded.')
+        if (active)
+          setError(reason instanceof Error ? reason.message : 'Contributor distributions could not be loaded.')
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -74,8 +75,8 @@ function LiveDataRevenue() {
   return (
     <AppShell title="AI Data Revenue" subtitle="Verified license distributions" back avatar={false}>
       <Disclosure icon="verified_user">
-        Revenue appears only after an explicitly paid dataset license uses approved, clean data whose contributor still has
-        active research-licensing consent. Distribution posts through the same immutable wallet ledger as Plan 5.
+        Revenue appears only after an explicitly paid dataset license uses approved, clean data whose contributor still
+        has active research-licensing consent. Distribution posts through the same immutable wallet ledger as Plan 5.
       </Disclosure>
       <section>
         <SectionTitle>Distributed value</SectionTitle>
@@ -97,12 +98,16 @@ function LiveDataRevenue() {
               <Card key={item.id} className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="truncate text-body-md text-on-surface">{item.customerReference || 'Licensed dataset'}</p>
+                    <p className="truncate text-body-md text-on-surface">
+                      {item.customerReference || 'Licensed dataset'}
+                    </p>
                     <p className="truncate font-data text-data-sm text-outline">{item.licenseReference || item.id}</p>
                   </div>
                   <span className="tnum text-title text-tertiary">{money(item.amountMinor, item.currency)}</span>
                 </div>
-                <p className="mt-2 text-label-sm text-outline">{item.status} · {item.distributedAt || item.createdAt}</p>
+                <p className="mt-2 text-label-sm text-outline">
+                  {item.status} · {item.distributedAt || item.createdAt}
+                </p>
               </Card>
             ))}
           </div>

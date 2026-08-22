@@ -5,7 +5,8 @@ const DEFAULT_BUCKET = 'wrs-private-data'
 
 function bucketName() {
   const bucket = String(process.env.WRS_DATA_BUCKET || DEFAULT_BUCKET).trim()
-  if (!/^[a-zA-Z0-9._-]{3,63}$/.test(bucket)) throw new HttpError(500, 'Invalid data bucket configuration.', 'storage-config')
+  if (!/^[a-zA-Z0-9._-]{3,63}$/.test(bucket))
+    throw new HttpError(500, 'Invalid data bucket configuration.', 'storage-config')
   return bucket
 }
 

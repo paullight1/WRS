@@ -10,9 +10,11 @@ export interface ConsentEvidence {
 }
 
 export function latestConsent(events: ConsentEvidence[], purposeSlug: string, dataCategory: DataCategory) {
-  return [...events]
-    .filter((event) => event.purposeSlug === purposeSlug && event.dataCategory === dataCategory)
-    .sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt))[0] ?? null
+  return (
+    [...events]
+      .filter((event) => event.purposeSlug === purposeSlug && event.dataCategory === dataCategory)
+      .sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt))[0] ?? null
+  )
 }
 
 export function hasActiveConsent(
@@ -26,7 +28,9 @@ export function hasActiveConsent(
 }
 
 export function assertConsentPurpose(purposeSlug: string): string {
-  const purpose = String(purposeSlug || '').trim().toLowerCase()
+  const purpose = String(purposeSlug || '')
+    .trim()
+    .toLowerCase()
   if (!['personal-robot', 'dataset-contribution', 'research-licensing'].includes(purpose)) {
     throw new Error('Unknown consent purpose.')
   }

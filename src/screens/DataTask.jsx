@@ -34,14 +34,23 @@ function DemoTask({ task }) {
             <h2 className="font-headline-md text-headline-md text-on-surface">{task.title}</h2>
             <p className="text-label-sm text-outline">{task.cat} · demo task</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              <Badge t="outline">+{task.xp} demo XP</Badge><Badge t="outline">{task.time}</Badge>
+              <Badge t="outline">+{task.xp} demo XP</Badge>
+              <Badge t="outline">{task.time}</Badge>
             </div>
           </div>
         </div>
       </Card>
-      <Button full size="lg" onClick={() => setAccepted(true)}>{accepted ? 'Task preview opened' : 'Preview task'}</Button>
-      {accepted && <Button full icon="visibility" onClick={() => fire('Demo only — no submission, review or XP was created')}>Preview submission</Button>}
-      <Disclosure icon="verified_user">Demo only. Production submissions require purpose-specific consent and server review.</Disclosure>
+      <Button full size="lg" onClick={() => setAccepted(true)}>
+        {accepted ? 'Task preview opened' : 'Preview task'}
+      </Button>
+      {accepted && (
+        <Button full icon="visibility" onClick={() => fire('Demo only — no submission, review or XP was created')}>
+          Preview submission
+        </Button>
+      )}
+      <Disclosure icon="verified_user">
+        Demo only. Production submissions require purpose-specific consent and server review.
+      </Disclosure>
       <Toast show={!!toast} message={toast} />
     </AppShell>
   )
@@ -97,7 +106,9 @@ function LiveTask({ task, slug }) {
           <IconTile icon={task.icon} accent={c.accent} size={56} radius={12} iconSize={26} />
           <div className="min-w-0 flex-1">
             <h2 className="font-headline-md text-headline-md text-on-surface">{task.title}</h2>
-            <p className="text-label-sm text-outline">{task.cat} · {category}</p>
+            <p className="text-label-sm text-outline">
+              {task.cat} · {category}
+            </p>
           </div>
         </div>
       </Card>
@@ -106,9 +117,12 @@ function LiveTask({ task, slug }) {
         <SectionTitle>Contribution consent</SectionTitle>
         <Card className="space-y-3 p-card-padding">
           <p className="text-body-md text-on-surface-variant">
-            This task contributes to WRS review/training only. Research/commercial licensing remains a separate consent purpose.
+            This task contributes to WRS review/training only. Research/commercial licensing remains a separate consent
+            purpose.
           </p>
-          <Button loading={busy} disabled={consented} onClick={grantConsent}>{consented ? 'Consent recorded' : 'Grant contribution consent'}</Button>
+          <Button loading={busy} disabled={consented} onClick={grantConsent}>
+            {consented ? 'Consent recorded' : 'Grant contribution consent'}
+          </Button>
         </Card>
       </section>
 
@@ -125,12 +139,21 @@ function LiveTask({ task, slug }) {
             placeholder="Enter the response requested by this task."
             className="w-full resize-y rounded-xl border border-outline-variant bg-black/20 px-4 py-3 text-body-md text-on-surface outline-none"
           />
-          <Button full loading={busy} disabled={!consented || !answer.trim()} onClick={submit}>Submit for review</Button>
+          <Button full loading={busy} disabled={!consented || !answer.trim()} onClick={submit}>
+            Submit for review
+          </Button>
         </Card>
       </section>
 
-      {message && <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{message}</p>}
-      <Disclosure icon="shield">Submission is not approval. Server review determines quality; later plans may award rewards only from a verified approved event.</Disclosure>
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
+      <Disclosure icon="shield">
+        Submission is not approval. Server review determines quality; later plans may award rewards only from a verified
+        approved event.
+      </Disclosure>
     </AppShell>
   )
 }
@@ -144,7 +167,12 @@ export default function DataTask() {
   if (!policy.authoritative) {
     return (
       <AppShell title="Data task unavailable" back avatar={false}>
-        <StateView kind="locked" title="Live data tasks are unavailable" desc={policy.reason} action={<Button to="/data">Back to data center</Button>} />
+        <StateView
+          kind="locked"
+          title="Live data tasks are unavailable"
+          desc={policy.reason}
+          action={<Button to="/data">Back to data center</Button>}
+        />
       </AppShell>
     )
   }

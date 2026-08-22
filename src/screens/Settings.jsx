@@ -30,7 +30,9 @@ export default function Settings() {
     setPrivacyMessage('')
     try {
       const result = await browserDataClient.exportData()
-      const url = URL.createObjectURL(new Blob([JSON.stringify(result.manifest, null, 2)], { type: 'application/json' }))
+      const url = URL.createObjectURL(
+        new Blob([JSON.stringify(result.manifest, null, 2)], { type: 'application/json' }),
+      )
       const anchor = document.createElement('a')
       anchor.href = url
       anchor.download = `wrs-data-export-${result.requestId}.json`
@@ -45,7 +47,8 @@ export default function Settings() {
   }
 
   const deleteAllData = async () => {
-    if (!window.confirm('Delete all WRS-owned private training/contribution data? Consent audit evidence is retained.')) return
+    if (!window.confirm('Delete all WRS-owned private training/contribution data? Consent audit evidence is retained.'))
+      return
     setPrivacyBusy(true)
     setPrivacyMessage('')
     try {
@@ -67,9 +70,19 @@ export default function Settings() {
             icon="person"
             t="outline"
             title="Personal details"
-            subtitle={auth.isDemo ? 'Demo account — personal editing is not connected' : 'Identity and verification are owned by the authentication service'}
+            subtitle={
+              auth.isDemo
+                ? 'Demo account — personal editing is not connected'
+                : 'Identity and verification are owned by the authentication service'
+            }
           />
-          <Row icon="lock" t="outline" title="Password" subtitle="Use the verified recovery/security flow to change credentials" to="/forgot-password" />
+          <Row
+            icon="lock"
+            t="outline"
+            title="Password"
+            subtitle="Use the verified recovery/security flow to change credentials"
+            to="/forgot-password"
+          />
           <Row
             icon="shield_lock"
             t="tertiary"
@@ -92,8 +105,18 @@ export default function Settings() {
           <Row title="Language" value="English" right={<Icon name="chevron_right" className="text-outline" />} />
           <Row title="Currency" value="USD" right={<Icon name="chevron_right" className="text-outline" />} />
           <Row title="Time zone" value="WAT (UTC+1)" right={<Icon name="chevron_right" className="text-outline" />} />
-          <Toggle checked={settings.notifications} onChange={set('notifications')} label="Push notifications preview" desc="Preference persistence is completed in Plan 9" />
-          <Toggle checked={settings.marketing} onChange={set('marketing')} label="Campaign updates preview" desc="Preference persistence is completed in Plan 9" />
+          <Toggle
+            checked={settings.notifications}
+            onChange={set('notifications')}
+            label="Push notifications preview"
+            desc="Preference persistence is completed in Plan 9"
+          />
+          <Toggle
+            checked={settings.marketing}
+            onChange={set('marketing')}
+            label="Campaign updates preview"
+            desc="Preference persistence is completed in Plan 9"
+          />
         </List>
       </section>
 
@@ -106,11 +129,22 @@ export default function Settings() {
             <Row title="Voice profile" value={configuration.voiceProfileId} to="/robot/customize" />
             <Row title="Personality" value={configuration.personality} to="/robot/customize" />
             <Row title="Configuration version" value={`v${configuration.version}`} to="/robot/customize" />
-            <Toggle checked={settings.safety} onChange={set('safety')} label="Safety controls preview" desc="Runtime deployment safety remains owned by the deployment service" />
+            <Toggle
+              checked={settings.safety}
+              onChange={set('safety')}
+              label="Safety controls preview"
+              desc="Runtime deployment safety remains owned by the deployment service"
+            />
           </List>
         ) : (
           <List>
-            <Row icon="smart_toy" t="outline" title="Robot not provisioned" subtitle={robotState.error || 'Complete onboarding to create a robot record'} to="/onboarding" />
+            <Row
+              icon="smart_toy"
+              t="outline"
+              title="Robot not provisioned"
+              subtitle={robotState.error || 'Complete onboarding to create a robot record'}
+              to="/onboarding"
+            />
           </List>
         )}
       </section>
@@ -118,16 +152,60 @@ export default function Settings() {
       <section>
         <SectionTitle>Privacy &amp; data</SectionTitle>
         <List>
-          <Row icon="mic" t="tertiary" title="Capture consent" subtitle="Purpose-specific consent is recorded at the exact microphone/camera workflow" to="/training" />
-          <Row icon="dataset" t="primary" title="Dataset contribution" subtitle="Contribution and research/licensing consent are separate purposes" to="/data" />
-          <Row icon="download" t="outline" title="Download my data" subtitle="Export consent, asset and submission audit records" right={<Button size="sm" variant="ghost" loading={privacyBusy} disabled={auth.isDemo} onClick={exportData}>Export</Button>} />
-          <Row icon="delete_sweep" t="outline" title="Delete private data" subtitle={deleteDataPolicy.reason} right={<Button size="sm" variant="ghost" loading={privacyBusy} disabled={!deleteDataPolicy.authoritative} onClick={deleteAllData}>Delete</Button>} />
+          <Row
+            icon="mic"
+            t="tertiary"
+            title="Capture consent"
+            subtitle="Purpose-specific consent is recorded at the exact microphone/camera workflow"
+            to="/training"
+          />
+          <Row
+            icon="dataset"
+            t="primary"
+            title="Dataset contribution"
+            subtitle="Contribution and research/licensing consent are separate purposes"
+            to="/data"
+          />
+          <Row
+            icon="download"
+            t="outline"
+            title="Download my data"
+            subtitle="Export consent, asset and submission audit records"
+            right={
+              <Button size="sm" variant="ghost" loading={privacyBusy} disabled={auth.isDemo} onClick={exportData}>
+                Export
+              </Button>
+            }
+          />
+          <Row
+            icon="delete_sweep"
+            t="outline"
+            title="Delete private data"
+            subtitle={deleteDataPolicy.reason}
+            right={
+              <Button
+                size="sm"
+                variant="ghost"
+                loading={privacyBusy}
+                disabled={!deleteDataPolicy.authoritative}
+                onClick={deleteAllData}
+              >
+                Delete
+              </Button>
+            }
+          />
         </List>
-        {privacyMessage && <p role="status" className="mt-3 rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{privacyMessage}</p>}
+        {privacyMessage && (
+          <p role="status" className="mt-3 rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+            {privacyMessage}
+          </p>
+        )}
       </section>
 
       <Disclosure icon="shield">
-        Authentication and robot state remain owned by their services. Consent evidence is append-only; deleting private data removes storage objects and tombstones assets/submissions without rewriting the historical consent audit trail.
+        Authentication and robot state remain owned by their services. Consent evidence is append-only; deleting private
+        data removes storage objects and tombstones assets/submissions without rewriting the historical consent audit
+        trail.
       </Disclosure>
       <Button variant="danger" full icon="delete_forever" disabled={!deleteAccountPolicy.enabled}>
         Delete account unavailable

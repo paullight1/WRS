@@ -156,8 +156,8 @@ export default function SensitiveCapture({ slug }) {
       </div>
 
       <Disclosure icon="privacy_tip">
-        Consent applies to the <strong>personal-robot</strong> purpose for this {category} capture only. Dataset contribution
-        and commercial/research licensing require separate consent records.
+        Consent applies to the <strong>personal-robot</strong> purpose for this {category} capture only. Dataset
+        contribution and commercial/research licensing require separate consent records.
       </Disclosure>
 
       <div className="grid gap-2 sm:grid-cols-2">
@@ -181,7 +181,11 @@ export default function SensitiveCapture({ slug }) {
       <Button full icon="upload" loading={busy} disabled={!blob || !consented || recording} onClick={upload}>
         Upload reviewed capture
       </Button>
-      {message && <p role="status" className="text-body-sm text-on-surface-variant">{message}</p>}
+      {message && (
+        <p role="status" className="text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
     </Card>
   )
 }

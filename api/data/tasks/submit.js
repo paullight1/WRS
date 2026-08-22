@@ -1,4 +1,12 @@
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../../../server/http.js'
 import { requireSession } from '../../../server/session.js'
 import { serviceRpc } from '../../../server/supabase.js'
 
@@ -18,7 +26,8 @@ export default functionHandler(async (request) => {
   const body = await readJson(request, 64_000)
   const taskSlug = String(body.taskSlug || '').trim()
   const response = typeof body.response === 'object' && body.response ? body.response : null
-  if (taskSlug.length < 2 || !response) throw new HttpError(400, 'Task response is incomplete.', 'invalid-task-response')
+  if (taskSlug.length < 2 || !response)
+    throw new HttpError(400, 'Task response is incomplete.', 'invalid-task-response')
   const dataCategory = categoryFor(taskSlug)
   const { data } = await serviceRpc('wrs_submit_data_task_response', {
     p_user_id: resolved.user.id,

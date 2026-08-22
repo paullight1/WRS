@@ -13,7 +13,12 @@ export interface DataRepository {
     storagePath: string
   }): Promise<{ assetId: string }>
   submitAsset(userId: string, assetId: string, metadata: Record<string, unknown>): Promise<unknown>
-  reviewSubmission(submissionId: string, dimensions: QualityDimensions, score: number, decision: string): Promise<unknown>
+  reviewSubmission(
+    submissionId: string,
+    dimensions: QualityDimensions,
+    score: number,
+    decision: string,
+  ): Promise<unknown>
 }
 
 export class DataService {

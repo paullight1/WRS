@@ -11,12 +11,20 @@ export default functionHandler(async (request) => {
   const assetId = body.assetId ? String(body.assetId).trim() : null
   const reason = body.reason ? String(body.reason).slice(0, 500) : null
   const requestRecord = await requestDeletion(resolved.user.id, assetId, reason)
-  const assets = assetId ? [await ownedAsset(resolved.user.id, assetId)].filter(Boolean) : await ownedAssets(resolved.user.id)
+  const assets = assetId
+    ? [await ownedAsset(resolved.user.id, assetId)].filter(Boolean)
+    : await ownedAssets(resolved.user.id)
 
   try {
     for (const asset of assets) await deletePrivateObject(asset.storage_bucket, asset.storage_path)
-    await completeDeletion(requestRecord.requestId, true, { deletedObjects: assets.length, scope: assetId ? 'asset' : 'all-owned-assets' })
-    return appendCookies(json({ requestId: requestRecord.requestId, status: 'completed', deletedObjects: assets.length }), resolved.cookies)
+    await completeDeletion(requestRecord.requestId, true, {
+      deletedObjects: assets.length,
+      scope: assetId ? 'asset' : 'all-owned-assets',
+    })
+    return appendCookies(
+      json({ requestId: requestRecord.requestId, status: 'completed', deletedObjects: assets.length }),
+      resolved.cookies,
+    )
   } catch (error) {
     await completeDeletion(requestRecord.requestId, false, {
       attemptedObjects: assets.length,

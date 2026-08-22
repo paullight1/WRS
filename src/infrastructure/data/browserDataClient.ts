@@ -65,6 +65,7 @@ export const browserDataClient = {
       body: JSON.stringify({ reason }),
     }),
 
-  exportData: () => request<{ requestId: string; status: string; expiresAt: string; manifest: Json }>('/api/data/export'),
+  exportData: () =>
+    request<{ requestId: string; status: string; expiresAt: string; manifest: Json }>('/api/data/export'),
   revenue: () => request<{ allocations: Json[] }>('/api/data/revenue'),
 }

@@ -4,9 +4,27 @@ import { calculateQualityScore, qualityDecision } from '../../src/domain/data/qu
 
 describe('Plan 6 consent domain', () => {
   const events = [
-    { purposeSlug: 'dataset-contribution', policyVersion: 1, dataCategory: 'voice' as const, action: 'granted' as const, occurredAt: '2026-08-20T10:00:00Z' },
-    { purposeSlug: 'research-licensing', policyVersion: 1, dataCategory: 'voice' as const, action: 'granted' as const, occurredAt: '2026-08-20T10:01:00Z' },
-    { purposeSlug: 'research-licensing', policyVersion: 1, dataCategory: 'voice' as const, action: 'withdrawn' as const, occurredAt: '2026-08-20T10:02:00Z' },
+    {
+      purposeSlug: 'dataset-contribution',
+      policyVersion: 1,
+      dataCategory: 'voice' as const,
+      action: 'granted' as const,
+      occurredAt: '2026-08-20T10:00:00Z',
+    },
+    {
+      purposeSlug: 'research-licensing',
+      policyVersion: 1,
+      dataCategory: 'voice' as const,
+      action: 'granted' as const,
+      occurredAt: '2026-08-20T10:01:00Z',
+    },
+    {
+      purposeSlug: 'research-licensing',
+      policyVersion: 1,
+      dataCategory: 'voice' as const,
+      action: 'withdrawn' as const,
+      occurredAt: '2026-08-20T10:02:00Z',
+    },
   ]
 
   it('keeps purposes independent and honors the latest event', () => {

@@ -45,7 +45,9 @@ function DemoModule({ mod, slug, policy, isBiometric, isUpload }) {
               label="Preview explicit consent"
               desc="Local UI preview only; no consent record or media stream is created."
             />
-            <Button full disabled onClick={explain}>Recording unavailable in demo</Button>
+            <Button full disabled onClick={explain}>
+              Recording unavailable in demo
+            </Button>
           </Card>
         </section>
       )}
@@ -55,7 +57,9 @@ function DemoModule({ mod, slug, policy, isBiometric, isUpload }) {
           <SectionTitle>File upload demo</SectionTitle>
           <Card className="space-y-4 p-card-padding">
             <Badge t="outline">No live upload</Badge>
-            <Button full disabled onClick={explain}>Private upload unavailable in demo</Button>
+            <Button full disabled onClick={explain}>
+              Private upload unavailable in demo
+            </Button>
           </Card>
         </section>
       )}
@@ -65,7 +69,9 @@ function DemoModule({ mod, slug, policy, isBiometric, isUpload }) {
           <SectionTitle>Training workflow preview</SectionTitle>
           <Card className="p-card-padding">
             <p className="text-body-md text-on-surface-variant">This module is a non-authoritative preview.</p>
-            <Button full className="mt-4" disabled={!policy.enabled} onClick={explain}>Preview only</Button>
+            <Button full className="mt-4" disabled={!policy.enabled} onClick={explain}>
+              Preview only
+            </Button>
           </Card>
         </section>
       )}
@@ -86,7 +92,8 @@ export default function TrainingModule() {
   const isBiometric = BIOMETRIC.has(slug)
   const policy = isUpload ? uploadPolicy : biometricPolicy
 
-  if (runtimeConfig.isDemo) return <DemoModule mod={mod} slug={slug} policy={policy} isBiometric={isBiometric} isUpload={isUpload} />
+  if (runtimeConfig.isDemo)
+    return <DemoModule mod={mod} slug={slug} policy={policy} isBiometric={isBiometric} isUpload={isUpload} />
 
   if (!policy.authoritative) {
     return (
@@ -130,7 +137,11 @@ export default function TrainingModule() {
       )}
 
       {!isBiometric && !isUpload && (
-        <StateView kind="locked" title="This training module is not yet a data-capture workflow" desc="Only modules with an explicit capture or private-upload contract can submit data." />
+        <StateView
+          kind="locked"
+          title="This training module is not yet a data-capture workflow"
+          desc="Only modules with an explicit capture or private-upload contract can submit data."
+        />
       )}
 
       <Disclosure icon="verified_user">
