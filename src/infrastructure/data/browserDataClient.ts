@@ -48,6 +48,12 @@ export const browserDataClient = {
       body: JSON.stringify({ assetId, metadata }),
     }),
 
+  submitTask: (taskSlug: string, response: Json) =>
+    request<{ responseId: string; status: string; dataCategory: string }>('/api/data/tasks/submit', {
+      method: 'POST',
+      body: JSON.stringify({ taskSlug, response }),
+    }),
+
   deleteAsset: (assetId: string, reason?: string) =>
     request<{ requestId: string; status: string; deletedObjects?: number }>('/api/data/delete', {
       method: 'POST',
