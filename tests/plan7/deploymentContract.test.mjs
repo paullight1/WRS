@@ -12,14 +12,21 @@ const required = [
   'src/domain/deployment/stateMachine.ts',
   'src/services/deployment/DeploymentService.ts',
   'src/infrastructure/deployment/browserDeploymentClient.ts',
+  'src/screens/DeployProduction.jsx',
+  'src/screens/DeploymentDetailsProduction.jsx',
+  'src/screens/ActiveDeploymentProduction.jsx',
   'api/_lib/deployment.js',
   'api/deployments.js',
   'api/deployments/request.js',
   'api/deployments/contract.js',
   'api/deployments/state.js',
   'api/deployments/telemetry.js',
+  'api/deployments/match.js',
+  'api/deployments/verify-work.js',
+  'api/deployments/system-state.js',
   'api/deployments/settle.js',
   'supabase/migrations/20260822070000_plan7_deployment_engine.sql',
+  'supabase/migrations/20260822071000_plan7_deployment_hardening.sql',
   'tests/database/plan7-invariants.sql',
 ]
 
@@ -57,9 +64,11 @@ test('eligibility is server-derived from authoritative robot/account evidence', 
 
 test('request, contract and state transitions are atomic/idempotent server operations', () => {
   const sql = read('supabase/migrations/20260822070000_plan7_deployment_engine.sql').toLowerCase()
+  const hardening = read('supabase/migrations/20260822071000_plan7_deployment_hardening.sql').toLowerCase()
   assert.match(sql, /wrs_request_deployment/)
-  assert.match(sql, /idempotency/)
+  assert.match(`${sql}\n${hardening}`, /idempotency/)
   assert.match(sql, /wrs_accept_deployment_contract/)
+  assert.match(hardening, /idempotency key collision/)
   assert.match(sql, /wrs_transition_deployment/)
   for (const state of ['scheduled', 'active', 'paused', 'completed', 'cancelled', 'failed']) assert.match(sql, new RegExp(state))
 })
@@ -67,9 +76,10 @@ test('request, contract and state transitions are atomic/idempotent server opera
 test('contract terms are snapshotted and not inferred from the UI', () => {
   const sql = read('supabase/migrations/20260822070000_plan7_deployment_engine.sql').toLowerCase()
   assert.match(sql, /terms_snapshot/)
+  assert.match(sql, /deployment_contract_terms_immutable/)
   assert.match(sql, /rate_minor/)
   assert.match(sql, /currency/)
-  assert.match(read('api/deployments/contract.js'), /wrs_accept_deployment_contract/)
+  assert.match(read('api/deployments/contract.js'), /acceptDeploymentContract/)
 })
 
 test('telemetry and incidents are append-only server evidence', () => {
@@ -80,7 +90,7 @@ test('telemetry and incidents are append-only server evidence', () => {
   const api = read('api/deployments/telemetry.js')
   assert.match(api, /requireSession/)
   assert.match(api, /assertSameOrigin/)
-  assert.doesNotMatch(api, /body\.earnings|body\.payout|body\.settled/)
+  assert.doesNotMatch(api, /body\.earnings|body\.payout|body\.settled|body\.verified/)
 })
 
 test('deployment revenue can settle only verified completed work through the Plan 5 ledger', () => {
@@ -90,7 +100,7 @@ test('deployment revenue can settle only verified completed work through the Pla
   assert.match(sql, /verified/)
   assert.match(sql, /completed/)
   assert.match(sql, /liability:wallet:/)
-  assert.match(read('api/deployments/settle.js'), /wrs_settle_deployment/)
+  assert.match(read('api/deployments/settle.js'), /settleDeployment/)
 })
 
 test('deployment browser mutations derive ownership from the verified session', () => {
@@ -107,9 +117,29 @@ test('deployment browser mutations derive ownership from the verified session', 
   }
 })
 
-test('production deployment screens use the authoritative deployment client', () => {
-  for (const path of ['src/screens/Deploy.jsx', 'src/screens/DeploymentDetails.jsx', 'src/screens/ActiveDeployment.jsx']) {
-    const source = read(path)
-    assert.match(source, /browserDeploymentClient|useDeployment/i, path)
+test('completion, work verification and settlement require internal authorization', () => {
+  for (const path of [
+    'api/deployments/match.js',
+    'api/deployments/verify-work.js',
+    'api/deployments/system-state.js',
+    'api/deployments/settle.js',
+  ]) {
+    assert.match(read(path), /requireInternalBearer/, path)
   }
+  assert.match(read('api/deployments/state.js'), /Owners cannot mark deployments completed or failed/)
+})
+
+test('production deployment routes are isolated from demo mock screens', () => {
+  for (const path of [
+    'src/screens/DeployProduction.jsx',
+    'src/screens/DeploymentDetailsProduction.jsx',
+    'src/screens/ActiveDeploymentProduction.jsx',
+  ]) {
+    assert.match(read(path), /browserDeploymentClient/, path)
+    assert.doesNotMatch(read(path), /\.\.\/data\/mock\.js/, path)
+  }
+  const app = read('src/App.jsx')
+  assert.match(app, /runtimeConfig\.isDemo \? Deploy : DeployProduction/)
+  assert.match(app, /runtimeConfig\.isDemo \? DeploymentDetails : DeploymentDetailsProduction/)
+  assert.match(app, /runtimeConfig\.isDemo \? ActiveDeployment : ActiveDeploymentProduction/)
 })
