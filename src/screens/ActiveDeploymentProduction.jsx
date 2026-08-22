@@ -28,20 +28,17 @@ export default function ActiveDeploymentProduction() {
   const [units, setUnits] = useState('0')
 
   const load = async () => {
-    if (!id) {
-      setError('Deployment ID is required.')
-      setLoading(false)
-      return
-    }
+    if (!id) return
     setLoading(true)
     setError('')
     try {
       const record = await browserDeploymentClient.deployment(id)
       if (!record) throw new Error('Deployment not found or not owned by this account.')
-      setDeployment(record)
       const detail = await browserDeploymentClient.detail(record.opportunityId)
+      const nextContract = await browserDeploymentClient.contract(record.contractId)
+      setDeployment(record)
       setOpportunity(detail?.opportunity || null)
-      setContract(await browserDeploymentClient.contract(record.contractId))
+      setContract(nextContract)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Deployment could not be verified.')
     } finally {
@@ -50,7 +47,31 @@ export default function ActiveDeploymentProduction() {
   }
 
   useEffect(() => {
-    void load()
+    if (!id) return undefined
+    let cancelled = false
+    browserDeploymentClient
+      .deployment(id)
+      .then(async (record) => {
+        if (!record) throw new Error('Deployment not found or not owned by this account.')
+        const [detail, nextContract] = await Promise.all([
+          browserDeploymentClient.detail(record.opportunityId),
+          browserDeploymentClient.contract(record.contractId),
+        ])
+        if (cancelled) return
+        setDeployment(record)
+        setOpportunity(detail?.opportunity || null)
+        setContract(nextContract)
+        setError('')
+      })
+      .catch((reason) => {
+        if (!cancelled) setError(reason instanceof Error ? reason.message : 'Deployment could not be verified.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [id])
 
   const transition = async (state, reason) => {
@@ -100,6 +121,19 @@ export default function ActiveDeploymentProduction() {
     }
   }
 
+  if (!id) {
+    return (
+      <AppShell title="Deployment unavailable" back avatar={false}>
+        <StateView
+          kind="noResults"
+          title="Deployment ID required"
+          desc="Open a specific owned deployment from the deployment console."
+          action={<Button to="/deploy">Back to deployments</Button>}
+        />
+      </AppShell>
+    )
+  }
+
   if (loading) {
     return (
       <AppShell title="Deployment" back avatar={false}>
@@ -114,7 +148,7 @@ export default function ActiveDeploymentProduction() {
           kind="noResults"
           title="Deployment unavailable"
           desc={error || 'This deployment is unavailable.'}
-          action={<Button to="/deploy">Back to deployments</Button>}
+          action={<Button onClick={load}>Retry deployment</Button>}
         />
       </AppShell>
     )
