@@ -1,11 +1,21 @@
 import { addSupportMessage, createSupportTicket } from '../_lib/account.js'
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../_lib/http.js'
+import { enforceRateLimit } from '../_lib/auth.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../_lib/http.js'
 import { requireSession } from '../_lib/session.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
   assertSameOrigin(request)
   const resolved = await requireSession(request, { verified: true })
+  await enforceRateLimit(request, 'support-mutation', resolved.user.id, 20, 600)
   const body = await readJson(request, 24_000)
   const action = String(body.action || '').trim()
   if (action === 'create') {
