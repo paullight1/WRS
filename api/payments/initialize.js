@@ -19,6 +19,7 @@ export default functionHandler(async (request) => {
   }
 
   const currency = String(body.currency || 'USD').toUpperCase()
+  // createPaymentIntent delegates pricing/idempotency authority to wrs_create_payment_intent.
   const intent = await createPaymentIntent(resolved.user.id, packageSlug, currency, idempotencyKey)
   const origin = new URL(request.url).origin
   const initialized = await initializeTransaction({
