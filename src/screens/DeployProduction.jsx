@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import Worksite3D from '../components/robot3d/Worksite3D.jsx'
 import StateView from '../components/states/StateView.jsx'
@@ -40,7 +39,23 @@ export default function DeployProduction() {
   }
 
   useEffect(() => {
-    void load()
+    let cancelled = false
+    Promise.all([browserDeploymentClient.catalog(), browserDeploymentClient.active()])
+      .then(([catalog, owned]) => {
+        if (cancelled) return
+        setItems(catalog)
+        setDeployments(owned)
+        setError('')
+      })
+      .catch((reason) => {
+        if (!cancelled) setError(reason instanceof Error ? reason.message : 'Deployment service could not be reached.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const available = useMemo(() => {
