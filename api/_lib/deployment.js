@@ -151,9 +151,15 @@ export async function requestDeployment(userId, opportunityId, idempotencyKey) {
 
 export async function contractForUser(userId, contractId) {
   const { data } = await serviceRest(
-    `/rest/v1/deployment_contracts?id=eq.${encodeURIComponent(contractId)}&select=*,deployment_requests!inner(user_id)&deployment_requests.user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+    `/rest/v1/deployment_contracts?id=eq.${encodeURIComponent(contractId)}&select=*,deployment_requests(user_id)&limit=1`,
   )
-  return mapContract(Array.isArray(data) ? data[0] || null : null)
+  const row = Array.isArray(data) ? data[0] || null : null
+  if (!row) return null
+  const requestOwner = Array.isArray(row.deployment_requests)
+    ? row.deployment_requests[0]?.user_id
+    : row.deployment_requests?.user_id
+  if (requestOwner !== userId) return null
+  return mapContract(row)
 }
 
 export async function acceptDeploymentContract(userId, contractId, idempotencyKey) {
