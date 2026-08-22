@@ -120,11 +120,20 @@ export async function deploymentOpportunity(userId, opportunityId) {
   const row = Array.isArray(data) ? data[0] || null : null
   if (!row) return null
   const robot = await activeRobotForUser(userId)
+  const { data: requestsData } = await serviceRest(
+    `/rest/v1/deployment_requests?user_id=eq.${encodeURIComponent(userId)}&opportunity_id=eq.${encodeURIComponent(opportunityId)}&status=in.(requested,matched,accepted)&select=*,deployment_contracts(id,status)&order=requested_at.desc&limit=1`,
+  )
+  const requestRow = Array.isArray(requestsData) ? requestsData[0] || null : null
+  const contractJoin = Array.isArray(requestRow?.deployment_contracts)
+    ? requestRow.deployment_contracts[0]
+    : requestRow?.deployment_contracts
   return {
     opportunity: mapOpportunity(row),
     eligibility: robot
       ? await deploymentEligibility(userId, robot.id, row.id)
       : { eligible: false, reasons: ['robot-ownership'], evidence: {} },
+    request: mapRequest(requestRow),
+    contractId: contractJoin?.id || null,
   }
 }
 
