@@ -49,9 +49,14 @@ export const browserDataClient = {
     }),
 
   deleteAsset: (assetId: string, reason?: string) =>
-    request<{ requestId: string; status: string }>('/api/data/delete', {
+    request<{ requestId: string; status: string; deletedObjects?: number }>('/api/data/delete', {
       method: 'POST',
       body: JSON.stringify({ assetId, reason }),
+    }),
+  deleteAll: (reason?: string) =>
+    request<{ requestId: string; status: string; deletedObjects?: number }>('/api/data/delete', {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
     }),
 
   exportData: () => request<{ requestId: string; status: string; expiresAt: string; manifest: Json }>('/api/data/export'),
