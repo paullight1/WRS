@@ -37,7 +37,9 @@ test('ledger schema is double-entry, append-only and uses integer minor units', 
     'payout_methods',
     'withdrawals',
     'financial_reconciliations',
-  ]) assert.match(sql, new RegExp(`create table(?: if not exists)? public\\.${table}`), table)
+  ]) {
+    assert.match(sql, new RegExp(`create table(?: if not exists)? public\\.${table}`), table)
+  }
   assert.match(sql, /amount_minor bigint/)
   assert.match(sql, /ledger_entries_append_only/)
   assert.match(sql, /wrs_post_ledger_transaction/)
