@@ -45,7 +45,9 @@ test('marketplace ownership is versioned and distinct from installation', () => 
     'marketplace_entitlements',
     'marketplace_installs',
     'marketplace_reviews',
-  ]) assert.match(sql, new RegExp(`create table(?: if not exists)? public\\.${table}`), table)
+  ]) {
+    assert.match(sql, new RegExp(`create table(?: if not exists)? public\\.${table}`), table)
+  }
   assert.match(sql, /version/)
   assert.match(sql, /entitlement/)
   assert.match(sql, /install/)
@@ -118,7 +120,9 @@ test('academy assessment and certificate issuance are server-authoritative and p
     'academy_progress',
     'academy_assessments',
     'academy_certificates',
-  ]) assert.match(sql, new RegExp(`create table(?: if not exists)? public\\.${table}`), table)
+  ]) {
+    assert.match(sql, new RegExp(`create table(?: if not exists)? public\\.${table}`), table)
+  }
   assert.match(sql, /public_verification_id/)
   assert.match(sql, /wrs_verify_academy_certificate/)
   assert.match(read('api/certificates/verify.js'), /verifyAcademyCertificate/)
