@@ -1,0 +1,34 @@
+name: One-shot Plan 6 Format
+
+on:
+  push:
+    branches:
+      - prod/plans-05-10
+    paths:
+      - .github/workflows/format-plan6-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: prod/plans-05-10
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prettier --write api server src tests .github/workflows eslint.config.js package.json playwright.config.js vitest.config.js vite.config.js
+      - name: Commit formatting and remove formatter
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/format-plan6-once.yml
+          git add api server src tests .github/workflows eslint.config.js package.json playwright.config.js vitest.config.js vite.config.js
+          git commit -m "style: normalize Plan 6 privacy runtime"
+          git push origin HEAD:prod/plans-05-10
