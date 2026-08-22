@@ -2,6 +2,9 @@ import { useRef, useState } from 'react'
 import { browserDataClient } from '../../infrastructure/data/browserDataClient.ts'
 import { Badge, Button, Card, Disclosure } from '../ui.jsx'
 
+const LOCAL_PREVIEW_CAPTIONS =
+  'data:text/vtt;charset=utf-8,WEBVTT%0A%0A00%3A00.000%20--%3E%2099%3A59.000%0ALocal%20preview%20of%20your%20own%20recording.%20Captions%20are%20not%20generated.'
+
 function categoryFor(slug) {
   if (slug === 'voice') return 'voice'
   if (slug === 'movement') return 'movement'
@@ -175,8 +178,23 @@ export default function SensitiveCapture({ slug }) {
         </Button>
       </div>
 
-      {previewUrl && category === 'voice' && <audio controls className="w-full" src={previewUrl} />}
-      {previewUrl && category !== 'voice' && <video controls className="max-h-72 w-full rounded-xl" src={previewUrl} />}
+      {previewUrl && (
+        <div className="space-y-2">
+          {category === 'voice' ? (
+            <audio controls className="w-full" src={previewUrl}>
+              <track default kind="captions" src={LOCAL_PREVIEW_CAPTIONS} srcLang="en" label="Local preview status" />
+            </audio>
+          ) : (
+            <video controls className="max-h-72 w-full rounded-xl" src={previewUrl}>
+              <track default kind="captions" src={LOCAL_PREVIEW_CAPTIONS} srcLang="en" label="Local preview status" />
+            </video>
+          )}
+          <p className="text-label-sm text-outline">
+            This is a private local preview of your own capture. WRS does not generate a transcript or descriptive
+            captions during capture; discard the file if you cannot verify its contents before upload.
+          </p>
+        </div>
+      )}
 
       <Button full icon="upload" loading={busy} disabled={!blob || !consented || recording} onClick={upload}>
         Upload reviewed capture
