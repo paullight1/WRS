@@ -1,5 +1,5 @@
+import { acceptDeploymentContract, contractForUser, ownedDeployment } from '../../server/deployment.js'
 import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
-import { acceptDeploymentContract, contractForUser } from '../../server/deployment.js'
 import { requireSession } from '../../server/session.js'
 
 export default functionHandler(async (request) => {
@@ -22,5 +22,8 @@ export default functionHandler(async (request) => {
     throw new HttpError(400, 'A valid idempotency key is required.', 'idempotency-required')
   }
   const result = await acceptDeploymentContract(resolved.user.id, contractId, idempotencyKey)
-  return appendCookies(json({ ...result, deployment: result?.deployment || null }, 201), resolved.cookies)
+  const deployment = result?.deploymentId
+    ? await ownedDeployment(resolved.user.id, String(result.deploymentId))
+    : null
+  return appendCookies(json({ status: result?.status || 'scheduled', deployment }, 201), resolved.cookies)
 })
