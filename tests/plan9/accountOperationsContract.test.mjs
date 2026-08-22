@@ -61,12 +61,14 @@ test('account deletion is a durable queue that revokes sessions and preserves re
 
 test('pending account deletion blocks ordinary APIs but permits explicit recovery and MFA step-up', () => {
   const session = read('api/_lib/session.js')
+  const stepUp = read('api/auth/mfa/step-up.js')
   assert.match(session, /accountDeletionPending/)
   assert.match(session, /allowDeletionPending/)
   assert.match(read('api/account.js'), /allowDeletionPending/)
   assert.match(read('api/account/delete.js'), /allowDeletionPending/)
-  assert.match(read('api/auth/mfa/step-up.js'), /allowDeletionPending/)
-  assert.match(read('api/_lib/mfa.js'), /stepUpMfa/)
+  assert.match(stepUp, /allowDeletionPending/)
+  assert.match(stepUp, /verifyMfa/)
+  assert.match(stepUp, /user_mfa_factors/)
   assert.doesNotMatch(read('api/wallet.js'), /allowDeletionPending/)
 })
 
