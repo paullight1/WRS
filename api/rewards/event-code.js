@@ -1,3 +1,5 @@
+import { enforceRateLimit } from '../../server/auth.js'
+import { redeemEventCode } from '../../server/ecosystem.js'
 import {
   appendCookies,
   assertSameOrigin,
@@ -7,13 +9,13 @@ import {
   readJson,
   requireMethod,
 } from '../../server/http.js'
-import { redeemEventCode } from '../../server/ecosystem.js'
 import { requireSession } from '../../server/session.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
   assertSameOrigin(request)
   const resolved = await requireSession(request, { verified: true })
+  await enforceRateLimit(request, 'event-code-redeem', resolved.user.id, 10, 600)
   const body = await readJson(request, 12_000)
   const code = String(body.code || '')
     .trim()
