@@ -64,7 +64,24 @@ function LiveWallet() {
   }
 
   useEffect(() => {
-    void refresh()
+    let active = true
+    browserFinanceClient
+      .wallet(currency)
+      .then((result) => {
+        if (!active) return
+        setWallet(result.wallet)
+        setError('')
+      })
+      .catch((reason) => {
+        if (!active) return
+        setError(reason instanceof Error ? reason.message : 'Wallet could not be loaded.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
   }, [])
 
   const createPayout = async () => {
