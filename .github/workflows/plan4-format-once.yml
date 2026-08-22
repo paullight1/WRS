@@ -1,0 +1,77 @@
+name: Plan 4 One-Shot Format
+
+on:
+  push:
+    branches:
+      - prod/plans-01-04
+    paths:
+      - .github/workflows/plan4-format-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: prod/plans-01-04
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Format current Plan 3-4 owned files
+        run: >-
+          npx prettier --write
+          api/_lib/auth.js
+          api/_lib/mfa.js
+          api/_lib/oauth.js
+          api/_lib/robot.js
+          api/_lib/session.js
+          api/auth/login.js
+          api/auth/mfa/disable.js
+          api/auth/mfa/verify.js
+          api/auth/oauth/start.js
+          api/auth/verify.js
+          api/robot/configuration.js
+          api/robot/onboarding.js
+          api/robot/onboarding/complete.js
+          api/robot/passport/pdf.js
+          src/components/auth/AuthProvider.jsx
+          src/screens/Verify.jsx
+          tests/plan3/serverApiContract.test.mjs
+          tests/plan4/serverApiContract.test.mjs
+      - name: Remove one-shot workflow and commit deterministic output
+        run: |
+          rm .github/workflows/plan4-format-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            api/_lib/auth.js \
+            api/_lib/mfa.js \
+            api/_lib/oauth.js \
+            api/_lib/robot.js \
+            api/_lib/session.js \
+            api/auth/login.js \
+            api/auth/mfa/disable.js \
+            api/auth/mfa/verify.js \
+            api/auth/oauth/start.js \
+            api/auth/verify.js \
+            api/robot/configuration.js \
+            api/robot/onboarding.js \
+            api/robot/onboarding/complete.js \
+            api/robot/passport/pdf.js \
+            src/components/auth/AuthProvider.jsx \
+            src/screens/Verify.jsx \
+            tests/plan3/serverApiContract.test.mjs \
+            tests/plan4/serverApiContract.test.mjs \
+            .github/workflows/plan4-format-once.yml
+          if git diff --cached --quiet; then
+            echo "No formatting changes required"
+            exit 0
+          fi
+          git commit -m "style: normalize Plan 3-4 server runtime"
+          git push origin HEAD:prod/plans-01-04
