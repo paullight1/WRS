@@ -41,7 +41,25 @@ export default function DeploymentDetailsProduction() {
   }
 
   useEffect(() => {
-    void load()
+    let cancelled = false
+    browserDeploymentClient
+      .detail(opportunityId)
+      .then(async (detail) => {
+        const nextContract = detail?.contractId ? await browserDeploymentClient.contract(detail.contractId) : null
+        if (cancelled) return
+        setItem(detail)
+        setContract(nextContract)
+        setError('')
+      })
+      .catch((reason) => {
+        if (!cancelled) setError(reason instanceof Error ? reason.message : 'Opportunity could not be verified.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [opportunityId])
 
   const requestDeployment = async () => {
