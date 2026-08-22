@@ -40,8 +40,10 @@ const repository: EcosystemRepository = {
       body: JSON.stringify({ enrollmentId, moduleId, completionPercent }),
     }),
   community: () => request<Json>('/api/community'),
-  joinEvent: (eventId, leaderboardOptIn) =>
-    request<Json>('/api/community/event', { method: 'POST', body: JSON.stringify({ eventId, leaderboardOptIn }) }),
+  joinEvent: (eventId, reminderEnabled) =>
+    request<Json>('/api/community/event', { method: 'POST', body: JSON.stringify({ eventId, reminderEnabled }) }),
+  setLeaderboard: (optedIn, displayAlias) =>
+    request<Json>('/api/community/profile', { method: 'POST', body: JSON.stringify({ optedIn, displayAlias }) }),
   referrals: () => request<Json>('/api/referrals'),
   acceptReferral: (code) =>
     request<Json>('/api/referrals/accept', { method: 'POST', body: JSON.stringify({ code }) }),
