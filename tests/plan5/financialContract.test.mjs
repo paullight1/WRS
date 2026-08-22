@@ -20,6 +20,8 @@ const required = [
   'api/wallet/withdraw.js',
   'api/payments/reconcile.js',
   'supabase/migrations/20260822050000_plan5_financial_ledger.sql',
+  'supabase/migrations/20260822051000_plan5_finance_reversals.sql',
+  'supabase/migrations/20260822052000_plan5_idempotency_isolation.sql',
 ]
 
 test('Plan 5 has authoritative finance domain, server and database boundaries', () => {
@@ -66,13 +68,17 @@ test('payments use server-side provider initialization and verified settlement',
   assert.match(verify, /wrs_settle_payment/)
 })
 
-test('provider events, payment fulfillment and withdrawals are idempotent', () => {
+test('provider events, payment fulfillment and withdrawals are idempotent and request-isolated', () => {
   const sql = read('supabase/migrations/20260822050000_plan5_financial_ledger.sql').toLowerCase()
+  const isolation = read('supabase/migrations/20260822052000_plan5_idempotency_isolation.sql').toLowerCase()
   assert.match(sql, /unique.*idempotency_key|idempotency_key.*unique/s)
   assert.match(sql, /unique.*provider.*provider_reference|unique\s*\(provider, provider_reference\)/s)
   assert.match(sql, /wrs_reserve_withdrawal/)
   assert.match(sql, /for update/)
   assert.match(sql, /wrs_fail_withdrawal/)
+  assert.match(isolation, /payment idempotency key collision/)
+  assert.match(isolation, /withdrawal idempotency key collision/)
+  assert.match(isolation, /user_id <> p_user_id|user_id <> p_user_id/s)
 })
 
 test('package entitlement activation can only follow posted verified payment', () => {
@@ -106,9 +112,25 @@ test('withdrawals require verified payout method, KYC and provider transfer veri
   assert.match(provider, /\/transfer/)
 })
 
+test('refunds and transfer reversals use compensating ledger transactions', () => {
+  const sql = read('supabase/migrations/20260822051000_plan5_finance_reversals.sql').toLowerCase()
+  const webhook = read('api/payments/webhook.js')
+  assert.match(sql, /wrs_process_payment_refund/)
+  assert.match(sql, /wrs_reverse_withdrawal/)
+  assert.match(sql, /package-payment-refund/)
+  assert.match(sql, /withdrawal-reversed/)
+  assert.match(sql, /fullyrefunded|fullyrefunded/i)
+  assert.match(webhook, /refund\.processed/)
+  assert.match(webhook, /transfer\.reversed/)
+  assert.match(webhook, /processPaymentRefund/)
+  assert.match(webhook, /reverseWithdrawal/)
+})
+
 test('reconciliation exists and does not trust callbacks alone', () => {
   const source = read('api/payments/reconcile.js')
   assert.match(source, /CRON_SECRET/)
   assert.match(source, /verifyTransaction|verifyTransfer/)
+  assert.match(source, /processPaymentRefund/)
+  assert.match(source, /reverseWithdrawal/)
   assert.match(source, /reconcil/i)
 })
