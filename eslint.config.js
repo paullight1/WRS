@@ -14,7 +14,7 @@ const productionFiles = [
   'src/components/auth/**/*.{js,jsx}',
   'src/components/robot/**/*.{js,jsx}',
   'src/components/AppShell.jsx',
-  'src/screens/{Login,Register,Verify,ForgotPassword,ResetPassword,SecuritySettings,Onboarding,Customize,RobotPassport,Home,MyRobot,More,Profile,Settings,ActiveDeployment,Checkout,PaymentSuccess,Wallet}.jsx',
+  'src/screens/{Login,Register,Verify,ForgotPassword,ResetPassword,SecuritySettings,Onboarding,Customize,RobotPassport,Home,MyRobot,More,Profile,Settings,ActiveDeployment,Checkout,PaymentSuccess,Wallet,Transactions}.jsx',
   'src/App.jsx',
   'tests/**/*.{js,mjs,jsx,ts,tsx}',
 ]
