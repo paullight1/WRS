@@ -24,17 +24,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Remove invalid PostgreSQL syntax probe
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('tests/database/plan8-invariants.sql')
-          text = path.read_text()
-          block = """  begin\n    update public.reward_point_events set amount=999 where user_id=v_user limit 1;\n    raise exception 'expected reward ledger append-only rejection';\n  exception when syntax_error_or_access_rule_violation then\n    -- PostgreSQL does not support UPDATE ... LIMIT; handled by the real immutable update below.\n    null;\n  end;\n"""
-          if block not in text:
-              raise SystemExit('expected invalid probe not found')
-          path.write_text(text.replace(block, ''))
-          PY
       - name: Format Plan 8 owned surface
         run: >-
           npx prettier --write
@@ -43,7 +32,7 @@ jobs:
           src/domain/ecosystem src/services/ecosystem src/infrastructure/ecosystem
           src/screens/MarketplaceProduction.jsx src/screens/RewardsProduction.jsx src/screens/EventCodeProduction.jsx
           src/screens/BoostsProduction.jsx src/screens/AcademyProduction.jsx src/screens/CommunityProduction.jsx
-          src/screens/ReferralsProduction.jsx src/App.jsx tests/plan8 tests/database/plan8-invariants.sql
+          src/screens/ReferralsProduction.jsx src/App.jsx tests/plan8
           package.json .github/workflows/plan8-database-gate.yml
       - name: Commit fixes and remove finalizer
         run: |
