@@ -42,6 +42,7 @@ export interface AuthSession {
   mfaSatisfiedAt: string | null
   kycStatus: KycStatus
   roles: string[]
+  accountDeletionPending?: boolean
   expiresAt: string
 }
 
