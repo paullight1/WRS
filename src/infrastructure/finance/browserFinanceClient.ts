@@ -20,6 +20,18 @@ export interface WalletSnapshot {
   pendingWithdrawalMinor: number
 }
 
+export interface WalletTransaction {
+  id: string
+  kind: string
+  status: string
+  reference: string
+  providerReference: string | null
+  direction: 'debit' | 'credit'
+  amountMinor: number
+  currency: string
+  createdAt: string
+}
+
 export const browserFinanceClient = {
   initializePackagePayment: (packageSlug: string, currency: string, idempotencyKey: string) =>
     request<{ intentId: string; reference: string; authorizationUrl: string; amountMinor: number; currency: string }>(
@@ -36,6 +48,8 @@ export const browserFinanceClient = {
     ),
   wallet: (currency = 'USD') =>
     request<{ wallet: WalletSnapshot }>(`/api/wallet?currency=${encodeURIComponent(currency)}`),
+  transactions: (currency = 'USD') =>
+    request<{ transactions: WalletTransaction[] }>(`/api/wallet/transactions?currency=${encodeURIComponent(currency)}`),
   createPayoutMethod: (input: {
     accountNumber: string
     bankCode: string
