@@ -35,6 +35,19 @@ export async function settlePayment(userId, transaction, eventFingerprint) {
   return data
 }
 
+export async function processPaymentRefund(input) {
+  const { data } = await serviceRpc('wrs_process_payment_refund', {
+    p_provider: 'paystack',
+    p_provider_reference: input.paymentReference,
+    p_refund_reference: input.refundReference || input.eventFingerprint,
+    p_amount_minor: input.amountMinor,
+    p_currency: input.currency,
+    p_event_fingerprint: input.eventFingerprint,
+    p_payload: input.raw || {},
+  })
+  return data
+}
+
 export async function walletSnapshot(userId, currency = 'USD') {
   const { data } = await serviceRpc('wrs_wallet_snapshot', {
     p_user_id: userId,
@@ -104,6 +117,15 @@ export async function settleWithdrawal(transfer) {
     p_amount_minor: transfer.amountMinor,
     p_currency: transfer.currency,
     p_provider_status: transfer.status,
+  })
+  return data
+}
+
+export async function reverseWithdrawal(reference, reason = 'provider-reversed') {
+  const { data } = await serviceRpc('wrs_reverse_withdrawal', {
+    p_provider: 'paystack',
+    p_provider_reference: reference,
+    p_reason: reason,
   })
   return data
 }
