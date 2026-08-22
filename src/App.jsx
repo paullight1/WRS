@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute } from './components/auth/AuthProvider.jsx'
 import { NotifyProvider } from './components/notifications/Notify.jsx'
 import { RobotProvider } from './components/robot/RobotProvider.jsx'
+import { runtimeConfig } from './lib/runtimeConfig.js'
 import Landing from './screens/Landing.jsx'
 import Splash from './screens/Splash.jsx'
 import Login from './screens/Login.jsx'
@@ -26,6 +27,9 @@ import DataQuality from './screens/DataQuality.jsx'
 import Deploy from './screens/Deploy.jsx'
 import DeploymentDetails from './screens/DeploymentDetails.jsx'
 import ActiveDeployment from './screens/ActiveDeployment.jsx'
+import DeployProduction from './screens/DeployProduction.jsx'
+import DeploymentDetailsProduction from './screens/DeploymentDetailsProduction.jsx'
+import ActiveDeploymentProduction from './screens/ActiveDeploymentProduction.jsx'
 import Wallet from './screens/Wallet.jsx'
 import Transactions from './screens/Transactions.jsx'
 import DataRevenue from './screens/DataRevenue.jsx'
@@ -46,6 +50,10 @@ import Support from './screens/Support.jsx'
 const authenticated = (element) => <ProtectedRoute policy="authenticated">{element}</ProtectedRoute>
 const verified = (element) => <ProtectedRoute requireVerified>{element}</ProtectedRoute>
 const kyc = (element) => <ProtectedRoute policy="kyc">{element}</ProtectedRoute>
+
+const DeployScreen = runtimeConfig.isDemo ? Deploy : DeployProduction
+const DeploymentDetailsScreen = runtimeConfig.isDemo ? DeploymentDetails : DeploymentDetailsProduction
+const ActiveDeploymentScreen = runtimeConfig.isDemo ? ActiveDeployment : ActiveDeploymentProduction
 
 export default function App() {
   return (
@@ -78,10 +86,10 @@ export default function App() {
             <Route path="/data/quality" element={verified(<DataQuality />)} />
             <Route path="/data/:slug" element={verified(<DataTask />)} />
 
-            <Route path="/deploy" element={verified(<Deploy />)} />
-            <Route path="/deploy/active" element={verified(<ActiveDeployment />)} />
-            <Route path="/deploy/active/:id" element={verified(<ActiveDeployment />)} />
-            <Route path="/deploy/:name" element={verified(<DeploymentDetails />)} />
+            <Route path="/deploy" element={verified(<DeployScreen />)} />
+            <Route path="/deploy/active" element={verified(<ActiveDeploymentScreen />)} />
+            <Route path="/deploy/active/:id" element={verified(<ActiveDeploymentScreen />)} />
+            <Route path="/deploy/:name" element={verified(<DeploymentDetailsScreen />)} />
 
             <Route path="/wallet" element={kyc(<Wallet />)} />
             <Route path="/wallet/transactions" element={kyc(<Transactions />)} />
