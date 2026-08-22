@@ -54,16 +54,27 @@ export async function submitDataAsset(userId, assetId, metadata) {
 
 export async function ownedAsset(userId, assetId) {
   const { data } = await serviceRest(
-    `/rest/v1/data_assets?id=eq.${encodeURIComponent(assetId)}&user_id=eq.${encodeURIComponent(userId)}&select=*&limit=1`,
+    `/rest/v1/data_assets?id=eq.${encodeURIComponent(assetId)}&user_id=eq.${encodeURIComponent(userId)}&select=id,storage_bucket,storage_path,status&limit=1`,
   )
   return Array.isArray(data) ? data[0] || null : null
 }
 
 export async function ownedAssets(userId) {
-  const { data } = await serviceRest(
-    `/rest/v1/data_assets?user_id=eq.${encodeURIComponent(userId)}&status=neq.deleted&select=id,storage_bucket,storage_path&order=created_at.asc&limit=1000`,
-  )
-  return Array.isArray(data) ? data : []
+  const pageSize = 500
+  const assets = []
+  let offset = 0
+
+  while (true) {
+    const { data } = await serviceRest(
+      `/rest/v1/data_assets?user_id=eq.${encodeURIComponent(userId)}&status=neq.deleted&select=id,storage_bucket,storage_path,status&order=created_at.asc,id.asc&limit=${pageSize}&offset=${offset}`,
+    )
+    const page = Array.isArray(data) ? data : []
+    assets.push(...page)
+    if (page.length < pageSize) break
+    offset += page.length
+  }
+
+  return assets
 }
 
 export async function requestDeletion(userId, assetId, reason) {
@@ -73,6 +84,17 @@ export async function requestDeletion(userId, assetId, reason) {
     p_reason: reason || null,
   })
   return { requestId: String(data) }
+}
+
+export async function claimNextDeletion() {
+  const { data } = await serviceRpc('wrs_claim_next_data_deletion', {})
+  if (!data || typeof data !== 'object') return null
+  return {
+    requestId: String(data.requestId),
+    userId: String(data.userId),
+    assetId: data.assetId ? String(data.assetId) : null,
+    attempt: Number(data.attempt || 1),
+  }
 }
 
 export async function completeDeletion(requestId, storageDeleted, auditSummary) {
