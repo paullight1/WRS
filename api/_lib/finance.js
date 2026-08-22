@@ -139,14 +139,14 @@ export async function withdrawalByProviderReference(reference) {
 
 export async function pendingPayments(limit = 50) {
   const { data } = await serviceRest(
-    `/rest/v1/payment_intents?status=in.(initialized,pending)&provider_reference=not.is.null&select=*&order=created_at.asc&limit=${Math.min(100, Math.max(1, limit))}`,
+    `/rest/v1/payment_intents?status=in.(initialized,pending,succeeded)&provider_reference=not.is.null&select=*&order=updated_at.desc&limit=${Math.min(100, Math.max(1, limit))}`,
   )
   return Array.isArray(data) ? data : []
 }
 
 export async function pendingWithdrawals(limit = 50) {
   const { data } = await serviceRest(
-    `/rest/v1/withdrawals?status=in.(reserved,provider_pending)&provider_reference=not.is.null&select=*&order=created_at.asc&limit=${Math.min(100, Math.max(1, limit))}`,
+    `/rest/v1/withdrawals?status=in.(reserved,provider_pending,succeeded)&provider_reference=not.is.null&select=*&order=updated_at.desc&limit=${Math.min(100, Math.max(1, limit))}`,
   )
   return Array.isArray(data) ? data : []
 }
