@@ -49,21 +49,21 @@ test('ledger schema is double-entry, append-only and uses integer minor units', 
 
 test('payments use server-side provider initialization and verified settlement', () => {
   const provider = read('api/_lib/paystack.js')
+  const webhook = read('api/payments/webhook.js')
   assert.match(provider, /transaction\/initialize/)
   assert.match(provider, /transaction\/verify/)
-  assert.match(provider, /x-paystack-signature/i)
   assert.match(provider, /sha512/i)
   assert.doesNotMatch(provider, /VITE_.*SECRET|localStorage/)
+  assert.match(webhook, /x-paystack-signature/i)
+  assert.match(webhook, /verifyPaystackWebhook/)
+  assert.match(webhook, /wrs_settle_payment/)
 
   const initialize = read('api/payments/initialize.js')
   const verify = read('api/payments/verify.js')
-  const webhook = read('api/payments/webhook.js')
   assert.match(initialize, /requireSession/)
   assert.match(initialize, /assertSameOrigin/)
   assert.match(initialize, /wrs_create_payment_intent/)
   assert.match(verify, /wrs_settle_payment/)
-  assert.match(webhook, /verifyPaystackWebhook/)
-  assert.match(webhook, /wrs_settle_payment/)
 })
 
 test('provider events, payment fulfillment and withdrawals are idempotent', () => {
@@ -87,8 +87,10 @@ test('package entitlement activation can only follow posted verified payment', (
 test('wallet balance is derived from ledger entries rather than mutable balance fields', () => {
   const finance = read('api/_lib/finance.js')
   const wallet = read('api/wallet.js')
-  assert.match(finance, /ledger/i)
+  const sql = read('supabase/migrations/20260822050000_plan5_financial_ledger.sql').toLowerCase()
+  assert.match(finance, /wrs_wallet_snapshot/)
   assert.match(wallet, /wrs_wallet_snapshot/)
+  assert.match(sql, /from public\.ledger_entries/)
   assert.doesNotMatch(wallet, /balance\s*=|setBalance|localStorage/)
 })
 
