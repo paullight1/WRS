@@ -50,12 +50,8 @@ export const browserFinanceClient = {
     request<{ wallet: WalletSnapshot }>(`/api/wallet?currency=${encodeURIComponent(currency)}`),
   transactions: (currency = 'USD') =>
     request<{ transactions: WalletTransaction[] }>(`/api/wallet/transactions?currency=${encodeURIComponent(currency)}`),
-  createPayoutMethod: (input: {
-    accountNumber: string
-    bankCode: string
-    accountName: string
-    currency: string
-  }) => request<Json>('/api/wallet/payout-method', { method: 'POST', body: JSON.stringify(input) }),
+  createPayoutMethod: (input: { accountNumber: string; bankCode: string; accountName: string; currency: string }) =>
+    request<Json>('/api/wallet/payout-method', { method: 'POST', body: JSON.stringify(input) }),
   withdraw: (input: { payoutMethodId: string; amountMinor: number; currency: string; idempotencyKey: string }) =>
     request<{ withdrawalId: string; reference: string; status: string }>('/api/wallet/withdraw', {
       method: 'POST',

@@ -7,7 +7,8 @@ function config() {
   const secretKey = String(process.env.PAYSTACK_SECRET_KEY || '')
   if (!secretKey) throw new HttpError(503, 'Payment provider is not configured.', 'payments-unavailable')
   const baseUrl = String(process.env.PAYSTACK_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
-  if (!baseUrl.startsWith('https://')) throw new HttpError(500, 'Payment provider URL must use HTTPS.', 'provider-config')
+  if (!baseUrl.startsWith('https://'))
+    throw new HttpError(500, 'Payment provider URL must use HTTPS.', 'provider-config')
   return { secretKey, baseUrl }
 }
 
@@ -110,7 +111,9 @@ export async function verifyTransfer(reference) {
 export function verifyPaystackWebhook(rawBody, signature) {
   const { secretKey } = config()
   const expected = crypto.createHmac('sha512', secretKey).update(rawBody).digest('hex')
-  const actual = String(signature || '').trim().toLowerCase()
+  const actual = String(signature || '')
+    .trim()
+    .toLowerCase()
   if (actual.length !== expected.length) return false
   return crypto.timingSafeEqual(Buffer.from(actual, 'utf8'), Buffer.from(expected, 'utf8'))
 }

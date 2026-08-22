@@ -23,11 +23,7 @@ function LiveCheckout({ packageInfo }) {
     setPaying(true)
     setError('')
     try {
-      const initialized = await browserFinanceClient.initializePackagePayment(
-        packageInfo.slug,
-        'USD',
-        idempotencyKey,
-      )
+      const initialized = await browserFinanceClient.initializePackagePayment(packageInfo.slug, 'USD', idempotencyKey)
       if (!initialized.authorizationUrl.startsWith('https://')) {
         throw new Error('Payment provider returned an invalid checkout URL.')
       }
@@ -77,7 +73,12 @@ function LiveCheckout({ packageInfo }) {
 
 function DemoCheckout({ packageInfo }) {
   return (
-    <AppShell title="Checkout demo" subtitle={`${packageInfo.name} Package · no payment will be taken`} back avatar={false}>
+    <AppShell
+      title="Checkout demo"
+      subtitle={`${packageInfo.name} Package · no payment will be taken`}
+      back
+      avatar={false}
+    >
       <Disclosure icon="science">
         This is a checkout preview. Do not enter payment credentials or send funds. No package entitlement, receipt or
         ledger transaction is created in demo mode.
@@ -89,8 +90,8 @@ function DemoCheckout({ packageInfo }) {
         </Badge>
         <h2 className="mt-4 font-headline-md text-headline-md text-on-surface">{packageInfo.name} Package</h2>
         <p className="mt-2 text-body-md text-on-surface-variant">
-          Illustrative catalogue price: ${packageInfo.price.toLocaleString()}. Live checkout uses the server-owned price,
-          not this browser value.
+          Illustrative catalogue price: ${packageInfo.price.toLocaleString()}. Live checkout uses the server-owned
+          price, not this browser value.
         </p>
       </Card>
       <Button to={`/packages/${packageInfo.slug}/success?demo=1`} full size="lg" icon="visibility">

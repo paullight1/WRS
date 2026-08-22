@@ -25,10 +25,7 @@ function TrainingTile({ t }) {
         className="relative mt-1 h-1 w-10 overflow-hidden rounded-full"
         style={{ background: 'rgba(255,255,255,.1)' }}
       >
-        <span
-          className="block h-full rounded-full"
-          style={{ width: `${t.progress}%`, backgroundColor: t.from }}
-        />
+        <span className="block h-full rounded-full" style={{ width: `${t.progress}%`, backgroundColor: t.from }} />
       </span>
     </Link>
   )

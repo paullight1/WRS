@@ -51,7 +51,11 @@ async function invalidateRecoveryCodes(userId) {
   })
 }
 
-async function deleteProviderFactor(accessToken, factorId, errorMessage = 'Authenticator factor could not be removed.') {
+async function deleteProviderFactor(
+  accessToken,
+  factorId,
+  errorMessage = 'Authenticator factor could not be removed.',
+) {
   await authPublic(`/auth/v1/factors/${encodeURIComponent(factorId)}`, {
     method: 'DELETE',
     token: accessToken,
@@ -124,7 +128,8 @@ export async function enrollMfa(resolved) {
   const factor = result.data
   const factorId = factor?.id
   const provisioningUri = factor?.totp?.uri || factor?.totp?.qr_code || ''
-  if (!factorId || !provisioningUri) throw new HttpError(502, 'Authenticator enrollment is incomplete.', 'mfa-unavailable')
+  if (!factorId || !provisioningUri)
+    throw new HttpError(502, 'Authenticator enrollment is incomplete.', 'mfa-unavailable')
 
   const codes = recoveryCodes()
   try {
@@ -148,9 +153,11 @@ export async function enrollMfa(resolved) {
 }
 
 export async function verifyMfa(resolved, enrollmentId, code) {
-  if (!/^\d{6}$/.test(String(code || '').trim())) throw new HttpError(400, 'Enter a six-digit factor.', 'invalid-factor')
+  if (!/^\d{6}$/.test(String(code || '').trim()))
+    throw new HttpError(400, 'Enter a six-digit factor.', 'invalid-factor')
   const factor = await loadFactor(resolved.user.id, enrollmentId)
-  if (!factor || factor.status === 'disabled') throw new HttpError(404, 'Authenticator enrollment was not found.', 'invalid-factor')
+  if (!factor || factor.status === 'disabled')
+    throw new HttpError(404, 'Authenticator enrollment was not found.', 'invalid-factor')
   let tokenResponse
   try {
     tokenResponse = await challengeAndVerify(resolved.accessToken, enrollmentId, String(code).trim())
@@ -180,7 +187,11 @@ export async function verifyMfa(resolved, enrollmentId, code) {
 async function consumeRecoveryCode(userId, code) {
   const { data } = await serviceRpc('wrs_consume_mfa_recovery_code', {
     p_user_id: userId,
-    p_code_hash: sha256(String(code || '').trim().toUpperCase()),
+    p_code_hash: sha256(
+      String(code || '')
+        .trim()
+        .toUpperCase(),
+    ),
   })
   return data === true
 }

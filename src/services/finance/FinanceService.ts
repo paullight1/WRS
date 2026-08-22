@@ -31,18 +31,36 @@ export interface VerifiedProviderTransfer {
 export interface FinanceRepository {
   createPaymentIntent(userId: string, packageSlug: string, idempotencyKey: string): Promise<PaymentInitialization>
   attachPaymentProvider(intentId: string, reference: string, accessCode: string | null): Promise<void>
-  settlePayment(userId: string | null, transaction: VerifiedProviderTransaction, eventFingerprint: string): Promise<unknown>
+  settlePayment(
+    userId: string | null,
+    transaction: VerifiedProviderTransaction,
+    eventFingerprint: string,
+  ): Promise<unknown>
   walletSnapshot(userId: string, currency?: string): Promise<unknown>
-  reserveWithdrawal(userId: string, payoutMethodId: string, amountMinor: number, currency: string, idempotencyKey: string): Promise<unknown>
+  reserveWithdrawal(
+    userId: string,
+    payoutMethodId: string,
+    amountMinor: number,
+    currency: string,
+    idempotencyKey: string,
+  ): Promise<unknown>
   markWithdrawalProviderPending(withdrawalId: string, reference: string): Promise<void>
   settleWithdrawal(transfer: VerifiedProviderTransfer): Promise<unknown>
   failWithdrawal(withdrawalId: string, reason: string): Promise<unknown>
 }
 
 export interface PaymentProvider {
-  initializeTransaction(input: PaymentInitialization): Promise<{ authorizationUrl: string; accessCode: string; reference: string }>
+  initializeTransaction(
+    input: PaymentInitialization,
+  ): Promise<{ authorizationUrl: string; accessCode: string; reference: string }>
   verifyTransaction(reference: string): Promise<VerifiedProviderTransaction>
-  initiateTransfer(input: { amountMinor: number; recipientCode: string; reference: string; currency: string; reason: string }): Promise<{ reference: string; status: string }>
+  initiateTransfer(input: {
+    amountMinor: number
+    recipientCode: string
+    reference: string
+    currency: string
+    reason: string
+  }): Promise<{ reference: string; status: string }>
   verifyTransfer(reference: string): Promise<VerifiedProviderTransfer>
 }
 
@@ -97,7 +115,10 @@ export class FinanceService {
       await this.repository.markWithdrawalProviderPending(reserved.withdrawalId, provider.reference)
       return { ...reserved, providerStatus: provider.status }
     } catch (error) {
-      await this.repository.failWithdrawal(reserved.withdrawalId, error instanceof Error ? error.message : 'provider-error')
+      await this.repository.failWithdrawal(
+        reserved.withdrawalId,
+        error instanceof Error ? error.message : 'provider-error',
+      )
       throw error
     }
   }

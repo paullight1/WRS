@@ -1,4 +1,12 @@
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../../server/http.js'
 import {
   failWithdrawal,
   markWithdrawalProviderPending,
@@ -15,7 +23,9 @@ export default functionHandler(async (request) => {
   const body = await readJson(request, 24_000)
   const payoutMethodId = String(body.payoutMethodId || '').trim()
   const amountMinor = Number(body.amountMinor)
-  const currency = String(body.currency || '').trim().toUpperCase()
+  const currency = String(body.currency || '')
+    .trim()
+    .toUpperCase()
   const idempotencyKey = String(request.headers.get('idempotency-key') || body.idempotencyKey || '').trim()
 
   if (!payoutMethodId) throw new HttpError(400, 'Payout method is required.', 'payout-method-required')
@@ -28,7 +38,8 @@ export default functionHandler(async (request) => {
   }
 
   const method = await payoutMethodForUser(resolved.user.id, payoutMethodId)
-  if (method.currency !== currency) throw new HttpError(409, 'Payout method currency does not match.', 'currency-mismatch')
+  if (method.currency !== currency)
+    throw new HttpError(409, 'Payout method currency does not match.', 'currency-mismatch')
 
   // reserveWithdrawal delegates to wrs_reserve_withdrawal, which serializes KYC/balance checks.
   const reserved = await reserveWithdrawal(resolved.user.id, payoutMethodId, amountMinor, currency, idempotencyKey)
@@ -51,7 +62,9 @@ export default functionHandler(async (request) => {
     )
   } catch (error) {
     // Compensation is authoritative through wrs_fail_withdrawal; client retries cannot double-credit.
-    await failWithdrawal(reserved.withdrawalId, error instanceof Error ? error.message : 'provider-error').catch(() => undefined)
+    await failWithdrawal(reserved.withdrawalId, error instanceof Error ? error.message : 'provider-error').catch(
+      () => undefined,
+    )
     throw error
   }
 })

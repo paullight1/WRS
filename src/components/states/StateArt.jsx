@@ -51,7 +51,13 @@ const empty = () => (
     </g>
     {/* open tray */}
     <path d="M34 76h30l8 12h16l8-12h30v40a12 12 0 0 1-12 12H46a12 12 0 0 1-12-12z" fill={C.slate} />
-    <path d="M34 76l14-26a10 10 0 0 1 9-6h46a10 10 0 0 1 9 6l14 26" fill="none" stroke={C.dim} strokeWidth="5" strokeLinejoin="round" />
+    <path
+      d="M34 76l14-26a10 10 0 0 1 9-6h46a10 10 0 0 1 9 6l14 26"
+      fill="none"
+      stroke={C.dim}
+      strokeWidth="5"
+      strokeLinejoin="round"
+    />
     <rect x="34" y="112" width="92" height="16" rx="8" fill={C.blue} opacity="0.35" />
   </>
 )
@@ -64,7 +70,14 @@ const caughtUp = () => (
     </g>
     <circle cx="80" cy="80" r="38" fill={C.green} opacity="0.22" />
     <circle cx="80" cy="80" r="30" fill={C.green} />
-    <path d="M66 80l10 10 20-21" fill="none" stroke="#0b2b1e" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M66 80l10 10 20-21"
+      fill="none"
+      stroke="#0b2b1e"
+      strokeWidth="7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
     {[
       [26, 44],
       [132, 52],
@@ -187,7 +200,14 @@ const success = () => (
     ))}
     <circle cx="80" cy="80" r="40" fill={C.cyan} opacity="0.2" />
     <circle cx="80" cy="80" r="31" fill={C.cyan} />
-    <path d="M65 80l11 11 20-22" fill="none" stroke="#00272a" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M65 80l11 11 20-22"
+      fill="none"
+      stroke="#00272a"
+      strokeWidth="8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </>
 )
 
@@ -237,14 +257,7 @@ export const STATE_KINDS = Object.keys(ART)
 export default function StateArt({ kind = 'empty', size = 132, className = '' }) {
   const draw = ART[kind] || ART.empty
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 160 160"
-      role="presentation"
-      aria-hidden="true"
-      className={className}
-    >
+    <svg width={size} height={size} viewBox="0 0 160 160" role="presentation" aria-hidden="true" className={className}>
       {draw()}
     </svg>
   )

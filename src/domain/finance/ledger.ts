@@ -19,7 +19,9 @@ export interface BalancedJournal {
 }
 
 export function normalizeCurrency(value: string): CurrencyCode {
-  const currency = String(value || '').trim().toUpperCase()
+  const currency = String(value || '')
+    .trim()
+    .toUpperCase()
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Currency must be a three-letter ISO code.')
   return currency
 }

@@ -106,9 +106,36 @@ export const resolveColors = (config = {}) => ({ ...paletteSet(config.palette), 
  */
 export const personalityMotion = {
   Logical: { bob: 0.018, bobRate: 0.9, sway: 0.18, swayRate: 0.55, lean: 0, tilt: 0, armSpread: 1, pulseRate: 1.1 },
-  Empathetic: { bob: 0.05, bobRate: 0.7, sway: 0.1, swayRate: 0.4, lean: -0.04, tilt: 0.11, armSpread: 0.97, pulseRate: 0.8 },
-  Aggressive: { bob: 0.03, bobRate: 1.8, sway: 0.12, swayRate: 1.4, lean: 0.13, tilt: -0.05, armSpread: 1.04, pulseRate: 2.4 },
-  Protective: { bob: 0.022, bobRate: 0.55, sway: 0.3, swayRate: 0.3, lean: -0.02, tilt: 0, armSpread: 1.1, pulseRate: 0.7 },
+  Empathetic: {
+    bob: 0.05,
+    bobRate: 0.7,
+    sway: 0.1,
+    swayRate: 0.4,
+    lean: -0.04,
+    tilt: 0.11,
+    armSpread: 0.97,
+    pulseRate: 0.8,
+  },
+  Aggressive: {
+    bob: 0.03,
+    bobRate: 1.8,
+    sway: 0.12,
+    swayRate: 1.4,
+    lean: 0.13,
+    tilt: -0.05,
+    armSpread: 1.04,
+    pulseRate: 2.4,
+  },
+  Protective: {
+    bob: 0.022,
+    bobRate: 0.55,
+    sway: 0.3,
+    swayRate: 0.3,
+    lean: -0.02,
+    tilt: 0,
+    armSpread: 1.1,
+    pulseRate: 0.7,
+  },
 }
 
 export const motionFor = (name) => personalityMotion[name] || personalityMotion.Logical

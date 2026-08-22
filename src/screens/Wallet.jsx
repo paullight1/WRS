@@ -116,14 +116,22 @@ function LiveWallet() {
   if (loading) {
     return (
       <AppShell title="Wallet" back avatar={false}>
-        <LoadingView title="Loading wallet ledger" desc="Calculating available and pending amounts from posted entries." />
+        <LoadingView
+          title="Loading wallet ledger"
+          desc="Calculating available and pending amounts from posted entries."
+        />
       </AppShell>
     )
   }
   if (error && !wallet) {
     return (
       <AppShell title="Wallet" back avatar={false}>
-        <StateView kind="error" title="Wallet unavailable" desc={error} action={<Button onClick={refresh}>Try again</Button>} />
+        <StateView
+          kind="error"
+          title="Wallet unavailable"
+          desc={error}
+          action={<Button onClick={refresh}>Try again</Button>}
+        />
       </AppShell>
     )
   }
@@ -131,8 +139,8 @@ function LiveWallet() {
   return (
     <AppShell title="Wallet" subtitle="Ledger-derived balances" back avatar={false}>
       <Disclosure icon="verified_user">
-        The wallet has no mutable balance field. Available and pending amounts are recalculated from immutable double-entry
-        ledger records on every request.
+        The wallet has no mutable balance field. Available and pending amounts are recalculated from immutable
+        double-entry ledger records on every request.
       </Disclosure>
 
       <Card className="p-card-padding">
@@ -200,7 +208,8 @@ function LiveWallet() {
             Request withdrawal
           </Button>
           <p className="text-label-sm text-outline">
-            KYC, payout-method ownership and available balance are rechecked server-side under a serialized ledger reservation.
+            KYC, payout-method ownership and available balance are rechecked server-side under a serialized ledger
+            reservation.
           </p>
         </Card>
       </section>
@@ -210,7 +219,14 @@ function LiveWallet() {
           {error}
         </p>
       )}
-      {message && <p role="status" className="rounded-xl border border-tertiary/30 bg-tertiary/10 p-3 text-label-sm text-on-surface">{message}</p>}
+      {message && (
+        <p
+          role="status"
+          className="rounded-xl border border-tertiary/30 bg-tertiary/10 p-3 text-label-sm text-on-surface"
+        >
+          {message}
+        </p>
+      )}
 
       <section>
         <SectionTitle>Controls</SectionTitle>

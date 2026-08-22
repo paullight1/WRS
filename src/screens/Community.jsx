@@ -32,9 +32,7 @@ export default function Community() {
                       <p className="text-label-sm text-outline">{e.when}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <Badge t="tertiary">{e.type}</Badge>
-                        <span className="text-label-sm text-outline">
-                          {e.attendees.toLocaleString()} attending
-                        </span>
+                        <span className="text-label-sm text-outline">{e.attendees.toLocaleString()} attending</span>
                       </div>
                     </div>
                   </div>
@@ -52,8 +50,20 @@ export default function Community() {
           </section>
 
           <div className="space-y-2">
-            <ListRow icon="qr_code_scanner" t="secondary" title="Enter Event Code" subtitle="Confirm attendance and earn XP" to="/rewards/event-code" />
-            <ListRow icon="campaign" t="primary" title="Share a Campaign" subtitle="Promote WRS and earn points" to="/referrals" />
+            <ListRow
+              icon="qr_code_scanner"
+              t="secondary"
+              title="Enter Event Code"
+              subtitle="Confirm attendance and earn XP"
+              to="/rewards/event-code"
+            />
+            <ListRow
+              icon="campaign"
+              t="primary"
+              title="Share a Campaign"
+              subtitle="Promote WRS and earn points"
+              to="/referrals"
+            />
             <ListRow icon="gavel" t="outline" title="Community Rules" subtitle="How we keep the space useful" />
           </div>
         </>
@@ -83,7 +93,10 @@ export default function Community() {
             {leaderboard.map((m) => {
               const c = tone(m.tone)
               return (
-                <div key={m.rank} className={`flex items-center gap-4 px-5 py-4 ${m.you ? 'bg-primary-container/10' : ''}`}>
+                <div
+                  key={m.rank}
+                  className={`flex items-center gap-4 px-5 py-4 ${m.you ? 'bg-primary-container/10' : ''}`}
+                >
                   <span
                     className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border text-label-sm ${c.bg} ${c.border} ${c.text}`}
                   >
@@ -92,9 +105,7 @@ export default function Community() {
                   <span className="min-w-0 flex-1 truncate text-body-md text-on-surface">
                     {m.name} {m.you && <span className="text-label-sm text-primary">(you)</span>}
                   </span>
-                  <span className="shrink-0 text-label-md text-tertiary">
-                    {m.xp.toLocaleString()} XP
-                  </span>
+                  <span className="shrink-0 text-label-md text-tertiary">{m.xp.toLocaleString()} XP</span>
                 </div>
               )
             })}

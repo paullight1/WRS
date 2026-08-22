@@ -291,9 +291,7 @@ export default function Landing() {
                       <span className="block text-title-sm" style={{ color: c.ink }}>
                         {p.name}
                       </span>
-                      <span className="mt-0.5 block truncate text-body-sm text-on-surface-variant">
-                        {p.robotClass}
-                      </span>
+                      <span className="mt-0.5 block truncate text-body-sm text-on-surface-variant">{p.robotClass}</span>
                     </span>
                     <span className="tnum shrink-0 font-mono text-data-md text-on-surface">${p.price}</span>
                     <Icon name="chevron_right" className="shrink-0 text-outline" />
@@ -317,9 +315,7 @@ export default function Landing() {
                       <span className="font-display text-site-h3" style={{ color: c.ink }}>
                         {p.name}
                       </span>
-                      <span className="tnum font-mono text-data-sm text-outline">
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
+                      <span className="tnum font-mono text-data-sm text-outline">{String(i + 1).padStart(2, '0')}</span>
                     </span>
 
                     <span className="mt-4 flex items-baseline gap-1.5">
@@ -364,8 +360,7 @@ export default function Landing() {
           </ul>
           <Reveal delay={80}>
             <p className="mt-7 max-w-[64ch] text-body-sm text-outline">
-              Prices are one-off package costs. Nothing here is an offer of investment, and no earnings are
-              guaranteed.
+              Prices are one-off package costs. Nothing here is an offer of investment, and no earnings are guaranteed.
             </p>
             <Link
               to="/packages"

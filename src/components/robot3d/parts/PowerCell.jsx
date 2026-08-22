@@ -65,7 +65,8 @@ function SolarFin({ c, charge, rate, mount }) {
   const glow = useRef()
   useFrame((state) => {
     if (!glow.current) return
-    glow.current.material.emissiveIntensity = (0.6 + charge * 2) * (0.8 + Math.sin(state.clock.elapsedTime * 1.6 * rate) * 0.2)
+    glow.current.material.emissiveIntensity =
+      (0.6 + charge * 2) * (0.8 + Math.sin(state.clock.elapsedTime * 1.6 * rate) * 0.2)
   })
   return (
     <>

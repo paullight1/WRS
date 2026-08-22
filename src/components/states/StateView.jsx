@@ -11,15 +11,7 @@ import StateArt from './StateArt.jsx'
  * of something the user did (changing a filter, a request failing) — silence
  * after an action is the part of an empty state people miss.
  */
-export default function StateView({
-  kind = 'empty',
-  title,
-  desc,
-  action,
-  live = false,
-  size = 132,
-  className = '',
-}) {
+export default function StateView({ kind = 'empty', title, desc, action, live = false, size = 132, className = '' }) {
   return (
     <div
       className={`flex flex-col items-center px-6 py-12 text-center ${className}`}
@@ -40,11 +32,7 @@ export default function StateView({
  */
 export function LoadingView({ title = 'Loading', desc, className = '' }) {
   return (
-    <div
-      className={`flex flex-col items-center px-6 py-12 text-center ${className}`}
-      role="status"
-      aria-busy="true"
-    >
+    <div className={`flex flex-col items-center px-6 py-12 text-center ${className}`} role="status" aria-busy="true">
       <StateArt kind="loading" size={112} />
       <p className="mt-4 font-headline-md text-headline-md text-on-surface">{title}</p>
       {desc && <p className="mt-2 max-w-[36ch] text-body-md text-on-surface-variant">{desc}</p>}

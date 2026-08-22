@@ -93,13 +93,19 @@ function LiveTransactions() {
               )
               return (
                 <div key={`${item.id}:${item.createdAt}`} className="flex items-center gap-3.5 px-4 py-3">
-                  <Icon name={incoming ? 'south_west' : 'north_east'} className={incoming ? 'text-tertiary' : 'text-on-surface-variant'} />
+                  <Icon
+                    name={incoming ? 'south_west' : 'north_east'}
+                    className={incoming ? 'text-tertiary' : 'text-on-surface-variant'}
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-title text-on-surface">{item.kind.replaceAll('-', ' ')}</p>
-                    <p className="truncate font-data text-data-sm text-outline">{item.reference} · {item.status}</p>
+                    <p className="truncate font-data text-data-sm text-outline">
+                      {item.reference} · {item.status}
+                    </p>
                   </div>
                   <span className={`tnum text-title ${incoming ? 'text-tertiary' : 'text-on-surface'}`}>
-                    {incoming ? '+' : '-'}{amount}
+                    {incoming ? '+' : '-'}
+                    {amount}
                   </span>
                 </div>
               )
@@ -107,7 +113,11 @@ function LiveTransactions() {
           </List>
         </section>
       ) : (
-        <StateView kind="empty" title="No wallet entries yet" desc="Verified earnings and withdrawals will appear here after they post to the ledger." />
+        <StateView
+          kind="empty"
+          title="No wallet entries yet"
+          desc="Verified earnings and withdrawals will appear here after they post to the ledger."
+        />
       )}
     </AppShell>
   )

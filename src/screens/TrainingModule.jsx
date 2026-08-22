@@ -49,7 +49,10 @@ export default function TrainingModule() {
           <GradIcon icon={mod.icon} from={mod.from || '#2d5bff'} to={mod.to || '#6f00be'} size={56} radius={18} />
           <div className="min-w-0 flex-1">
             <p className="text-body-md text-on-surface">{mod.desc}</p>
-            <div className="mt-2 flex items-center gap-3"><Progress value={mod.progress} height="h-1.5" /><span className="shrink-0 text-label-sm text-tertiary">{mod.progress}% demo progress</span></div>
+            <div className="mt-2 flex items-center gap-3">
+              <Progress value={mod.progress} height="h-1.5" />
+              <span className="shrink-0 text-label-sm text-tertiary">{mod.progress}% demo progress</span>
+            </div>
           </div>
         </Card>
       </section>
@@ -59,10 +62,22 @@ export default function TrainingModule() {
           <SectionTitle>Sensitive capture safety</SectionTitle>
           <Card className="space-y-4 p-card-padding">
             <Badge t="outline">Capture disabled in Plan 1</Badge>
-            <p className="text-body-md text-on-surface-variant">The current product may preview the training workflow, but it does not request a microphone/camera stream or upload biometric data.</p>
-            <Toggle checked={consent} onChange={setConsent} label="Preview explicit consent" desc="Local UI preview only; this is not stored or used as production consent." />
-            <Button full icon="mic_off" disabled onClick={explain}>Recording unavailable</Button>
-            <Button full icon="upload" disabled onClick={explain}>Biometric submission unavailable</Button>
+            <p className="text-body-md text-on-surface-variant">
+              The current product may preview the training workflow, but it does not request a microphone/camera stream
+              or upload biometric data.
+            </p>
+            <Toggle
+              checked={consent}
+              onChange={setConsent}
+              label="Preview explicit consent"
+              desc="Local UI preview only; this is not stored or used as production consent."
+            />
+            <Button full icon="mic_off" disabled onClick={explain}>
+              Recording unavailable
+            </Button>
+            <Button full icon="upload" disabled onClick={explain}>
+              Biometric submission unavailable
+            </Button>
           </Card>
         </section>
       )}
@@ -72,9 +87,16 @@ export default function TrainingModule() {
           <SectionTitle>File upload safety</SectionTitle>
           <Card className="space-y-4 p-card-padding">
             <Badge t="outline">Uploads disabled in Plan 1</Badge>
-            <p className="text-body-md text-on-surface-variant">PDF, DOCX, CSV and other files are not accepted until signed uploads, MIME validation, malware scanning, private storage and deletion controls are implemented.</p>
-            <Button full icon="folder_off" disabled onClick={explain}>File selection unavailable</Button>
-            <Button full icon="upload" disabled onClick={explain}>Submission unavailable</Button>
+            <p className="text-body-md text-on-surface-variant">
+              PDF, DOCX, CSV and other files are not accepted until signed uploads, MIME validation, malware scanning,
+              private storage and deletion controls are implemented.
+            </p>
+            <Button full icon="folder_off" disabled onClick={explain}>
+              File selection unavailable
+            </Button>
+            <Button full icon="upload" disabled onClick={explain}>
+              Submission unavailable
+            </Button>
           </Card>
         </section>
       )}
@@ -83,13 +105,20 @@ export default function TrainingModule() {
         <section>
           <SectionTitle>Training workflow preview</SectionTitle>
           <Card className="p-card-padding">
-            <p className="text-body-md text-on-surface-variant">This module is a non-authoritative preview. No training progress, data or reward is persisted.</p>
-            <Button full className="mt-4" disabled={!policy.enabled} onClick={explain}>Preview only</Button>
+            <p className="text-body-md text-on-surface-variant">
+              This module is a non-authoritative preview. No training progress, data or reward is persisted.
+            </p>
+            <Button full className="mt-4" disabled={!policy.enabled} onClick={explain}>
+              Preview only
+            </Button>
           </Card>
         </section>
       )}
 
-      <Disclosure icon="shield">Biometric, voice, movement and uploaded data remain blocked until explicit server-side consent provenance, secure storage, deletion and audit evidence exist.</Disclosure>
+      <Disclosure icon="shield">
+        Biometric, voice, movement and uploaded data remain blocked until explicit server-side consent provenance,
+        secure storage, deletion and audit evidence exist.
+      </Disclosure>
       <Toast show={!!toast} message={toast} />
     </AppShell>
   )

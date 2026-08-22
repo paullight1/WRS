@@ -1,5 +1,13 @@
 import crypto from 'node:crypto'
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../../server/http.js'
 import { settlePayment } from '../../server/finance.js'
 import { verifyTransaction } from '../../server/paystack.js'
 import { requireSession } from '../../server/session.js'
@@ -10,8 +18,11 @@ export default functionHandler(async (request) => {
   const resolved = await requireSession(request, { verified: true })
   const url = new URL(request.url)
   const body = request.method === 'POST' ? await readJson(request, 16_000) : {}
-  const reference = String(body.reference || url.searchParams.get('reference') || url.searchParams.get('trxref') || '').trim()
-  if (!reference || reference.length > 160) throw new HttpError(400, 'Payment reference is required.', 'reference-required')
+  const reference = String(
+    body.reference || url.searchParams.get('reference') || url.searchParams.get('trxref') || '',
+  ).trim()
+  if (!reference || reference.length > 160)
+    throw new HttpError(400, 'Payment reference is required.', 'reference-required')
 
   const transaction = await verifyTransaction(reference)
   const fingerprint = crypto

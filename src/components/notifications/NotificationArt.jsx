@@ -43,7 +43,14 @@ const CATS = {
             )
           }),
         )}
-        <path d="M30 32l3.5 3.5L40 29" fill="none" stroke="#00dbe7" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M30 32l3.5 3.5L40 29"
+          fill="none"
+          stroke="#00dbe7"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </>
     ),
   },
@@ -62,7 +69,13 @@ const CATS = {
     draw: (
       <>
         <circle cx="24" cy="24" r="14" fill="#3ddc97" />
-        <path d="M24 15v18M20 19h6a3.5 3.5 0 0 1 0 7h-4a3.5 3.5 0 0 0 0 7h6" fill="none" stroke="#08281c" strokeWidth="3" strokeLinecap="round" />
+        <path
+          d="M24 15v18M20 19h6a3.5 3.5 0 0 1 0 7h-4a3.5 3.5 0 0 0 0 7h6"
+          fill="none"
+          stroke="#08281c"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
       </>
     ),
   },

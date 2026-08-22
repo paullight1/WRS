@@ -27,7 +27,8 @@ function DemoSuccess({ packageInfo, search }) {
   return (
     <AppShell title="Demo purchase preview" back={false} avatar={false}>
       <Disclosure icon="science">
-        No payment was processed. No package entitlement, receipt, wallet entry or robot provisioning record was created.
+        No payment was processed. No package entitlement, receipt, wallet entry or robot provisioning record was
+        created.
       </Disclosure>
       <Card className="p-card-padding text-center">
         <Icon name="visibility" className="text-[42px] text-tertiary" />
@@ -98,7 +99,10 @@ export default function PaymentSuccess() {
   if (loading) {
     return (
       <AppShell title="Verifying payment" avatar={false}>
-        <LoadingView title="Checking payment with the provider" desc="No entitlement is activated until verification succeeds." />
+        <LoadingView
+          title="Checking payment with the provider"
+          desc="No entitlement is activated until verification succeeds."
+        />
       </AppShell>
     )
   }

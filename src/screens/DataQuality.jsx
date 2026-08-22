@@ -11,9 +11,7 @@ export default function DataQuality() {
       <section>
         <Card className="p-card-padding text-center">
           <p className="text-label-sm text-outline">Overall quality score</p>
-          <p className="mt-2 font-headline-lg text-display-lg font-bold text-tertiary">
-            {robot.dataQuality}%
-          </p>
+          <p className="mt-2 font-headline-lg text-display-lg font-bold text-tertiary">{robot.dataQuality}%</p>
           <Badge t="tertiary" className="mt-2">
             {levels[current]}
           </Badge>

@@ -28,7 +28,12 @@ export const hero = {
 export const steps = [
   { title: 'Own', art: 'own', accent: ACCENTS.blue, body: 'Pick a package. Build your robot.' },
   { title: 'Train', art: 'train', accent: ACCENTS.indigo, body: 'Voice, language, movement, skills.' },
-  { title: 'Contribute', art: 'contribute', accent: ACCENTS.teal, body: 'Record, annotate, translate. Quality scored.' },
+  {
+    title: 'Contribute',
+    art: 'contribute',
+    accent: ACCENTS.teal,
+    body: 'Record, annotate, translate. Quality scored.',
+  },
   { title: 'Deploy', art: 'deploy', accent: ACCENTS.violet, body: 'Send it to work in a sector.' },
   { title: 'Monitor', art: 'monitor', accent: ACCENTS.orange, body: 'Uptime, tasks and performance, live.' },
   { title: 'Earn', art: 'earn', accent: ACCENTS.green, body: 'Payouts and rewards, every figure labelled.' },

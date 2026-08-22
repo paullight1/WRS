@@ -88,7 +88,13 @@ const TIERS = {
 
 const GOLD = ['#ffe9a8', '#f7c948', '#b8860b']
 
-export default function RobotFace({ tier = 'professional', size = 64, className = '', framed = true, animate = false }) {
+export default function RobotFace({
+  tier = 'professional',
+  size = 64,
+  className = '',
+  framed = true,
+  animate = false,
+}) {
   const t = TIERS[tier] || TIERS.professional
   const uid = `rf-${tier}-${size}`
 
@@ -130,9 +136,7 @@ export default function RobotFace({ tier = 'professional', size = 64, className 
         {framed && <rect x="0" y="0" width="120" height="120" fill={t.bg[1]} />}
 
         {/* ---------------------------------------------------------- mantle */}
-        {t.mantle && (
-          <path d="M14 120c2-22 20-34 46-34s44 12 46 34z" fill={`url(#${uid}-gold)`} opacity="0.85" />
-        )}
+        {t.mantle && <path d="M14 120c2-22 20-34 46-34s44 12 46 34z" fill={`url(#${uid}-gold)`} opacity="0.85" />}
 
         {/* shoulders */}
         <path
@@ -223,9 +227,7 @@ export default function RobotFace({ tier = 'professional', size = 64, className 
         )}
       </g>
 
-      {framed && (
-        <rect x="0.5" y="0.5" width="119" height="119" rx="25.5" fill="none" stroke="rgba(255,255,255,.12)" />
-      )}
+      {framed && <rect x="0.5" y="0.5" width="119" height="119" rx="25.5" fill="none" stroke="rgba(255,255,255,.12)" />}
     </svg>
   )
 }

@@ -57,9 +57,7 @@ export default function Rewards() {
                 }}
               />
             </span>
-            <p className="mt-2 text-label-sm text-outline">
-              Next Level: {remaining.toLocaleString()} XP
-            </p>
+            <p className="mt-2 text-label-sm text-outline">Next Level: {remaining.toLocaleString()} XP</p>
           </div>
         </Card>
       </section>

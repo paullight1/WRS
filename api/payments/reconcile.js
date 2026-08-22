@@ -35,7 +35,8 @@ export default functionHandler(async (request) => {
     } catch (error) {
       result = { status: 'mismatch', message: error instanceof Error ? error.message : 'settlement-error' }
     }
-    const matched = result.status !== 'mismatch' && (verified.status === 'success' ? result.status === 'succeeded' : true)
+    const matched =
+      result.status !== 'mismatch' && (verified.status === 'success' ? result.status === 'succeeded' : true)
     if (!matched) mismatches += 1
     checked += 1
     await recordReconciliation({

@@ -65,9 +65,7 @@ export default function Notifications() {
 
   const list = all.filter((n) => (cat === 'All' ? true : cat === 'Unread' ? n.unread : n.cat === cat))
 
-  const groups = ORDER.map((g) => [g, list.filter((n) => bucketOf(n.time) === g)]).filter(
-    ([, rows]) => rows.length,
-  )
+  const groups = ORDER.map((g) => [g, list.filter((n) => bucketOf(n.time) === g)]).filter(([, rows]) => rows.length)
 
   const markOne = (n) => {
     if (!n.unread) return

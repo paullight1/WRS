@@ -1,4 +1,12 @@
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../../server/http.js'
 import { attachPaymentProvider, createPaymentIntent } from '../../server/finance.js'
 import { initializeTransaction } from '../../server/paystack.js'
 import { requireSession } from '../../server/session.js'
@@ -10,7 +18,9 @@ export default functionHandler(async (request) => {
   assertSameOrigin(request)
   const resolved = await requireSession(request, { verified: true })
   const body = await readJson(request, 32_000)
-  const packageSlug = String(body.packageSlug || '').trim().toLowerCase()
+  const packageSlug = String(body.packageSlug || '')
+    .trim()
+    .toLowerCase()
   if (!packageSlugs.has(packageSlug)) throw new HttpError(400, 'Unknown package.', 'invalid-package')
 
   const idempotencyKey = String(request.headers.get('idempotency-key') || body.idempotencyKey || '').trim()
