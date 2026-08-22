@@ -1,10 +1,17 @@
 import type { AuthSession } from './types'
 
-export type RoutePolicy = 'public' | 'authenticated' | 'verified' | 'kyc' | 'admin'
+export type RoutePolicy = 'public' | 'authenticated' | 'verified' | 'kyc' | 'admin' | 'account-recovery'
 
 export interface AuthorizationDecision {
   allowed: boolean
-  reason?: 'unauthenticated' | 'unverified' | 'kyc-required' | 'forbidden' | 'expired' | 'suspended'
+  reason?:
+    | 'unauthenticated'
+    | 'unverified'
+    | 'kyc-required'
+    | 'forbidden'
+    | 'expired'
+    | 'suspended'
+    | 'deletion-pending'
 }
 
 export function authorizeSession(
@@ -20,7 +27,10 @@ export function authorizeSession(
   if (new Date(session.expiresAt).getTime() <= now.getTime()) {
     return { allowed: false, reason: 'expired' }
   }
-  if (policy === 'authenticated') return { allowed: true }
+  if (session.accountDeletionPending) {
+    return policy === 'account-recovery' ? { allowed: true } : { allowed: false, reason: 'deletion-pending' }
+  }
+  if (policy === 'account-recovery' || policy === 'authenticated') return { allowed: true }
   if (!session.emailVerified || !session.phoneVerified) {
     return { allowed: false, reason: 'unverified' }
   }
