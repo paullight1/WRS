@@ -13,7 +13,7 @@ const productionFiles = [
   'src/infrastructure/**/*.{js,mjs,ts}',
   'src/components/{auth,robot,data}/**/*.{js,jsx}',
   'src/components/AppShell.jsx',
-  'src/screens/{Login,Register,Verify,ForgotPassword,ResetPassword,SecuritySettings,Onboarding,Customize,RobotPassport,Home,MyRobot,More,Profile,Settings,ActiveDeployment,Checkout,PaymentSuccess,Wallet,Transactions,TrainingModule,DataTask,DataRevenue}.jsx',
+  'src/screens/{Login,Register,Verify,ForgotPassword,ResetPassword,SecuritySettings,Onboarding,Customize,RobotPassport,Home,MyRobot,More,Profile,Settings,Checkout,PaymentSuccess,Wallet,Transactions,TrainingModule,DataTask,DataRevenue,Deploy,DeploymentDetails,ActiveDeployment,DeployProduction,DeploymentDetailsProduction,ActiveDeploymentProduction}.jsx',
   'src/App.jsx',
   'tests/**/*.{js,mjs,jsx,ts,tsx}',
 ]
