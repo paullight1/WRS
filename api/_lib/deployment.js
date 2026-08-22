@@ -62,6 +62,7 @@ function mapDeployment(row) {
   if (!row) return null
   return {
     id: row.id,
+    userId: row.user_id,
     opportunityId: row.opportunity_id,
     robotId: row.robot_id,
     contractId: row.contract_id,
@@ -165,6 +166,13 @@ export async function ownedDeployments(userId) {
 export async function ownedDeployment(userId, deploymentId) {
   const { data } = await serviceRest(
     `/rest/v1/deployments?id=eq.${encodeURIComponent(deploymentId)}&user_id=eq.${encodeURIComponent(userId)}&select=*&limit=1`,
+  )
+  return mapDeployment(Array.isArray(data) ? data[0] || null : null)
+}
+
+export async function deploymentById(deploymentId) {
+  const { data } = await serviceRest(
+    `/rest/v1/deployments?id=eq.${encodeURIComponent(deploymentId)}&select=*&limit=1`,
   )
   return mapDeployment(Array.isArray(data) ? data[0] || null : null)
 }
