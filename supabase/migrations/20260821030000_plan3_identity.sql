@@ -5,7 +5,7 @@ create table if not exists public.user_profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null check (char_length(trim(full_name)) >= 2),
   normalized_email text not null unique check (normalized_email = lower(trim(normalized_email))),
-  normalized_phone text not null unique check (normalized_phone ~ '^\\+[1-9][0-9]{7,14}$'),
+  normalized_phone text not null unique check (normalized_phone ~ '^[+][1-9][0-9]{7,14}$'),
   status text not null default 'pending' check (status in ('pending','active','suspended','deleted')),
   terms_version text not null,
   privacy_version text not null,
