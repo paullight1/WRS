@@ -10,7 +10,8 @@ export default functionHandler(async (request) => {
   const score = Number(body.score)
   const assessorReference = String(body.assessorReference || '').trim()
   const evidence = typeof body.evidence === 'object' && body.evidence ? body.evidence : {}
-  if (!enrollmentId || !assessorReference) throw new HttpError(400, 'Assessment identity is required.', 'assessment-required')
+  if (!enrollmentId || !assessorReference)
+    throw new HttpError(400, 'Assessment identity is required.', 'assessment-required')
   if (!Number.isFinite(score) || score < 0 || score > 100) {
     throw new HttpError(400, 'Assessment score must be between 0 and 100.', 'invalid-score')
   }

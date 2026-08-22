@@ -64,7 +64,9 @@ export default function AcademyProduction() {
 
   return (
     <AppShell title="Academy" subtitle="Assessment-backed learning">
-      {loading && <StateView kind="loading" title="Loading Academy" desc="Reading published courses and your progress." />}
+      {loading && (
+        <StateView kind="loading" title="Loading Academy" desc="Reading published courses and your progress." />
+      )}
       {!loading && error && <StateView kind="error" title="Academy unavailable" desc={error} />}
       {!loading && !error && (
         <section>
@@ -76,7 +78,9 @@ export default function AcademyProduction() {
               const progressRows = enrollment?.academy_progress || []
               const completed = progressRows.filter((row) => Number(row.progress_percent) >= 100).length
               const percent = modules.length ? Math.round((completed / modules.length) * 100) : 0
-              const certificate = Array.isArray(enrollment?.academy_certificates) ? enrollment.academy_certificates[0] : enrollment?.academy_certificates
+              const certificate = Array.isArray(enrollment?.academy_certificates)
+                ? enrollment.academy_certificates[0]
+                : enrollment?.academy_certificates
               return (
                 <Card key={course.id} className="p-card-padding">
                   <div className="flex items-start justify-between gap-3">
@@ -90,34 +94,61 @@ export default function AcademyProduction() {
                   </div>
                   {enrollment ? (
                     <>
-                      <div className="mt-4"><Progress value={percent} /></div>
+                      <div className="mt-4">
+                        <Progress value={percent} />
+                      </div>
                       <div className="mt-4 space-y-2">
                         {modules.map((module) => {
                           const progress = progressRows.find((row) => row.module_id === module.id)
                           const done = Number(progress?.progress_percent || 0) >= 100
                           return (
-                            <div key={module.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/8 p-3">
+                            <div
+                              key={module.id}
+                              className="flex items-center justify-between gap-3 rounded-xl border border-white/8 p-3"
+                            >
                               <span className="text-body-sm text-on-surface">{module.title}</span>
-                              <Button size="sm" variant={done ? 'ghost' : 'primary'} loading={busy === module.id} disabled={done} onClick={() => completeModule(enrollment, module)}>
+                              <Button
+                                size="sm"
+                                variant={done ? 'ghost' : 'primary'}
+                                loading={busy === module.id}
+                                disabled={done}
+                                onClick={() => completeModule(enrollment, module)}
+                              >
                                 {done ? 'Completed' : 'Mark complete'}
                               </Button>
                             </div>
                           )
                         })}
                       </div>
-                      {certificate?.public_verification_id && <p className="mt-3 font-data text-data-sm text-outline">Certificate verification: {certificate.public_verification_id}</p>}
+                      {certificate?.public_verification_id && (
+                        <p className="mt-3 font-data text-data-sm text-outline">
+                          Certificate verification: {certificate.public_verification_id}
+                        </p>
+                      )}
                     </>
                   ) : (
-                    <Button full className="mt-4" loading={busy === course.id} onClick={() => enroll(course)}>Enroll</Button>
+                    <Button full className="mt-4" loading={busy === course.id} onClick={() => enroll(course)}>
+                      Enroll
+                    </Button>
                   )}
                 </Card>
               )
             })}
-            {!courses.length && <StateView kind="empty" title="No published Academy courses" desc="Courses appear only after server publication." />}
+            {!courses.length && (
+              <StateView
+                kind="empty"
+                title="No published Academy courses"
+                desc="Courses appear only after server publication."
+              />
+            )}
           </div>
         </section>
       )}
-      {message && <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{message}</p>}
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
     </AppShell>
   )
 }

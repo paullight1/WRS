@@ -26,7 +26,8 @@ export interface MarketplaceItem {
 }
 
 export function assertMarketplacePrice(priceMinor: number, currency: string) {
-  if (!Number.isSafeInteger(priceMinor) || priceMinor < 0) throw new Error('Marketplace price must use integer minor units.')
+  if (!Number.isSafeInteger(priceMinor) || priceMinor < 0)
+    throw new Error('Marketplace price must use integer minor units.')
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Marketplace currency must be an ISO-style three-letter code.')
 }
 

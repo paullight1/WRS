@@ -68,7 +68,9 @@ export default function CommunityProduction() {
 
   return (
     <AppShell title="Community" subtitle="Verified participation">
-      {loading && <StateView kind="loading" title="Loading community" desc="Reading published events and participation." />}
+      {loading && (
+        <StateView kind="loading" title="Loading community" desc="Reading published events and participation." />
+      )}
       {!loading && error && <StateView kind="error" title="Community unavailable" desc={error} />}
       {!loading && !error && snapshot && (
         <>
@@ -83,39 +85,78 @@ export default function CommunityProduction() {
                       <div>
                         <h2 className="text-title font-semibold text-on-surface">{event.title}</h2>
                         <p className="mt-1 text-body-sm text-on-surface-variant">{event.description}</p>
-                        <p className="mt-2 text-label-sm text-outline">{new Date(event.starts_at).toLocaleString()} → {new Date(event.ends_at).toLocaleString()}</p>
+                        <p className="mt-2 text-label-sm text-outline">
+                          {new Date(event.starts_at).toLocaleString()} → {new Date(event.ends_at).toLocaleString()}
+                        </p>
                       </div>
-                      <Badge t={record?.status === 'attended' ? 'success' : record ? 'primary' : 'outline'}>{record?.status || 'Open'}</Badge>
+                      <Badge t={record?.status === 'attended' ? 'success' : record ? 'primary' : 'outline'}>
+                        {record?.status || 'Open'}
+                      </Badge>
                     </div>
-                    {!record && <Button full className="mt-4" loading={busy === event.id} onClick={() => join(event)}>Join &amp; enable reminder</Button>}
+                    {!record && (
+                      <Button full className="mt-4" loading={busy === event.id} onClick={() => join(event)}>
+                        Join &amp; enable reminder
+                      </Button>
+                    )}
                   </Card>
                 )
               })}
-              {!events.length && <StateView kind="empty" title="No published community events" desc="Only active server-published events appear here." />}
+              {!events.length && (
+                <StateView
+                  kind="empty"
+                  title="No published community events"
+                  desc="Only active server-published events appear here."
+                />
+              )}
             </div>
           </section>
 
           <section>
             <SectionTitle>Leaderboard privacy</SectionTitle>
             <Card className="space-y-3 p-card-padding">
-              <Field label="Public alias" value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="Choose a public alias" />
+              <Field
+                label="Public alias"
+                value={alias}
+                onChange={(event) => setAlias(event.target.value)}
+                placeholder="Choose a public alias"
+              />
               <div className="grid gap-2 sm:grid-cols-2">
-                <Button full loading={busy === 'leaderboard'} disabled={alias.trim().length < 2} onClick={() => setLeaderboard(true)}>Opt in</Button>
-                <Button full variant="ghost" loading={busy === 'leaderboard'} onClick={() => setLeaderboard(false)}>Opt out</Button>
+                <Button
+                  full
+                  loading={busy === 'leaderboard'}
+                  disabled={alias.trim().length < 2}
+                  onClick={() => setLeaderboard(true)}
+                >
+                  Opt in
+                </Button>
+                <Button full variant="ghost" loading={busy === 'leaderboard'} onClick={() => setLeaderboard(false)}>
+                  Opt out
+                </Button>
               </div>
-              <p className="text-label-sm text-outline">Leaderboard display is opt-in. WRS does not publish your account name, email, phone or wallet identity.</p>
+              <p className="text-label-sm text-outline">
+                Leaderboard display is opt-in. WRS does not publish your account name, email, phone or wallet identity.
+              </p>
             </Card>
           </section>
 
           <section>
             <SectionTitle action={`${announcements.length}`}>Announcements</SectionTitle>
             <div className="space-y-3">
-              {announcements.map((item) => <Card key={item.id} className="p-4"><h3 className="text-title text-on-surface">{item.title}</h3><p className="mt-1 text-body-sm text-on-surface-variant">{item.body}</p></Card>)}
+              {announcements.map((item) => (
+                <Card key={item.id} className="p-4">
+                  <h3 className="text-title text-on-surface">{item.title}</h3>
+                  <p className="mt-1 text-body-sm text-on-surface-variant">{item.body}</p>
+                </Card>
+              ))}
             </div>
           </section>
         </>
       )}
-      {message && <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{message}</p>}
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
     </AppShell>
   )
 }

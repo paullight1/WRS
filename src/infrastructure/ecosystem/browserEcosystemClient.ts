@@ -1,4 +1,9 @@
-import { EcosystemService, type EcosystemRepository, type MarketplaceCatalogItem, type RewardSnapshot } from '../../services/ecosystem/EcosystemService'
+import {
+  EcosystemService,
+  type EcosystemRepository,
+  type MarketplaceCatalogItem,
+  type RewardSnapshot,
+} from '../../services/ecosystem/EcosystemService'
 
 type Json = Record<string, unknown>
 
@@ -32,8 +37,7 @@ const repository: EcosystemRepository = {
   activateBoost: (boostSlug, idempotencyKey) =>
     request<Json>('/api/rewards/boost', { method: 'POST', body: JSON.stringify({ boostSlug, idempotencyKey }) }),
   academy: () => request<Json>('/api/academy'),
-  enrollCourse: (courseId) =>
-    request<Json>('/api/academy', { method: 'POST', body: JSON.stringify({ courseId }) }),
+  enrollCourse: (courseId) => request<Json>('/api/academy', { method: 'POST', body: JSON.stringify({ courseId }) }),
   recordProgress: (enrollmentId, moduleId, completionPercent) =>
     request<Json>('/api/academy/progress', {
       method: 'POST',
@@ -45,8 +49,7 @@ const repository: EcosystemRepository = {
   setLeaderboard: (optedIn, displayAlias) =>
     request<Json>('/api/community/profile', { method: 'POST', body: JSON.stringify({ optedIn, displayAlias }) }),
   referrals: () => request<Json>('/api/referrals'),
-  acceptReferral: (code) =>
-    request<Json>('/api/referrals/accept', { method: 'POST', body: JSON.stringify({ code }) }),
+  acceptReferral: (code) => request<Json>('/api/referrals/accept', { method: 'POST', body: JSON.stringify({ code }) }),
 }
 
 export const browserEcosystemClient = new EcosystemService(repository)

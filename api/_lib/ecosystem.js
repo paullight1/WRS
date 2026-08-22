@@ -126,7 +126,9 @@ export async function activateRewardBoost(userId, boostSlug, idempotencyKey) {
 
 export async function academySnapshot(userId) {
   const [{ data: courses }, { data: enrollments }] = await Promise.all([
-    serviceRest('/rest/v1/academy_courses?status=eq.published&select=id,slug,title,description,pass_score,academy_modules(id,slug,title,position,status)&academy_modules.status=eq.published&order=created_at.asc&limit=100'),
+    serviceRest(
+      '/rest/v1/academy_courses?status=eq.published&select=id,slug,title,description,pass_score,academy_modules(id,slug,title,position,status)&academy_modules.status=eq.published&order=created_at.asc&limit=100',
+    ),
     serviceRest(
       `/rest/v1/academy_enrollments?user_id=eq.${encodeURIComponent(userId)}&select=id,course_id,status,enrolled_at,completed_at,academy_progress(module_id,progress_percent,completed_at),academy_certificates(public_verification_id,status,issued_at)&limit=100`,
     ),
@@ -160,16 +162,28 @@ export async function assessAcademyEnrollment(enrollmentId, score, assessorRefer
 }
 
 export async function verifyAcademyCertificate(verificationId) {
-  const { data } = await serviceRpc('wrs_verify_academy_certificate', { p_verification_id: verificationId }, { anonymous: true })
+  const { data } = await serviceRpc(
+    'wrs_verify_academy_certificate',
+    { p_verification_id: verificationId },
+    { anonymous: true },
+  )
   return data
 }
 
 export async function communitySnapshot(userId) {
   const [{ data: events }, { data: participation }, { data: announcements }, { data: profile }] = await Promise.all([
-    serviceRest('/rest/v1/community_events?status=eq.published&select=id,slug,title,description,starts_at,ends_at,capacity&order=starts_at.asc&limit=100'),
-    serviceRest(`/rest/v1/community_event_participants?user_id=eq.${encodeURIComponent(userId)}&select=event_id,status,reminder_enabled,joined_at,attended_at&limit=100`),
-    serviceRest('/rest/v1/community_announcements?status=eq.published&select=id,title,body,published_at&order=published_at.desc&limit=50'),
-    serviceRest(`/rest/v1/community_leaderboard_profiles?user_id=eq.${encodeURIComponent(userId)}&select=opted_in,display_alias&limit=1`),
+    serviceRest(
+      '/rest/v1/community_events?status=eq.published&select=id,slug,title,description,starts_at,ends_at,capacity&order=starts_at.asc&limit=100',
+    ),
+    serviceRest(
+      `/rest/v1/community_event_participants?user_id=eq.${encodeURIComponent(userId)}&select=event_id,status,reminder_enabled,joined_at,attended_at&limit=100`,
+    ),
+    serviceRest(
+      '/rest/v1/community_announcements?status=eq.published&select=id,title,body,published_at&order=published_at.desc&limit=50',
+    ),
+    serviceRest(
+      `/rest/v1/community_leaderboard_profiles?user_id=eq.${encodeURIComponent(userId)}&select=opted_in,display_alias&limit=1`,
+    ),
   ])
   return {
     events: Array.isArray(events) ? events : [],

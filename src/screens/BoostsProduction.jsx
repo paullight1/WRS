@@ -43,7 +43,9 @@ export default function BoostsProduction() {
     setMessage('')
     try {
       const result = await browserEcosystemClient.activateBoost(boost.slug, idempotency(boost.slug))
-      setMessage(`Boost ${boost.name} confirmed until ${new Date(result.expiresAt || result.expires_at).toLocaleString()}.`)
+      setMessage(
+        `Boost ${boost.name} confirmed until ${new Date(result.expiresAt || result.expires_at).toLocaleString()}.`,
+      )
       await refresh()
     } catch (reason) {
       setMessage(reason instanceof Error ? reason.message : 'Boost activation failed.')
@@ -57,7 +59,9 @@ export default function BoostsProduction() {
 
   return (
     <AppShell title="Boosts" subtitle="Point-funded temporary effects" back avatar={false}>
-      {loading && <StateView kind="loading" title="Loading boosts" desc="Reading point balance and active catalogue." />}
+      {loading && (
+        <StateView kind="loading" title="Loading boosts" desc="Reading point balance and active catalogue." />
+      )}
       {!loading && error && <StateView kind="error" title="Boosts unavailable" desc={error} />}
       {!loading && !error && snapshot && (
         <>
@@ -75,22 +79,41 @@ export default function BoostsProduction() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h2 className="text-title font-semibold text-on-surface">{boost.name}</h2>
-                        <p className="mt-1 text-label-sm text-outline">{boost.cost_points} points · {Math.round(boost.duration_seconds / 3600)}h · {boost.min_package_slug}+</p>
+                        <p className="mt-1 text-label-sm text-outline">
+                          {boost.cost_points} points · {Math.round(boost.duration_seconds / 3600)}h ·{' '}
+                          {boost.min_package_slug}+
+                        </p>
                       </div>
                       <Badge t={active ? 'success' : 'outline'}>{active ? 'Active' : 'Available'}</Badge>
                     </div>
-                    <Button full className="mt-4" loading={busy === boost.slug} disabled={active || snapshot.points < boost.cost_points} onClick={() => activate(boost)}>
+                    <Button
+                      full
+                      className="mt-4"
+                      loading={busy === boost.slug}
+                      disabled={active || snapshot.points < boost.cost_points}
+                      onClick={() => activate(boost)}
+                    >
                       {active ? 'Already active' : `Spend ${boost.cost_points} points`}
                     </Button>
                   </Card>
                 )
               })}
-              {!catalog.length && <StateView kind="empty" title="No active boost catalogue" desc="Only server-configured active boosts can be purchased." />}
+              {!catalog.length && (
+                <StateView
+                  kind="empty"
+                  title="No active boost catalogue"
+                  desc="Only server-configured active boosts can be purchased."
+                />
+              )}
             </div>
           </section>
         </>
       )}
-      {message && <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{message}</p>}
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
     </AppShell>
   )
 }

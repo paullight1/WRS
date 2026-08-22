@@ -86,7 +86,12 @@ export default function MarketplaceProduction() {
     <AppShell title="Marketplace" subtitle="Verified robot capabilities">
       {loading && <StateView kind="loading" title="Loading marketplace" desc="Reading approved catalogue versions." />}
       {!loading && error && (
-        <StateView kind="error" title="Marketplace unavailable" desc={error} action={<Button onClick={() => refresh()}>Retry</Button>} />
+        <StateView
+          kind="error"
+          title="Marketplace unavailable"
+          desc={error}
+          action={<Button onClick={() => refresh()}>Retry</Button>}
+        />
       )}
       {!loading && !error && (
         <section>
@@ -103,7 +108,11 @@ export default function MarketplaceProduction() {
                     </p>
                   </div>
                   <Badge t={item.installed ? 'success' : item.entitlementId ? 'tertiary' : 'outline'}>
-                    {item.installed ? 'Installed' : item.entitlementId ? 'Owned' : money(item.priceMinor, item.currency)}
+                    {item.installed
+                      ? 'Installed'
+                      : item.entitlementId
+                        ? 'Owned'
+                        : money(item.priceMinor, item.currency)}
                   </Badge>
                 </div>
                 {!item.entitlementId && (
@@ -118,11 +127,21 @@ export default function MarketplaceProduction() {
                 )}
               </Card>
             ))}
-            {!items.length && <StateView kind="empty" title="No approved marketplace items" desc="Only reviewed published versions appear here." />}
+            {!items.length && (
+              <StateView
+                kind="empty"
+                title="No approved marketplace items"
+                desc="Only reviewed published versions appear here."
+              />
+            )}
           </div>
         </section>
       )}
-      {message && <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{message}</p>}
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
     </AppShell>
   )
 }

@@ -43,18 +43,33 @@ export default function RewardsProduction() {
               {snapshot.boosts.map((boost) => (
                 <Card key={boost.id} className="p-4">
                   <p className="text-title text-on-surface">{boost.boost_slug}</p>
-                  <p className="mt-1 text-label-sm text-outline">Expires {new Date(boost.expires_at).toLocaleString()}</p>
+                  <p className="mt-1 text-label-sm text-outline">
+                    Expires {new Date(boost.expires_at).toLocaleString()}
+                  </p>
                 </Card>
               ))}
-              {!snapshot.boosts.length && <StateView kind="empty" title="No active boosts" desc="Boosts appear only after a server-confirmed point spend." />}
+              {!snapshot.boosts.length && (
+                <StateView
+                  kind="empty"
+                  title="No active boosts"
+                  desc="Boosts appear only after a server-confirmed point spend."
+                />
+              )}
             </div>
           </section>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Button to="/rewards/event-code" full>Redeem event code</Button>
-            <Button to="/rewards/boosts" variant="ghost" full>Manage boosts</Button>
+            <Button to="/rewards/event-code" full>
+              Redeem event code
+            </Button>
+            <Button to="/rewards/boosts" variant="ghost" full>
+              Manage boosts
+            </Button>
           </div>
           <Card className="p-4">
-            <p className="text-body-sm text-on-surface-variant">Points are promotional progression units, not cash or withdrawable wallet value. Every award and spend is recorded as an append-only server event.</p>
+            <p className="text-body-sm text-on-surface-variant">
+              Points are promotional progression units, not cash or withdrawable wallet value. Every award and spend is
+              recorded as an append-only server event.
+            </p>
           </Card>
         </>
       )}
