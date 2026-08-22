@@ -1,5 +1,12 @@
 import { functionHandler, HttpError, json, requireMethod } from '../../server/http.js'
-import { failWithdrawal, settlePayment, settleWithdrawal, withdrawalByProviderReference } from '../../server/finance.js'
+import {
+  failWithdrawal,
+  processPaymentRefund,
+  reverseWithdrawal,
+  settlePayment,
+  settleWithdrawal,
+  withdrawalByProviderReference,
+} from '../../server/finance.js'
 import { paystackEventFingerprint, verifyPaystackWebhook } from '../../server/paystack.js'
 
 export default functionHandler(async (request) => {
@@ -32,6 +39,15 @@ export default functionHandler(async (request) => {
     }
     // settlePayment delegates to the service-role wrs_settle_payment RPC.
     await settlePayment(null, transaction, fingerprint)
+  } else if (type === 'refund.processed') {
+    await processPaymentRefund({
+      paymentReference: String(data.transaction_reference || data.transaction?.reference || ''),
+      refundReference: String(data.refund_reference || data.reference || data.id || ''),
+      amountMinor: Number(data.amount),
+      currency: String(data.currency || '').toUpperCase(),
+      eventFingerprint: fingerprint,
+      raw: data,
+    })
   } else if (type === 'transfer.success') {
     await settleWithdrawal({
       reference: String(data.reference || ''),
@@ -40,10 +56,12 @@ export default functionHandler(async (request) => {
       status: String(data.status || 'success'),
       raw: data,
     })
-  } else if (type === 'transfer.failed' || type === 'transfer.reversed') {
+  } else if (type === 'transfer.failed') {
     const reference = String(data.reference || '')
     const withdrawal = await withdrawalByProviderReference(reference)
     if (withdrawal) await failWithdrawal(withdrawal.id, type)
+  } else if (type === 'transfer.reversed') {
+    await reverseWithdrawal(String(data.reference || ''), type)
   }
 
   return json({ received: true })
