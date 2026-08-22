@@ -22,7 +22,9 @@ function rateLimitSecret() {
 }
 
 export function normalizeEmail(value) {
-  return String(value || '').trim().toLowerCase()
+  return String(value || '')
+    .trim()
+    .toLowerCase()
 }
 
 export function normalizePhone(value) {
@@ -52,7 +54,8 @@ export function validateRegistration(input) {
   const confirmation = String(input?.passwordConfirmation || '')
   if (fullName.length < 2) throw new HttpError(400, 'Enter your full name.', 'invalid-registration')
   if (!EMAIL.test(email)) throw new HttpError(400, 'Enter a valid email address.', 'invalid-registration')
-  if (!E164.test(phone)) throw new HttpError(400, 'Use international phone format, for example +234…', 'invalid-registration')
+  if (!E164.test(phone))
+    throw new HttpError(400, 'Use international phone format, for example +234…', 'invalid-registration')
   const issues = passwordIssues(password)
   if (issues.length) throw new HttpError(400, `Password must contain ${issues.join(', ')}.`, 'invalid-registration')
   if (password !== confirmation) throw new HttpError(400, 'Passwords do not match.', 'invalid-registration')
@@ -61,7 +64,8 @@ export function validateRegistration(input) {
   }
   const termsVersion = String(input?.termsVersion || '').trim()
   const privacyVersion = String(input?.privacyVersion || '').trim()
-  if (!termsVersion || !privacyVersion) throw new HttpError(400, 'Legal notice versions are required.', 'invalid-registration')
+  if (!termsVersion || !privacyVersion)
+    throw new HttpError(400, 'Legal notice versions are required.', 'invalid-registration')
   return {
     fullName,
     email,
@@ -76,7 +80,12 @@ export function validateRegistration(input) {
 export async function enforceRateLimit(request, action, subject, limit, windowSeconds) {
   const forwarded = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
   const ip = forwarded.split(',')[0].trim()
-  const digest = hmac(`${action}|${String(subject || '').trim().toLowerCase()}|${ip}`, rateLimitSecret())
+  const digest = hmac(
+    `${action}|${String(subject || '')
+      .trim()
+      .toLowerCase()}|${ip}`,
+    rateLimitSecret(),
+  )
   const { data } = await serviceRpc('wrs_consume_auth_rate_limit', {
     p_action: action,
     p_subject_hash: digest,
@@ -109,7 +118,9 @@ export async function loadProfileByIdentifier(identifier) {
   const isEmail = raw.includes('@')
   const column = isEmail ? 'normalized_email' : 'normalized_phone'
   const value = isEmail ? normalizeEmail(raw) : normalizePhone(raw)
-  const { data } = await serviceRest(`/rest/v1/user_profiles?${column}=eq.${encodeURIComponent(value)}&select=*&limit=1`)
+  const { data } = await serviceRest(
+    `/rest/v1/user_profiles?${column}=eq.${encodeURIComponent(value)}&select=*&limit=1`,
+  )
   return Array.isArray(data) ? data[0] || null : null
 }
 
@@ -141,7 +152,8 @@ async function insertChallengeRow(userId, kind, ref, expiresAt, resendAvailableA
 }
 
 export async function issueVerificationChallenge(userId, kind, contact) {
-  if (!['email', 'phone'].includes(kind)) throw new HttpError(400, 'Verification kind is invalid.', 'invalid-verification')
+  if (!['email', 'phone'].includes(kind))
+    throw new HttpError(400, 'Verification kind is invalid.', 'invalid-verification')
   const ref = randomToken(24)
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_MS)
   const resendAvailableAt = new Date(Date.now() + RESEND_COOLDOWN_MS)
@@ -281,7 +293,8 @@ export async function createPendingAccount(registration) {
       errorMessage: 'Unable to create the account.',
     })
     authUser = data?.user || data
-    if (!authUser?.id) throw new HttpError(502, 'Identity provider did not create an account.', 'registration-unavailable')
+    if (!authUser?.id)
+      throw new HttpError(502, 'Identity provider did not create an account.', 'registration-unavailable')
 
     await serviceRest('/rest/v1/user_profiles', {
       method: 'POST',

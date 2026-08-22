@@ -38,10 +38,7 @@ export default functionHandler(async (request) => {
     assertSameOrigin(request)
     const passport = await ownerPassport(resolved.user.id, robotId)
     const expiresAt = Date.now() + 5 * 60_000
-    const token = signedToken(
-      { v: 1, robotId, userId: resolved.user.id, exp: expiresAt },
-      signingSecret(),
-    )
+    const token = signedToken({ v: 1, robotId, userId: resolved.user.id, exp: expiresAt }, signingSecret())
     const descriptorUrl = `${url.origin}${url.pathname}?robotId=${encodeURIComponent(robotId)}&token=${encodeURIComponent(token)}`
     return appendCookies(
       json({

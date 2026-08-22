@@ -51,7 +51,9 @@ async function loadProfile(userId) {
 }
 
 async function loadRoles(userId) {
-  const { data: links } = await serviceRest(`/rest/v1/user_roles?user_id=eq.${encodeURIComponent(userId)}&select=role_id`)
+  const { data: links } = await serviceRest(
+    `/rest/v1/user_roles?user_id=eq.${encodeURIComponent(userId)}&select=role_id`,
+  )
   const ids = Array.isArray(links) ? links.map((item) => item.role_id).filter(Boolean) : []
   if (!ids.length) return ['user']
   const encodedIds = ids.map((id) => encodeURIComponent(id)).join(',')
@@ -105,9 +107,9 @@ async function sessionMetadata(accessToken) {
 function metadataIsActive(metadata, userId) {
   return Boolean(
     metadata &&
-      metadata.user_id === userId &&
-      !metadata.revoked_at &&
-      new Date(metadata.expires_at).getTime() > Date.now(),
+    metadata.user_id === userId &&
+    !metadata.revoked_at &&
+    new Date(metadata.expires_at).getTime() > Date.now(),
   )
 }
 
@@ -149,7 +151,9 @@ export async function buildAppSession(user, accessToken) {
     phoneVerified: Boolean(profile.phone_verified_at),
     mfaEnabled,
     mfaSatisfiedAt:
-      mfaEnabled && claims.aal === 'aal2' && issuedAt ? new Date(issuedAt * 1000).toISOString() : metadata.mfa_satisfied_at,
+      mfaEnabled && claims.aal === 'aal2' && issuedAt
+        ? new Date(issuedAt * 1000).toISOString()
+        : metadata.mfa_satisfied_at,
     kycStatus: profile.kyc_status || 'unverified',
     roles,
     expiresAt: expiresAt ? new Date(expiresAt * 1000).toISOString() : metadata.expires_at,

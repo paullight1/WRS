@@ -1,4 +1,12 @@
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../../server/http.js'
 import { loadOnboardingDraft, loadRobotState, validateRobotInput } from '../../server/robot.js'
 import { requireSession } from '../../server/session.js'
 import { serviceRest } from '../../server/supabase.js'

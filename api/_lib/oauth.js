@@ -37,7 +37,9 @@ function allowedProviders() {
 }
 
 export async function beginOAuth(request, provider) {
-  const normalized = String(provider || '').trim().toLowerCase()
+  const normalized = String(provider || '')
+    .trim()
+    .toLowerCase()
   if (!['google', 'apple'].includes(normalized) || !allowedProviders().has(normalized)) {
     throw new HttpError(404, 'This OAuth provider is not enabled.', 'oauth-disabled')
   }

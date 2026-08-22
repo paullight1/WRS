@@ -91,7 +91,12 @@ test('server PDF generator emits a valid PDF envelope with verification metadata
 })
 
 test('robot mutation endpoints enforce same-origin checks', () => {
-  for (const path of ['api/robot/onboarding.js', 'api/robot/onboarding/complete.js', 'api/robot/configuration.js', 'api/robot/passport/pdf.js']) {
+  for (const path of [
+    'api/robot/onboarding.js',
+    'api/robot/onboarding/complete.js',
+    'api/robot/configuration.js',
+    'api/robot/passport/pdf.js',
+  ]) {
     assert.match(read(path), /assertSameOrigin/, path)
   }
 })

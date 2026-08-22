@@ -78,8 +78,7 @@ export function AuthProvider({ children }) {
       loading,
       error,
       isDemo: runtimeConfig.isDemo,
-      oauthEnabled:
-        !runtimeConfig.isDemo && runtimeConfig.services.identity && runtimeConfig.oauthEnabled === true,
+      oauthEnabled: !runtimeConfig.isDemo && runtimeConfig.services.identity && runtimeConfig.oauthEnabled === true,
       refresh,
       async login(identifier, password, rememberMe) {
         if (runtimeConfig.isDemo) {

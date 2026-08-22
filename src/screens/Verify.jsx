@@ -80,10 +80,7 @@ export default function Verify() {
     if (!userId || !challenge?.id) return setError('Verification context is missing.')
     try {
       const result = await auth.resendVerification(userId, challenge.kind, challenge.id)
-      setChallenges((current) => [
-        ...current.filter((item) => item.kind !== challenge.kind),
-        result.challenge,
-      ])
+      setChallenges((current) => [...current.filter((item) => item.kind !== challenge.kind), result.challenge])
       setCode(['', '', '', '', '', ''])
       setError(`A new ${challenge.kind} verification code was requested. The previous code is no longer authoritative.`)
     } catch (err) {
@@ -130,8 +127,8 @@ export default function Verify() {
         </Card>
         <div className="mt-5">
           <Disclosure>
-            Only the authoritative verification provider and server challenge can mark a factor verified. Client state or
-            a URL cannot do so.
+            Only the authoritative verification provider and server challenge can mark a factor verified. Client state
+            or a URL cannot do so.
           </Disclosure>
         </div>
       </div>

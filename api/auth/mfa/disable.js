@@ -1,5 +1,12 @@
 import { disableMfa } from '../../../server/mfa.js'
-import { appendCookies, assertSameOrigin, functionHandler, json, readJson, requireMethod } from '../../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  json,
+  readJson,
+  requireMethod,
+} from '../../../server/http.js'
 import { requireSession } from '../../../server/session.js'
 
 export default functionHandler(async (request) => {

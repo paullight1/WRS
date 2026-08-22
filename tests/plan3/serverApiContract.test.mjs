@@ -95,7 +95,12 @@ test('registration/login/reset use distributed rate limiting', () => {
   const migration = read('supabase/migrations/20260821033000_plan3_rate_limits.sql')
   assert.match(migration, /auth_rate_limit_buckets/)
   assert.match(migration, /wrs_consume_auth_rate_limit/)
-  for (const path of ['api/auth/register.js', 'api/auth/login.js', 'api/auth/password/forgot.js', 'api/auth/password/reset.js']) {
+  for (const path of [
+    'api/auth/register.js',
+    'api/auth/login.js',
+    'api/auth/password/forgot.js',
+    'api/auth/password/reset.js',
+  ]) {
     assert.match(read(path), /enforceRateLimit/, path)
   }
 })

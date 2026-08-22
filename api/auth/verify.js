@@ -1,5 +1,13 @@
 import { enforceRateLimit, loadProfile, verifyChallenge } from '../../server/auth.js'
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../../server/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../../server/http.js'
 import {
   buildAppSession,
   recordSessionMetadata,
