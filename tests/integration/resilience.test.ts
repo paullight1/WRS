@@ -1,25 +1,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const modulePath = '../../api/_lib/' + 'supabase.js'
+const env = (globalThis as typeof globalThis & { process: { env: Record<string, string | undefined> } }).process.env
 
 async function supabase() {
   return import(modulePath)
 }
 
 beforeEach(() => {
-  process.env.SUPABASE_URL = 'https://example.supabase.invalid'
-  process.env.SUPABASE_PUBLISHABLE_KEY = 'public-test-key'
-  process.env.SUPABASE_SECRET_KEY = 'secret-test-key'
-  process.env.WRS_UPSTREAM_TIMEOUT_MS = '500'
+  env.SUPABASE_URL = 'https://example.supabase.invalid'
+  env.SUPABASE_PUBLISHABLE_KEY = 'public-test-key'
+  env.SUPABASE_SECRET_KEY = 'secret-test-key'
+  env.WRS_UPSTREAM_TIMEOUT_MS = '500'
 })
 
 afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
-  delete process.env.SUPABASE_URL
-  delete process.env.SUPABASE_PUBLISHABLE_KEY
-  delete process.env.SUPABASE_SECRET_KEY
-  delete process.env.WRS_UPSTREAM_TIMEOUT_MS
+  delete env.SUPABASE_URL
+  delete env.SUPABASE_PUBLISHABLE_KEY
+  delete env.SUPABASE_SECRET_KEY
+  delete env.WRS_UPSTREAM_TIMEOUT_MS
 })
 
 describe('fail-closed upstream resilience', () => {
@@ -35,9 +36,12 @@ describe('fail-closed upstream resilience', () => {
       }),
     )
     const { supabaseRequest } = await supabase()
-    const pending = supabaseRequest('/rest/v1/health')
+    const rejection = expect(supabaseRequest('/rest/v1/health')).rejects.toMatchObject({
+      status: 504,
+      code: 'upstream-timeout',
+    })
     await vi.advanceTimersByTimeAsync(501)
-    await expect(pending).rejects.toMatchObject({ status: 504, code: 'upstream-timeout' })
+    await rejection
   })
 
   it('maps an upstream outage to an unavailable error rather than success', async () => {
@@ -50,7 +54,9 @@ describe('fail-closed upstream resilience', () => {
     const upstream = vi.fn(async () => new Response('{"message":"outage"}', { status: 503 }))
     vi.stubGlobal('fetch', upstream)
     const { supabaseRequest } = await supabase()
-    await expect(supabaseRequest('/rest/v1/rpc/write', { method: 'POST', body: { idempotencyKey: 'retry-safe' } })).rejects.toBeTruthy()
+    await expect(
+      supabaseRequest('/rest/v1/rpc/write', { method: 'POST', body: { idempotencyKey: 'retry-safe' } }),
+    ).rejects.toBeTruthy()
     expect(upstream).toHaveBeenCalledTimes(1)
   })
 })
