@@ -4,6 +4,15 @@ const REQUEST_ID = /^[A-Za-z0-9._:-]{8,128}$/
 const SENSITIVE_KEY = /(password|passcode|secret|token|authorization|cookie|session|email|phone|amount|wallet|bank|card|biometric|voice|face|movement|document|nin|bvn)/i
 const MAX_REDACTION_DEPTH = 6
 
+function sanitizeTelemetryString(value, maxLength = 1000) {
+  return String(value)
+    .slice(0, maxLength)
+    .replace(/\bBearer\s+[^\s,;]+/gi, 'Bearer [REDACTED]')
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[REDACTED_EMAIL]')
+    .replace(/\+[1-9][0-9]{7,14}\b/g, '[REDACTED_PHONE]')
+    .replace(/\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{30,}|sk_live_[A-Za-z0-9]{16,}|sb_secret_[A-Za-z0-9_-]{16,})\b/g, '[REDACTED_CREDENTIAL]')
+}
+
 export function requestId(request) {
   const supplied = String(request?.headers?.get?.('x-request-id') || request?.headers?.get?.('x-vercel-id') || '').trim()
   return REQUEST_ID.test(supplied) ? supplied : crypto.randomUUID()
@@ -12,9 +21,17 @@ export function requestId(request) {
 export function redactTelemetry(value, depth = 0) {
   if (depth > MAX_REDACTION_DEPTH) return '[REDACTED_DEPTH]'
   if (value === null || value === undefined) return value
-  if (value instanceof Error) return { name: value.name, message: String(value.message || '').slice(0, 300) }
+  if (
+    value instanceof Error ||
+    (typeof value === 'object' && typeof value?.name === 'string' && typeof value?.message === 'string')
+  ) {
+    return {
+      name: sanitizeTelemetryString(value.name, 100),
+      message: sanitizeTelemetryString(value.message, 300),
+    }
+  }
   if (Array.isArray(value)) return value.slice(0, 50).map((item) => redactTelemetry(item, depth + 1))
-  if (typeof value !== 'object') return typeof value === 'string' ? value.slice(0, 1000) : value
+  if (typeof value !== 'object') return typeof value === 'string' ? sanitizeTelemetryString(value) : value
 
   const output = {}
   for (const [key, item] of Object.entries(value)) {
