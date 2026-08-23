@@ -1,3 +1,4 @@
+# One-shot deterministic Plan 9 formatter. Deletes itself after success.
 name: One-shot Plan 9 Format
 
 on:
