@@ -1,0 +1,42 @@
+name: One-shot Plan 9 Format
+
+on:
+  push:
+    branches:
+      - prod/plans-05-10
+    paths:
+      - .github/workflows/finalize-plan9-format-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: prod/plans-05-10
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Format Plan 9 owned surface
+        run: >-
+          npx prettier --write
+          api/_lib/account.js api/_lib/session.js api/account api/admin api/support api/knowledge-base.js
+          server/session.js
+          src/domain/account src/domain/auth/policy.ts src/services/account src/infrastructure/account
+          src/screens/ProfileProduction.jsx src/screens/SettingsProduction.jsx src/screens/SupportProduction.jsx
+          src/screens/AdminOperationsProduction.jsx src/screens/AccountDeletionRecoveryProduction.jsx
+          src/App.jsx tests/plan9 package.json
+      - name: Commit formatting and remove formatter
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/finalize-plan9-format-once.yml
+          git add api server src tests/plan9 package.json
+          git commit -m "style: format Plan 9 account operations surface"
+          git push origin HEAD:prod/plans-05-10
