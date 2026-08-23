@@ -38,6 +38,9 @@ export function validateEvidence(matrix) {
   const issues = []
   if (matrix?.schemaVersion !== 1) issues.push('schemaVersion must be 1')
   if (!Array.isArray(matrix?.gates)) issues.push('gates must be an array')
+  if (typeof matrix?.releaseCandidate !== 'string' || !/^[0-9a-f]{40}$/i.test(matrix.releaseCandidate)) {
+    issues.push('releaseCandidate must be a full commit SHA')
+  }
 
   const gates = Array.isArray(matrix?.gates) ? matrix.gates : []
   const seen = new Set()
@@ -70,8 +73,12 @@ export function validateEvidence(matrix) {
   return issues
 }
 
-export function decision(matrix) {
+export function decision(matrix, options = {}) {
   const issues = validateEvidence(matrix)
+  const expected = String(options.expectedReleaseCandidate || '').trim()
+  if (expected && matrix?.releaseCandidate !== expected) {
+    issues.push(`release candidate mismatch: evidence=${matrix?.releaseCandidate || 'missing'} expected=${expected}`)
+  }
   if (issues.length) return { decision: 'NO_GO', issues, blockers: [] }
   const blockers = matrix.gates.filter((gate) => gate.status !== 'PASS')
   return { decision: blockers.length ? 'NO_GO' : 'GO', issues: [], blockers }
