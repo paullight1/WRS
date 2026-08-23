@@ -93,6 +93,7 @@ test('support tickets, replies and private attachments are durable and abuse-lim
   assert.match(attachment, /createSignedUploadGrant/)
   assert.match(attachment, /support_attachments/)
   assert.match(attachment, /10_485_760/)
+  assert.match(attachment, /enforceRateLimit/)
   assert.doesNotMatch(attachment, /body\.(?:storageBucket|storagePath)/)
 })
 
@@ -103,7 +104,7 @@ test('knowledge base is server-published searchable content, not decorative rows
   assert.match(read('api/knowledge-base.js'), /knowledgeBaseSearch/)
 })
 
-test('least-privilege operations routes require operator roles and server permissions with append-only audit', () => {
+test('least-privilege operations routes require operator roles, server permissions and a discoverable console', () => {
   const sql = read('supabase/migrations/20260822090000_plan9_account_operations.sql').toLowerCase()
   assert.match(sql, /operations_audit_events/)
   assert.match(sql, /append-only/)
@@ -119,6 +120,7 @@ test('least-privilege operations routes require operator roles and server permis
   const app = read('src/App.jsx')
   assert.match(app, /policy="operations"|operations\(/)
   assert.match(app, /\/admin\/operations/)
+  assert.match(read('src/screens/More.jsx'), /\/admin\/operations/)
 })
 
 test('production profile, settings and support screens are isolated from mock data and use the account client', () => {
