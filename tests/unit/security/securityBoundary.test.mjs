@@ -18,6 +18,17 @@ describe('shared API security boundary', () => {
     })
   })
 
+  it('scrubs identity and bearer credentials embedded in free-text errors', () => {
+    const sanitized = redactTelemetry(
+      new Error('Provider failed for person@example.com using Bearer extremely-sensitive-token and +2348000000000'),
+    )
+    const serialized = JSON.stringify(sanitized)
+    expect(serialized).not.toContain('person@example.com')
+    expect(serialized).not.toContain('extremely-sensitive-token')
+    expect(serialized).not.toContain('+2348000000000')
+    expect(serialized).toContain('[REDACTED')
+  })
+
   it('accepts a safe caller request id and replaces malformed identifiers', () => {
     const accepted = new Request('https://wrs.example/api/test', { headers: { 'x-request-id': 'req-12345678' } })
     const rejected = new Request('https://wrs.example/api/test', { headers: { 'x-request-id': '<script>' } })
