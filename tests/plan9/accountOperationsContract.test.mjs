@@ -18,6 +18,7 @@ const required = [
   'api/account/delete.js',
   'api/support.js',
   'api/support/ticket.js',
+  'api/support/attachment.js',
   'api/knowledge-base.js',
   'api/admin/operations.js',
   'api/admin/action.js',
@@ -25,6 +26,7 @@ const required = [
   'src/screens/SettingsProduction.jsx',
   'src/screens/SupportProduction.jsx',
   'src/screens/AdminOperationsProduction.jsx',
+  'src/screens/AccountDeletionRecoveryProduction.jsx',
   'supabase/migrations/20260822090000_plan9_account_operations.sql',
   'tests/database/plan9-invariants.sql',
 ]
@@ -70,9 +72,12 @@ test('pending account deletion blocks ordinary APIs but permits explicit recover
   assert.match(stepUp, /verifyMfa/)
   assert.match(stepUp, /user_mfa_factors/)
   assert.doesNotMatch(read('api/wallet.js'), /allowDeletionPending/)
+  const app = read('src/App.jsx')
+  assert.match(app, /account-recovery/)
+  assert.match(app, /\/account\/deletion/)
 })
 
-test('support tickets and messages are durable, owner-scoped and staff-updatable', () => {
+test('support tickets, replies and private attachments are durable and abuse-limited', () => {
   const sql = read('supabase/migrations/20260822090000_plan9_account_operations.sql').toLowerCase()
   for (const table of ['support_tickets', 'support_messages', 'support_attachments']) {
     assert.match(sql, new RegExp(`create table(?: if not exists)? public\\.${table}`), table)
@@ -81,8 +86,14 @@ test('support tickets and messages are durable, owner-scoped and staff-updatable
   assert.match(sql, /wrs_add_support_message/)
   assert.match(sql, /wrs_staff_update_support_ticket/)
   const ticket = read('api/support/ticket.js')
+  const attachment = read('api/support/attachment.js')
   assert.match(ticket, /requireSession/)
+  assert.match(ticket, /enforceRateLimit/)
   assert.doesNotMatch(ticket, /fake|48213|setTimeout/i)
+  assert.match(attachment, /createSignedUploadGrant/)
+  assert.match(attachment, /support_attachments/)
+  assert.match(attachment, /10_485_760/)
+  assert.doesNotMatch(attachment, /body\.(?:storageBucket|storagePath)/)
 })
 
 test('knowledge base is server-published searchable content, not decorative rows', () => {
@@ -92,7 +103,7 @@ test('knowledge base is server-published searchable content, not decorative rows
   assert.match(read('api/knowledge-base.js'), /knowledgeBaseSearch/)
 })
 
-test('admin operations require admin authorization and create append-only audit events', () => {
+test('least-privilege operations routes require operator roles and server permissions with append-only audit', () => {
   const sql = read('supabase/migrations/20260822090000_plan9_account_operations.sql').toLowerCase()
   assert.match(sql, /operations_audit_events/)
   assert.match(sql, /append-only/)
@@ -101,8 +112,12 @@ test('admin operations require admin authorization and create append-only audit 
     const source = read(path)
     assert.match(source, /requireAdminSession/, path)
   }
+  const policy = read('src/domain/auth/policy.ts')
+  assert.match(policy, /operations/)
+  assert.match(policy, /support_operator/)
+  assert.match(policy, /finance_operator/)
   const app = read('src/App.jsx')
-  assert.match(app, /policy="admin"|admin\(/)
+  assert.match(app, /policy="operations"|operations\(/)
   assert.match(app, /\/admin\/operations/)
 })
 
@@ -111,6 +126,7 @@ test('production profile, settings and support screens are isolated from mock da
     'src/screens/ProfileProduction.jsx',
     'src/screens/SettingsProduction.jsx',
     'src/screens/SupportProduction.jsx',
+    'src/screens/AdminOperationsProduction.jsx',
   ]) {
     const source = read(path)
     assert.match(source, /browserAccountClient/, path)
