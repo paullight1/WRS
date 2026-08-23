@@ -8,7 +8,11 @@ const candidate = String(matrix.releaseCandidate || '').trim()
 if (!/^[0-9a-f]{40}$/i.test(candidate)) throw new Error('releaseCandidate must be a full commit SHA')
 
 const allowedPrefixes = ['Docs/production-readiness/11-live-activation/', 'scripts/plan11/', 'tests/plan11/']
-const allowedExact = new Set(['.github/workflows/plan11-live-activation-gate.yml'])
+const allowedExact = new Set([
+  '.github/workflows/plan11-live-activation-gate.yml',
+  'playwright.config.js',
+  'tests/e2e/staging-public.spec.js',
+])
 
 let changed
 try {
