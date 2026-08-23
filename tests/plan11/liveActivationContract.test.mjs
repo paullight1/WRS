@@ -79,26 +79,39 @@ test('human sign-off gates require named approval evidence', () => {
   assert.ok(result.issues.some((issue) => issue.includes('approvedBy')))
 })
 
-test('staging probe is HTTPS-only and checks production browser security headers', () => {
-  const source = fs.readFileSync('scripts/plan11/staging-probe.mjs', 'utf8')
-  assert.match(source, /https:\\\/\\\//)
+test('all deployed staging evidence attests the frozen candidate', () => {
+  const probe = fs.readFileSync('scripts/plan11/staging-probe.mjs', 'utf8')
+  assert.match(probe, /https:\\\/\\\//)
+  assert.match(probe, /matrix\.releaseCandidate/)
+  assert.match(probe, /\/api\/health/)
   for (const header of [
     'content-security-policy',
     'strict-transport-security',
     'x-content-type-options',
     'referrer-policy',
   ]) {
-    assert.match(source, new RegExp(header))
+    assert.match(probe, new RegExp(header))
   }
-  assert.match(source, /\/api\/health/)
+
+  const browser = fs.readFileSync('tests/e2e/staging-public.spec.js', 'utf8')
+  assert.match(browser, /EVIDENCE_MATRIX\.json/)
+  assert.match(browser, /\/api\/health/)
+  assert.match(browser, /releaseCandidate/)
+
+  const vitals = fs.readFileSync('scripts/plan11/staging-lab-vitals.mjs', 'utf8')
+  assert.match(vitals, /EVIDENCE_MATRIX\.json/)
+  assert.match(vitals, /\/api\/health/)
+  assert.match(vitals, /releaseCandidate/)
 })
 
-test('Playwright can target an external staging URL without starting the local Vite server', () => {
+test('Playwright isolates deployed staging tests from normal local E2E', () => {
   const source = fs.readFileSync('playwright.config.js', 'utf8')
   assert.match(source, /WRS_E2E_BASE_URL/)
   assert.match(source, /externalBaseURL/)
   assert.match(source, /webServer:\s*externalBaseURL/)
   assert.match(source, /\? undefined/)
+  assert.match(source, /testIgnore/)
+  assert.match(source, /staging-public\.spec\.js/)
 })
 
 test('payment activation tools refuse live-key probes and production pins Paystack to its official API origin', () => {
