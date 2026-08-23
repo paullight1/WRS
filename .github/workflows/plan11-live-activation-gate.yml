@@ -14,9 +14,24 @@ on:
         default: false
         type: boolean
       staging_url:
-        description: 'Optional HTTPS staging URL for the live browser/header probe'
+        description: 'Optional HTTPS staging URL for live probes'
         required: false
         type: string
+      run_staging_e2e:
+        description: 'Run the deployed-staging public browser suite'
+        required: false
+        default: false
+        type: boolean
+      run_staging_lab_vitals:
+        description: 'Run mobile lab LCP/CLS regression measurements'
+        required: false
+        default: false
+        type: boolean
+      run_paystack_probe:
+        description: 'Initialize a synthetic Paystack test-mode transaction'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -47,6 +62,67 @@ jobs:
         with:
           node-version: 24
       - run: npm run plan11:staging-probe
+
+  staging-browser:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_staging_e2e && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      WRS_E2E_BASE_URL: ${{ inputs.staging_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run plan11:staging-e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: plan11-staging-browser-failure
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+
+  staging-lab-vitals:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_staging_lab_vitals && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRS_STAGING_URL: ${{ inputs.staging_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run plan11:staging-lab-vitals | tee plan11-staging-lab-vitals.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-staging-lab-vitals
+          path: plan11-staging-lab-vitals.json
+
+  paystack-test-mode:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_paystack_probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PAYSTACK_TEST_SECRET_KEY: ${{ secrets.PAYSTACK_TEST_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm run plan11:paystack-probe | tee plan11-paystack-probe.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-paystack-test-mode-probe
+          path: plan11-paystack-probe.json
 
   strict-go:
     if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
