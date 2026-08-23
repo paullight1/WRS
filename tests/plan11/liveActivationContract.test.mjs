@@ -55,6 +55,19 @@ test('GO requires every required gate to have structured PASS evidence', () => {
   assert.equal(decision(oneBlocked).decision, 'NO_GO')
 })
 
+test('strict GO evidence is bound to the exact release candidate commit', () => {
+  const matrix = loadEvidence(matrixPath)
+  const allPass = { ...matrix, gates: matrix.gates.map(passGate) }
+  assert.equal(decision(allPass, { expectedReleaseCandidate: matrix.releaseCandidate }).decision, 'GO')
+  const mismatch = decision(allPass, { expectedReleaseCandidate: 'f'.repeat(40) })
+  assert.equal(mismatch.decision, 'NO_GO')
+  assert.ok(mismatch.issues.some((issue) => issue.includes('release candidate mismatch')))
+
+  const workflow = fs.readFileSync('.github/workflows/plan11-live-activation-gate.yml', 'utf8')
+  assert.match(workflow, /WRS_EXPECTED_RELEASE_CANDIDATE/)
+  assert.match(workflow, /github\.sha/)
+})
+
 test('human sign-off gates require named approval evidence', () => {
   const matrix = loadEvidence(matrixPath)
   const gates = matrix.gates.map(passGate)
