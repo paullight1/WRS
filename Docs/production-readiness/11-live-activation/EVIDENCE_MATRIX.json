@@ -3,19 +3,109 @@
   "decision": "NO_GO",
   "releaseCandidate": "62b5ce6e36d4b575908831ea66d8b309c9e24d8d",
   "gates": [
-    {"id":"supabase-infrastructure","phase":"11.1","status":"EXTERNAL_BLOCKER","owner":"Operations","evidence":"Dedicated WRS staging/production Supabase projects are not yet provisioned. Connected action requires explicit organization selection."},
-    {"id":"vercel-infrastructure","phase":"11.1","status":"EXTERNAL_BLOCKER","owner":"Operations","evidence":"Connected Vercel team contains zero projects and does not expose the team owning the existing WRS deployment."},
-    {"id":"github-branch-protection","phase":"11.2","status":"EXTERNAL_BLOCKER","owner":"Repository admin","evidence":"Connector exposes no ruleset/branch-protection mutation."},
-    {"id":"payment-sandbox","phase":"11.3","status":"EXTERNAL_BLOCKER","owner":"Finance","evidence":"Real provider sandbox/webhook/reconciliation evidence required."},
-    {"id":"payout-sandbox","phase":"11.3","status":"EXTERNAL_BLOCKER","owner":"Finance","evidence":"Real KYC/payout/reversal evidence required."},
-    {"id":"storage-scanning-deletion","phase":"11.4","status":"EXTERNAL_BLOCKER","owner":"Privacy/Data","evidence":"Live private storage scanner and deletion worker exercise required."},
-    {"id":"alert-routing","phase":"11.5","status":"EXTERNAL_BLOCKER","owner":"Operations","evidence":"Real monitoring destination, paging and acknowledgement drill required."},
-    {"id":"staging-e2e","phase":"11.6","status":"EXTERNAL_BLOCKER","owner":"Engineering","evidence":"Production-like deployed staging URL/services unavailable through connected Vercel account."},
-    {"id":"manual-accessibility","phase":"11.6","status":"EXTERNAL_BLOCKER","owner":"Accessibility","evidence":"Human keyboard/zoom/reflow/assistive-technology review required."},
-    {"id":"mobile-web-vitals","phase":"11.6","status":"EXTERNAL_BLOCKER","owner":"Frontend/Operations","evidence":"Real staging LCP/INP/CLS measurements required."},
-    {"id":"provider-backup-restore","phase":"11.7","status":"EXTERNAL_BLOCKER","owner":"Database/Operations","evidence":"Production-provider backup/PITR restore drill required."},
-    {"id":"hosting-rollback","phase":"11.7","status":"EXTERNAL_BLOCKER","owner":"Release owner","evidence":"Representative Vercel promotion/rollback drill required."},
-    {"id":"legal-privacy-compliance","phase":"11.8","status":"EXTERNAL_BLOCKER","owner":"Legal/Privacy","evidence":"Actual jurisdiction/privacy/biometric/payments/retention/terms review required."},
-    {"id":"named-launch-owners","phase":"11.8","status":"EXTERNAL_BLOCKER","owner":"Operations","evidence":"Named incident, release and rollback owners required."}
+    {
+      "id": "supabase-infrastructure",
+      "phase": "11.1",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Operations",
+      "evidence": "Connected Supabase organization orvvuonkxipcbfqmytdo contains edutu.ai and turnpay only; no WRS project exists. Project creation requires explicit organization selection and cost confirmation.",
+      "evidenceRef": "connector:supabase:list-projects:2026-08-23",
+      "checkedAt": "2026-08-23T06:30:00.000Z"
+    },
+    {
+      "id": "vercel-infrastructure",
+      "phase": "11.1",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Operations",
+      "evidence": "Connected Vercel team team_0m722looHPylaECSCKh2f6oa contains zero projects and does not expose the team owning the existing WRS deployment.",
+      "evidenceRef": "connector:vercel:list-projects:2026-08-23",
+      "checkedAt": "2026-08-23T06:30:00.000Z"
+    },
+    {
+      "id": "github-branch-protection",
+      "phase": "11.2",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Repository admin",
+      "evidence": "Connected GitHub action surface exposes repository/PR/workflow writes but no branch-protection or ruleset mutation.",
+      "evidenceRef": "connector:github:capability-audit:2026-08-23",
+      "checkedAt": "2026-08-23T06:30:00.000Z"
+    },
+    {
+      "id": "payment-sandbox",
+      "phase": "11.3",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Finance",
+      "evidence": "Paystack test-mode initialization probe is implemented but no PAYSTACK_TEST_SECRET_KEY/dashboard connection is available; real webhook/reconciliation evidence remains required."
+    },
+    {
+      "id": "payout-sandbox",
+      "phase": "11.3",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Finance",
+      "evidence": "Real KYC/payout/reversal evidence required."
+    },
+    {
+      "id": "storage-scanning-deletion",
+      "phase": "11.4",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Privacy/Data",
+      "evidence": "Live private storage scanner and deletion worker exercise required."
+    },
+    {
+      "id": "alert-routing",
+      "phase": "11.5",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Operations",
+      "evidence": "Real monitoring destination, paging and acknowledgement drill required."
+    },
+    {
+      "id": "staging-e2e",
+      "phase": "11.6",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Engineering",
+      "evidence": "Production-like deployed staging URL/services unavailable through the connected Vercel team. External-URL Playwright and security-header probes are implemented and ready to run once staging exists."
+    },
+    {
+      "id": "manual-accessibility",
+      "phase": "11.6",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Accessibility",
+      "evidence": "Human keyboard/zoom/reflow/assistive-technology review required."
+    },
+    {
+      "id": "mobile-web-vitals",
+      "phase": "11.6",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Frontend/Operations",
+      "evidence": "Mobile staging lab LCP/CLS probe is implemented; real staging and field/representative p75 LCP/INP/CLS evidence remains required."
+    },
+    {
+      "id": "provider-backup-restore",
+      "phase": "11.7",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Database/Operations",
+      "evidence": "Production-provider backup/PITR restore drill required."
+    },
+    {
+      "id": "hosting-rollback",
+      "phase": "11.7",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Release owner",
+      "evidence": "Representative Vercel promotion/rollback drill required."
+    },
+    {
+      "id": "legal-privacy-compliance",
+      "phase": "11.8",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Legal/Privacy",
+      "evidence": "Actual jurisdiction/privacy/biometric/payments/retention/terms review required."
+    },
+    {
+      "id": "named-launch-owners",
+      "phase": "11.8",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Operations",
+      "evidence": "Named incident, release and rollback owners required."
+    }
   ]
 }
