@@ -24,7 +24,10 @@ for (const route of routes) {
 
 test('staging public registration journey is reachable from the app entry', async ({ page }) => {
   await page.goto('/app')
-  await page.getByRole('link', { name: /get started|register|create/i }).first().click()
+  await page
+    .getByRole('link', { name: /get started|register|create/i })
+    .first()
+    .click()
   await expect(page).toHaveURL(/\/register$/)
   await expect(page.getByRole('heading', { name: /create your wrs account/i })).toBeVisible()
 })
