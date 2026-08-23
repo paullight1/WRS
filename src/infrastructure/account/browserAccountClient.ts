@@ -1,11 +1,11 @@
 import {
   AccountService,
   type AccountRepository,
-  type AccountSettings,
   type SupportAttachmentInput,
   type SupportTicketInput,
 } from '../../services/account/AccountService'
 import type { AccountProfileInput } from '../../domain/account/profile'
+import type { AccountSettings } from '../../domain/account/settings'
 
 type Json = Record<string, unknown>
 
