@@ -114,7 +114,11 @@ export default function SupportProduction() {
   if (loading) {
     return (
       <AppShell title="Support">
-        <StateView kind="loading" title="Loading support" desc="Reading your stored support cases and knowledge base." />
+        <StateView
+          kind="loading"
+          title="Loading support"
+          desc="Reading your stored support cases and knowledge base."
+        />
       </AppShell>
     )
   }
@@ -246,7 +250,11 @@ export default function SupportProduction() {
         <Card className="space-y-3 p-card-padding">
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="flex-1">
-              <Field label="Search published guidance" value={query} onChange={(event) => setQuery(event.target.value)} />
+              <Field
+                label="Search published guidance"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
             </div>
             <Button className="sm:self-end" loading={busy === 'search'} onClick={searchKnowledge}>
               Search

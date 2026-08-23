@@ -10,7 +10,9 @@ export type AccountSettings = {
 
 export function normalizeAccountSettings(input: AccountSettings): AccountSettings {
   const language = String(input.language || '').trim()
-  const currency = String(input.currency || '').trim().toUpperCase()
+  const currency = String(input.currency || '')
+    .trim()
+    .toUpperCase()
   const timezone = String(input.timezone || '').trim()
   if (!/^[a-z]{2}(-[A-Z]{2})?$/.test(language)) throw new Error('Language code is invalid.')
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Currency code is invalid.')

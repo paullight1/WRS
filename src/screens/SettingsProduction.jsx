@@ -8,15 +8,17 @@ import { Button, Card, Field, SectionTitle } from '../components/ui.jsx'
 import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
 
 function settingsFrom(snapshot) {
-  return snapshot?.settings || {
-    language: 'en',
-    currency: 'USD',
-    timezone: 'UTC',
-    notificationsEnabled: true,
-    marketingEnabled: false,
-    biometricLoginEnabled: false,
-    safetyNotificationsEnabled: true,
-  }
+  return (
+    snapshot?.settings || {
+      language: 'en',
+      currency: 'USD',
+      timezone: 'UTC',
+      notificationsEnabled: true,
+      marketingEnabled: false,
+      biometricLoginEnabled: false,
+      safetyNotificationsEnabled: true,
+    }
+  )
 }
 
 export default function SettingsProduction() {
@@ -114,33 +116,70 @@ export default function SettingsProduction() {
       <section>
         <SectionTitle>Preferences</SectionTitle>
         <Card className="space-y-4 p-card-padding">
-          <Field label="Language" value={settings.language} onChange={(event) => setSettings((current) => ({ ...current, language: event.target.value }))} placeholder="en" />
-          <Field label="Currency" value={settings.currency} onChange={(event) => setSettings((current) => ({ ...current, currency: event.target.value.toUpperCase().slice(0, 3) }))} placeholder="USD" />
-          <Field label="Timezone" value={settings.timezone} onChange={(event) => setSettings((current) => ({ ...current, timezone: event.target.value }))} placeholder="Africa/Lagos" />
+          <Field
+            label="Language"
+            value={settings.language}
+            onChange={(event) => setSettings((current) => ({ ...current, language: event.target.value }))}
+            placeholder="en"
+          />
+          <Field
+            label="Currency"
+            value={settings.currency}
+            onChange={(event) =>
+              setSettings((current) => ({ ...current, currency: event.target.value.toUpperCase().slice(0, 3) }))
+            }
+            placeholder="USD"
+          />
+          <Field
+            label="Timezone"
+            value={settings.timezone}
+            onChange={(event) => setSettings((current) => ({ ...current, timezone: event.target.value }))}
+            placeholder="Africa/Lagos"
+          />
           {[
             ['notificationsEnabled', 'Product notifications'],
             ['marketingEnabled', 'Marketing messages'],
             ['biometricLoginEnabled', 'Biometric login preference'],
             ['safetyNotificationsEnabled', 'Safety notifications'],
           ].map(([key, label]) => (
-            <label key={key} className="flex min-h-11 items-center justify-between gap-4 rounded-xl border border-white/8 px-3 py-2 text-body-md text-on-surface">
+            <label
+              key={key}
+              className="flex min-h-11 items-center justify-between gap-4 rounded-xl border border-white/8 px-3 py-2 text-body-md text-on-surface"
+            >
               <span>{label}</span>
-              <input type="checkbox" checked={Boolean(settings[key])} onChange={(event) => setSettings((current) => ({ ...current, [key]: event.target.checked }))} />
+              <input
+                type="checkbox"
+                checked={Boolean(settings[key])}
+                onChange={(event) => setSettings((current) => ({ ...current, [key]: event.target.checked }))}
+              />
             </label>
           ))}
-          <Button full loading={busy === 'save'} onClick={save}>Save settings</Button>
+          <Button full loading={busy === 'save'} onClick={save}>
+            Save settings
+          </Button>
         </Card>
       </section>
 
       <section>
         <SectionTitle>Security</SectionTitle>
         <Card className="space-y-3 p-card-padding">
-          <p className="text-body-sm text-on-surface-variant">Recent MFA: {recentMfa ? 'confirmed' : 'required for sensitive identity and deletion actions'}</p>
-          <Button to="/settings/security" variant="ghost" full>Manage MFA</Button>
+          <p className="text-body-sm text-on-surface-variant">
+            Recent MFA: {recentMfa ? 'confirmed' : 'required for sensitive identity and deletion actions'}
+          </p>
+          <Button to="/settings/security" variant="ghost" full>
+            Manage MFA
+          </Button>
           {auth.session?.mfaEnabled && !recentMfa && (
             <>
-              <Field label="Authenticator code for step-up" value={mfaCode} onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" />
-              <Button full loading={busy === 'mfa'} disabled={mfaCode.length !== 6} onClick={stepUp}>Verify current factor</Button>
+              <Field
+                label="Authenticator code for step-up"
+                value={mfaCode}
+                onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                inputMode="numeric"
+              />
+              <Button full loading={busy === 'mfa'} disabled={mfaCode.length !== 6} onClick={stepUp}>
+                Verify current factor
+              </Button>
             </>
           )}
         </Card>
@@ -149,13 +188,29 @@ export default function SettingsProduction() {
       <section>
         <SectionTitle>Delete account</SectionTitle>
         <Card className="space-y-3 border-error/30 p-card-padding">
-          <p className="text-body-sm text-on-surface-variant">Deletion revokes sessions immediately and enters a 24-hour recovery window. Private contributed data is deleted through the privacy queue before irreversible anonymization; required financial/security evidence is retained.</p>
-          <Field label="Reason (optional)" value={deletionReason} onChange={(event) => setDeletionReason(event.target.value)} />
-          <Button variant="danger" full loading={busy === 'delete'} disabled={!recentMfa} onClick={requestDeletion}>Request account deletion</Button>
-          {!recentMfa && <p className="text-label-sm text-outline">Complete MFA step-up above before requesting deletion.</p>}
+          <p className="text-body-sm text-on-surface-variant">
+            Deletion revokes sessions immediately and enters a 24-hour recovery window. Private contributed data is
+            deleted through the privacy queue before irreversible anonymization; required financial/security evidence is
+            retained.
+          </p>
+          <Field
+            label="Reason (optional)"
+            value={deletionReason}
+            onChange={(event) => setDeletionReason(event.target.value)}
+          />
+          <Button variant="danger" full loading={busy === 'delete'} disabled={!recentMfa} onClick={requestDeletion}>
+            Request account deletion
+          </Button>
+          {!recentMfa && (
+            <p className="text-label-sm text-outline">Complete MFA step-up above before requesting deletion.</p>
+          )}
         </Card>
       </section>
-      {message && <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{message}</p>}
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
     </AppShell>
   )
 }

@@ -5,13 +5,7 @@ export type RoutePolicy = 'public' | 'authenticated' | 'verified' | 'kyc' | 'adm
 export interface AuthorizationDecision {
   allowed: boolean
   reason?:
-    | 'unauthenticated'
-    | 'unverified'
-    | 'kyc-required'
-    | 'forbidden'
-    | 'expired'
-    | 'suspended'
-    | 'deletion-pending'
+    'unauthenticated' | 'unverified' | 'kyc-required' | 'forbidden' | 'expired' | 'suspended' | 'deletion-pending'
 }
 
 const OPERATIONS_ROLES = new Set([

@@ -107,7 +107,11 @@ export async function updateAuthoritativeProfile(resolved, input) {
   if (!current) throw new HttpError(404, 'Account profile is unavailable.', 'profile-unavailable')
   const sensitive = input.email !== current.normalized_email || input.phone !== current.normalized_phone
   if (sensitive && !recentMfa(resolved.session)) {
-    throw new HttpError(403, 'Recent two-factor verification is required for email or phone changes.', 'mfa-step-up-required')
+    throw new HttpError(
+      403,
+      'Recent two-factor verification is required for email or phone changes.',
+      'mfa-step-up-required',
+    )
   }
 
   let provider = { emailChanged: false, phoneChanged: false }
@@ -147,7 +151,11 @@ export async function updateAuthoritativeSettings(userId, input) {
 
 export async function requestAccountDeletion(resolved, reason) {
   if (!recentMfa(resolved.session)) {
-    throw new HttpError(403, 'Recent two-factor verification is required before deleting an account.', 'mfa-step-up-required')
+    throw new HttpError(
+      403,
+      'Recent two-factor verification is required before deleting an account.',
+      'mfa-step-up-required',
+    )
   }
   const { data } = await serviceRpc('wrs_request_account_deletion', {
     p_user_id: resolved.user.id,
@@ -159,7 +167,11 @@ export async function requestAccountDeletion(resolved, reason) {
 
 export async function cancelAccountDeletion(resolved, requestId) {
   if (!recentMfa(resolved.session)) {
-    throw new HttpError(403, 'Recent two-factor verification is required to cancel account deletion.', 'mfa-step-up-required')
+    throw new HttpError(
+      403,
+      'Recent two-factor verification is required to cancel account deletion.',
+      'mfa-step-up-required',
+    )
   }
   await serviceRpc('wrs_cancel_account_deletion', {
     p_user_id: resolved.user.id,
@@ -220,7 +232,12 @@ export async function supportSnapshot(userId) {
     )
     messages = Array.isArray(data) ? data : []
   }
-  return { tickets: rows.map((ticket) => ({ ...ticket, messages: messages.filter((message) => message.ticket_id === ticket.id) })) }
+  return {
+    tickets: rows.map((ticket) => ({
+      ...ticket,
+      messages: messages.filter((message) => message.ticket_id === ticket.id),
+    })),
+  }
 }
 
 export async function createSupportTicket(userId, input) {
@@ -247,9 +264,13 @@ export async function knowledgeBaseSearch(query = '') {
     '/rest/v1/knowledge_base_articles?status=eq.published&select=id,slug,title,summary,body,category,published_at&order=published_at.desc&limit=200',
   )
   const rows = Array.isArray(data) ? data : []
-  const q = String(query || '').trim().toLowerCase()
+  const q = String(query || '')
+    .trim()
+    .toLowerCase()
   return q
-    ? rows.filter((row) => [row.title, row.summary, row.body, row.category].join(' ').toLowerCase().includes(q)).slice(0, 50)
+    ? rows
+        .filter((row) => [row.title, row.summary, row.body, row.category].join(' ').toLowerCase().includes(q))
+        .slice(0, 50)
     : rows.slice(0, 50)
 }
 
@@ -274,40 +295,78 @@ async function recentRows(path) {
 export async function operationsSnapshot(scope = 'overview') {
   const safeScope = String(scope || 'overview')
   if (safeScope === 'users') {
-    return { users: await recentRows('/rest/v1/user_profiles?select=user_id,status,kyc_status,country_code,email_verified_at,phone_verified_at,created_at,updated_at&order=created_at.desc&limit=100') }
+    return {
+      users: await recentRows(
+        '/rest/v1/user_profiles?select=user_id,status,kyc_status,country_code,email_verified_at,phone_verified_at,created_at,updated_at&order=created_at.desc&limit=100',
+      ),
+    }
   }
   if (safeScope === 'support') {
-    return { support: await recentRows('/rest/v1/support_tickets?select=id,user_id,category,subject,status,priority,assigned_operator_id,created_at,updated_at&order=updated_at.desc&limit=100') }
+    return {
+      support: await recentRows(
+        '/rest/v1/support_tickets?select=id,user_id,category,subject,status,priority,assigned_operator_id,created_at,updated_at&order=updated_at.desc&limit=100',
+      ),
+    }
   }
   if (safeScope === 'finance') {
     return {
-      withdrawals: await recentRows('/rest/v1/withdrawals?select=id,user_id,amount_minor,currency,status,created_at,updated_at&order=created_at.desc&limit=100'),
-      payments: await recentRows('/rest/v1/payment_intents?select=id,user_id,package_slug,amount_minor,currency,status,created_at,updated_at&order=created_at.desc&limit=100'),
+      withdrawals: await recentRows(
+        '/rest/v1/withdrawals?select=id,user_id,amount_minor,currency,status,created_at,updated_at&order=created_at.desc&limit=100',
+      ),
+      payments: await recentRows(
+        '/rest/v1/payment_intents?select=id,user_id,package_slug,amount_minor,currency,status,created_at,updated_at&order=created_at.desc&limit=100',
+      ),
     }
   }
   if (safeScope === 'deployments') {
-    return { deployments: await recentRows('/rest/v1/deployments?select=id,user_id,robot_id,opportunity_id,status,version,created_at,updated_at&order=updated_at.desc&limit=100') }
+    return {
+      deployments: await recentRows(
+        '/rest/v1/deployments?select=id,user_id,robot_id,opportunity_id,status,version,created_at,updated_at&order=updated_at.desc&limit=100',
+      ),
+    }
   }
   if (safeScope === 'data') {
     return {
-      submissions: await recentRows('/rest/v1/data_submissions?select=id,user_id,status,quality_score,submitted_at,reviewed_at&order=submitted_at.desc&limit=100'),
-      deletions: await recentRows('/rest/v1/data_deletion_requests?select=id,user_id,status,eligible_at,attempt_count,requested_at,completed_at&order=requested_at.desc&limit=100'),
+      submissions: await recentRows(
+        '/rest/v1/data_submissions?select=id,user_id,status,quality_score,submitted_at,reviewed_at&order=submitted_at.desc&limit=100',
+      ),
+      deletions: await recentRows(
+        '/rest/v1/data_deletion_requests?select=id,user_id,status,eligible_at,attempt_count,requested_at,completed_at&order=requested_at.desc&limit=100',
+      ),
     }
   }
   if (safeScope === 'risk') {
     return {
-      referrals: await recentRows('/rest/v1/referral_relationships?select=id,referrer_user_id,referred_user_id,status,eligible_at,qualified_at,created_at&order=created_at.desc&limit=100'),
-      moderation: await recentRows('/rest/v1/community_moderation_actions?select=id,target_type,target_id,action,reason,operator_reference,occurred_at&order=occurred_at.desc&limit=100'),
+      referrals: await recentRows(
+        '/rest/v1/referral_relationships?select=id,referrer_user_id,referred_user_id,status,eligible_at,qualified_at,created_at&order=created_at.desc&limit=100',
+      ),
+      moderation: await recentRows(
+        '/rest/v1/community_moderation_actions?select=id,target_type,target_id,action,reason,operator_reference,occurred_at&order=occurred_at.desc&limit=100',
+      ),
     }
   }
   return {
-    accountDeletions: await recentRows('/rest/v1/account_deletion_requests?select=id,user_id,status,eligible_at,attempt_count,requested_at&order=requested_at.desc&limit=50'),
-    support: await recentRows('/rest/v1/support_tickets?select=id,user_id,category,status,priority,updated_at&order=updated_at.desc&limit=50'),
-    audit: await recentRows('/rest/v1/operations_audit_events?select=id,operator_user_id,permission_slug,action,target_type,target_id,reason,occurred_at&order=occurred_at.desc&limit=50'),
+    accountDeletions: await recentRows(
+      '/rest/v1/account_deletion_requests?select=id,user_id,status,eligible_at,attempt_count,requested_at&order=requested_at.desc&limit=50',
+    ),
+    support: await recentRows(
+      '/rest/v1/support_tickets?select=id,user_id,category,status,priority,updated_at&order=updated_at.desc&limit=50',
+    ),
+    audit: await recentRows(
+      '/rest/v1/operations_audit_events?select=id,operator_user_id,permission_slug,action,target_type,target_id,reason,occurred_at&order=occurred_at.desc&limit=50',
+    ),
   }
 }
 
-export async function recordOperationsAction(operatorUserId, permission, targetType, targetId, action, reason, metadata = {}) {
+export async function recordOperationsAction(
+  operatorUserId,
+  permission,
+  targetType,
+  targetId,
+  action,
+  reason,
+  metadata = {},
+) {
   const { data } = await serviceRpc('wrs_record_operations_action', {
     p_operator_user_id: operatorUserId,
     p_permission: permission,
@@ -333,7 +392,8 @@ export async function updateSupportAsOperator(operatorUserId, input) {
 }
 
 export async function setUserStatusAsOperator(operatorUserId, userId, status, reason) {
-  if (!['active', 'suspended'].includes(status)) throw new HttpError(400, 'Unsupported account status.', 'invalid-status')
+  if (!['active', 'suspended'].includes(status))
+    throw new HttpError(400, 'Unsupported account status.', 'invalid-status')
   await serviceRest(`/rest/v1/user_profiles?user_id=eq.${encodeURIComponent(userId)}&status=neq.deleted`, {
     method: 'PATCH',
     headers: { Prefer: 'return=minimal' },

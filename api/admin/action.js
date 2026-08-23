@@ -11,7 +11,9 @@ import { assertSameOrigin, functionHandler, HttpError, json, readJson, requireMe
 import { serviceRpc } from '../_lib/supabase.js'
 
 function text(value, max = 1000) {
-  return String(value || '').trim().slice(0, max)
+  return String(value || '')
+    .trim()
+    .slice(0, max)
 }
 
 function quality(value, name) {
@@ -46,7 +48,14 @@ export default functionHandler(async (request) => {
     const resolved = await requireAdminSession(request, 'operations.security', { stepUp: true })
     const userId = text(body.userId, 100)
     if (!userId) throw new HttpError(400, 'Target user is required.', 'user-required')
-    return json(await setUserStatusAsOperator(resolved.user.id, userId, action === 'user.suspend' ? 'suspended' : 'active', reason))
+    return json(
+      await setUserStatusAsOperator(
+        resolved.user.id,
+        userId,
+        action === 'user.suspend' ? 'suspended' : 'active',
+        reason,
+      ),
+    )
   }
 
   if (action === 'kyc.set') {
@@ -61,8 +70,19 @@ export default functionHandler(async (request) => {
     const resolved = await requireAdminSession(request, 'operations.deployment')
     const requestId = text(body.requestId, 100)
     if (!requestId) throw new HttpError(400, 'Deployment request is required.', 'deployment-request-required')
-    const contractId = await matchDeploymentRequest(requestId, typeof body.termsOverride === 'object' && body.termsOverride ? body.termsOverride : {})
-    await recordOperationsAction(resolved.user.id, 'operations.deployment', 'deployment.request', requestId, action, reason, { contractId })
+    const contractId = await matchDeploymentRequest(
+      requestId,
+      typeof body.termsOverride === 'object' && body.termsOverride ? body.termsOverride : {},
+    )
+    await recordOperationsAction(
+      resolved.user.id,
+      'operations.deployment',
+      'deployment.request',
+      requestId,
+      action,
+      reason,
+      { contractId },
+    )
     return json({ contractId })
   }
 
@@ -71,7 +91,15 @@ export default functionHandler(async (request) => {
     const deploymentId = text(body.deploymentId, 100)
     if (!deploymentId) throw new HttpError(400, 'Deployment is required.', 'deployment-required')
     const result = await settleDeployment(deploymentId)
-    await recordOperationsAction(resolved.user.id, 'operations.finance', 'deployment', deploymentId, action, reason, result || {})
+    await recordOperationsAction(
+      resolved.user.id,
+      'operations.finance',
+      'deployment',
+      deploymentId,
+      action,
+      reason,
+      result || {},
+    )
     return json(result)
   }
 
@@ -97,7 +125,10 @@ export default functionHandler(async (request) => {
       p_policy_compliance: dimensions.policyCompliance,
       p_notes: text(body.notes, 2000) || null,
     })
-    await recordOperationsAction(resolved.user.id, 'operations.data', 'data.submission', submissionId, action, reason, { ...dimensions, result: data })
+    await recordOperationsAction(resolved.user.id, 'operations.data', 'data.submission', submissionId, action, reason, {
+      ...dimensions,
+      result: data,
+    })
     return json(data)
   }
 
@@ -106,7 +137,15 @@ export default functionHandler(async (request) => {
     const relationshipId = text(body.relationshipId, 100)
     if (!relationshipId) throw new HttpError(400, 'Referral relationship is required.', 'relationship-required')
     const result = await qualifyReferral(relationshipId)
-    await recordOperationsAction(resolved.user.id, 'operations.risk', 'referral.relationship', relationshipId, action, reason, result || {})
+    await recordOperationsAction(
+      resolved.user.id,
+      'operations.risk',
+      'referral.relationship',
+      relationshipId,
+      action,
+      reason,
+      result || {},
+    )
     return json(result)
   }
 
@@ -118,10 +157,20 @@ export default functionHandler(async (request) => {
     if (!targetType || !targetId || !moderationAction) {
       throw new HttpError(400, 'Moderation target and action are required.', 'moderation-required')
     }
-    const result = await moderateCommunity(targetType, targetId, moderationAction, reason, `operator:${resolved.user.id}`, {
-      source: 'operations-console',
+    const result = await moderateCommunity(
+      targetType,
+      targetId,
+      moderationAction,
+      reason,
+      `operator:${resolved.user.id}`,
+      {
+        source: 'operations-console',
+      },
+    )
+    await recordOperationsAction(resolved.user.id, 'operations.risk', targetType, targetId, action, reason, {
+      moderationAction,
+      result,
     })
-    await recordOperationsAction(resolved.user.id, 'operations.risk', targetType, targetId, action, reason, { moderationAction, result })
     return json(result)
   }
 

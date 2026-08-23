@@ -52,7 +52,11 @@ export class AccountService {
   }
 
   requestDeletion(reason: string) {
-    return this.repository.requestDeletion(String(reason || '').trim().slice(0, 1000))
+    return this.repository.requestDeletion(
+      String(reason || '')
+        .trim()
+        .slice(0, 1000),
+    )
   }
 
   cancelDeletion(requestId: string) {
@@ -94,7 +98,11 @@ export class AccountService {
   }
 
   knowledgeBase(query = '') {
-    return this.repository.knowledgeBase(String(query || '').trim().slice(0, 100))
+    return this.repository.knowledgeBase(
+      String(query || '')
+        .trim()
+        .slice(0, 100),
+    )
   }
 
   operations(scope = 'overview') {

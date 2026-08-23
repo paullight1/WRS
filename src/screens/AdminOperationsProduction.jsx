@@ -155,14 +155,28 @@ export default function AdminOperationsProduction() {
           <Card className="space-y-2 p-card-padding">
             {records.length ? (
               records.map(({ group, row }, index) => (
-                <details key={`${group}-${row.id || row.user_id || index}`} className="rounded-xl border border-white/8 p-3">
+                <details
+                  key={`${group}-${row.id || row.user_id || index}`}
+                  className="rounded-xl border border-white/8 p-3"
+                >
                   <summary className="cursor-pointer list-none">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-body-md font-medium text-on-surface">{String(primaryLabel(row))}</p>
-                        <p className="truncate text-label-sm text-outline">{group}{secondaryLabel(row) ? ` · ${secondaryLabel(row)}` : ''}</p>
+                        <p className="truncate text-label-sm text-outline">
+                          {group}
+                          {secondaryLabel(row) ? ` · ${secondaryLabel(row)}` : ''}
+                        </p>
                       </div>
-                      {row.status && <Badge t={['completed', 'resolved', 'active', 'verified'].includes(row.status) ? 'success' : 'outline'}>{row.status}</Badge>}
+                      {row.status && (
+                        <Badge
+                          t={
+                            ['completed', 'resolved', 'active', 'verified'].includes(row.status) ? 'success' : 'outline'
+                          }
+                        >
+                          {row.status}
+                        </Badge>
+                      )}
                     </div>
                   </summary>
                   <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-black/25 p-3 text-data-sm text-on-surface-variant">
@@ -200,7 +214,11 @@ export default function AdminOperationsProduction() {
             </label>
 
             {(action === 'user.suspend' || action === 'user.restore' || action === 'kyc.set') && (
-              <Field label="User ID" value={input.userId || ''} onChange={(event) => setInput((current) => ({ ...current, userId: event.target.value }))} />
+              <Field
+                label="User ID"
+                value={input.userId || ''}
+                onChange={(event) => setInput((current) => ({ ...current, userId: event.target.value }))}
+              />
             )}
             {action === 'kyc.set' && (
               <label className="block text-label-md text-on-surface-variant">
@@ -210,62 +228,162 @@ export default function AdminOperationsProduction() {
                   value={input.kycStatus || 'pending'}
                   onChange={(event) => setInput((current) => ({ ...current, kycStatus: event.target.value }))}
                 >
-                  {['unverified', 'pending', 'verified', 'rejected'].map((item) => <option key={item} value={item}>{item}</option>)}
+                  {['unverified', 'pending', 'verified', 'rejected'].map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
                 </select>
               </label>
             )}
             {action === 'support.update' && (
               <>
-                <Field label="Ticket ID" value={input.ticketId || ''} onChange={(event) => setInput((current) => ({ ...current, ticketId: event.target.value }))} />
+                <Field
+                  label="Ticket ID"
+                  value={input.ticketId || ''}
+                  onChange={(event) => setInput((current) => ({ ...current, ticketId: event.target.value }))}
+                />
                 <label className="block text-label-md text-on-surface-variant">
                   Status
-                  <select className="mt-1.5 min-h-11 w-full rounded-xl border border-white/12 bg-surface-container px-3 text-body-md text-on-surface" value={input.status || 'in_progress'} onChange={(event) => setInput((current) => ({ ...current, status: event.target.value }))}>
-                    {['open', 'in_progress', 'waiting_user', 'resolved', 'closed'].map((item) => <option key={item} value={item}>{item}</option>)}
+                  <select
+                    className="mt-1.5 min-h-11 w-full rounded-xl border border-white/12 bg-surface-container px-3 text-body-md text-on-surface"
+                    value={input.status || 'in_progress'}
+                    onChange={(event) => setInput((current) => ({ ...current, status: event.target.value }))}
+                  >
+                    {['open', 'in_progress', 'waiting_user', 'resolved', 'closed'].map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label className="block text-label-md text-on-surface-variant">
                   Priority
-                  <select className="mt-1.5 min-h-11 w-full rounded-xl border border-white/12 bg-surface-container px-3 text-body-md text-on-surface" value={input.priority || 'normal'} onChange={(event) => setInput((current) => ({ ...current, priority: event.target.value }))}>
-                    {['low', 'normal', 'high', 'urgent'].map((item) => <option key={item} value={item}>{item}</option>)}
+                  <select
+                    className="mt-1.5 min-h-11 w-full rounded-xl border border-white/12 bg-surface-container px-3 text-body-md text-on-surface"
+                    value={input.priority || 'normal'}
+                    onChange={(event) => setInput((current) => ({ ...current, priority: event.target.value }))}
+                  >
+                    {['low', 'normal', 'high', 'urgent'].map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
                   </select>
                 </label>
-                <Field label="Operator message (optional)" value={input.message || ''} onChange={(event) => setInput((current) => ({ ...current, message: event.target.value }))} />
+                <Field
+                  label="Operator message (optional)"
+                  value={input.message || ''}
+                  onChange={(event) => setInput((current) => ({ ...current, message: event.target.value }))}
+                />
               </>
             )}
-            {action === 'deployment.match' && <Field label="Deployment request ID" value={input.requestId || ''} onChange={(event) => setInput((current) => ({ ...current, requestId: event.target.value }))} />}
-            {action === 'deployment.settle' && <Field label="Deployment ID" value={input.deploymentId || ''} onChange={(event) => setInput((current) => ({ ...current, deploymentId: event.target.value }))} />}
+            {action === 'deployment.match' && (
+              <Field
+                label="Deployment request ID"
+                value={input.requestId || ''}
+                onChange={(event) => setInput((current) => ({ ...current, requestId: event.target.value }))}
+              />
+            )}
+            {action === 'deployment.settle' && (
+              <Field
+                label="Deployment ID"
+                value={input.deploymentId || ''}
+                onChange={(event) => setInput((current) => ({ ...current, deploymentId: event.target.value }))}
+              />
+            )}
             {action === 'data.review' && (
               <>
-                <Field label="Submission ID" value={input.submissionId || ''} onChange={(event) => setInput((current) => ({ ...current, submissionId: event.target.value }))} />
-                {['completeness', 'accuracy', 'consistency', 'signalQuality', 'reviewerAgreement', 'policyCompliance'].map((key) => (
-                  <Field key={key} label={key} type="number" value={input[key] ?? ''} onChange={(event) => setInput((current) => ({ ...current, [key]: Number(event.target.value) }))} />
+                <Field
+                  label="Submission ID"
+                  value={input.submissionId || ''}
+                  onChange={(event) => setInput((current) => ({ ...current, submissionId: event.target.value }))}
+                />
+                {[
+                  'completeness',
+                  'accuracy',
+                  'consistency',
+                  'signalQuality',
+                  'reviewerAgreement',
+                  'policyCompliance',
+                ].map((key) => (
+                  <Field
+                    key={key}
+                    label={key}
+                    type="number"
+                    value={input[key] ?? ''}
+                    onChange={(event) => setInput((current) => ({ ...current, [key]: Number(event.target.value) }))}
+                  />
                 ))}
-                <Field label="Review notes (optional)" value={input.notes || ''} onChange={(event) => setInput((current) => ({ ...current, notes: event.target.value }))} />
+                <Field
+                  label="Review notes (optional)"
+                  value={input.notes || ''}
+                  onChange={(event) => setInput((current) => ({ ...current, notes: event.target.value }))}
+                />
               </>
             )}
-            {action === 'referral.qualify' && <Field label="Referral relationship ID" value={input.relationshipId || ''} onChange={(event) => setInput((current) => ({ ...current, relationshipId: event.target.value }))} />}
+            {action === 'referral.qualify' && (
+              <Field
+                label="Referral relationship ID"
+                value={input.relationshipId || ''}
+                onChange={(event) => setInput((current) => ({ ...current, relationshipId: event.target.value }))}
+              />
+            )}
             {action === 'community.moderate' && (
               <>
-                <Field label="Target type" value={input.targetType || ''} onChange={(event) => setInput((current) => ({ ...current, targetType: event.target.value }))} />
-                <Field label="Target ID" value={input.targetId || ''} onChange={(event) => setInput((current) => ({ ...current, targetId: event.target.value }))} />
-                <Field label="Moderation action" value={input.moderationAction || ''} onChange={(event) => setInput((current) => ({ ...current, moderationAction: event.target.value }))} />
+                <Field
+                  label="Target type"
+                  value={input.targetType || ''}
+                  onChange={(event) => setInput((current) => ({ ...current, targetType: event.target.value }))}
+                />
+                <Field
+                  label="Target ID"
+                  value={input.targetId || ''}
+                  onChange={(event) => setInput((current) => ({ ...current, targetId: event.target.value }))}
+                />
+                <Field
+                  label="Moderation action"
+                  value={input.moderationAction || ''}
+                  onChange={(event) => setInput((current) => ({ ...current, moderationAction: event.target.value }))}
+                />
               </>
             )}
 
-            <Field label="Reason code / justification" value={reason} onChange={(event) => setReason(event.target.value)} />
+            <Field
+              label="Reason code / justification"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+            />
 
-            {auth.session?.mfaEnabled && !recentMfa && ['user.suspend', 'user.restore', 'kyc.set', 'deployment.settle'].includes(action) && (
-              <div className="space-y-2 rounded-xl border border-tertiary/25 p-3">
-                <p className="text-body-sm text-on-surface-variant">This action requires fresh MFA.</p>
-                <Field label="Authenticator code" value={mfaCode} onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" />
-                <Button loading={busy === 'mfa'} disabled={mfaCode.length !== 6} onClick={stepUp}>Verify factor</Button>
-              </div>
-            )}
+            {auth.session?.mfaEnabled &&
+              !recentMfa &&
+              ['user.suspend', 'user.restore', 'kyc.set', 'deployment.settle'].includes(action) && (
+                <div className="space-y-2 rounded-xl border border-tertiary/25 p-3">
+                  <p className="text-body-sm text-on-surface-variant">This action requires fresh MFA.</p>
+                  <Field
+                    label="Authenticator code"
+                    value={mfaCode}
+                    onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                    inputMode="numeric"
+                  />
+                  <Button loading={busy === 'mfa'} disabled={mfaCode.length !== 6} onClick={stepUp}>
+                    Verify factor
+                  </Button>
+                </div>
+              )}
 
-            <Button full loading={busy === 'action'} disabled={!action || reason.trim().length < 3} onClick={submitAction}>
+            <Button
+              full
+              loading={busy === 'action'}
+              disabled={!action || reason.trim().length < 3}
+              onClick={submitAction}
+            >
               Execute audited action
             </Button>
-            <p className="text-label-sm text-outline">The API re-checks exact role permission, target validation, MFA where required, and appends immutable operations evidence.</p>
+            <p className="text-label-sm text-outline">
+              The API re-checks exact role permission, target validation, MFA where required, and appends immutable
+              operations evidence.
+            </p>
           </Card>
         </section>
       )}

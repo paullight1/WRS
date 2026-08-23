@@ -102,21 +102,57 @@ export default function ProfileProduction() {
       <section>
         <SectionTitle>Identity</SectionTitle>
         <Card className="space-y-4 p-card-padding">
-          <Field label="Full name" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} />
-          <Field label="Country code" value={form.countryCode} onChange={(event) => setForm((current) => ({ ...current, countryCode: event.target.value.toUpperCase().slice(0, 2) }))} placeholder="NG" />
-          <Field label="Email" type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
-          <Field label="Phone" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} placeholder="+234…" />
+          <Field
+            label="Full name"
+            value={form.fullName}
+            onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
+          />
+          <Field
+            label="Country code"
+            value={form.countryCode}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, countryCode: event.target.value.toUpperCase().slice(0, 2) }))
+            }
+            placeholder="NG"
+          />
+          <Field
+            label="Email"
+            type="email"
+            value={form.email}
+            onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+          />
+          <Field
+            label="Phone"
+            value={form.phone}
+            onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
+            placeholder="+234…"
+          />
           <div className="flex flex-wrap gap-2">
-            <Badge t={profile.emailVerified ? 'success' : 'gold'}>{profile.emailVerified ? 'Email verified' : 'Email verification required'}</Badge>
-            <Badge t={profile.phoneVerified ? 'success' : 'gold'}>{profile.phoneVerified ? 'Phone verified' : 'Phone verification required'}</Badge>
+            <Badge t={profile.emailVerified ? 'success' : 'gold'}>
+              {profile.emailVerified ? 'Email verified' : 'Email verification required'}
+            </Badge>
+            <Badge t={profile.phoneVerified ? 'success' : 'gold'}>
+              {profile.phoneVerified ? 'Phone verified' : 'Phone verification required'}
+            </Badge>
             <Badge t={profile.kycStatus === 'verified' ? 'success' : 'outline'}>KYC {profile.kycStatus}</Badge>
           </div>
-          <Button full loading={busy} onClick={save}>Save profile</Button>
-          <p className="text-label-sm text-outline">Changing email or phone requires a recent MFA step-up. New identifiers become unverified until their OTP challenge succeeds.</p>
+          <Button full loading={busy} onClick={save}>
+            Save profile
+          </Button>
+          <p className="text-label-sm text-outline">
+            Changing email or phone requires a recent MFA step-up. New identifiers become unverified until their OTP
+            challenge succeeds.
+          </p>
         </Card>
       </section>
-      <Button to="/settings/security" variant="ghost" full>Account security &amp; MFA</Button>
-      {message && <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">{message}</p>}
+      <Button to="/settings/security" variant="ghost" full>
+        Account security &amp; MFA
+      </Button>
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
     </AppShell>
   )
 }

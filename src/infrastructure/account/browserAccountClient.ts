@@ -39,7 +39,10 @@ const repository: AccountRepository = {
   createTicket: (input: SupportTicketInput) =>
     request<Json>('/api/support/ticket', { method: 'POST', body: JSON.stringify({ action: 'create', ...input }) }),
   addTicketMessage: (ticketId: string, message: string) =>
-    request<Json>('/api/support/ticket', { method: 'POST', body: JSON.stringify({ action: 'message', ticketId, message }) }),
+    request<Json>('/api/support/ticket', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'message', ticketId, message }),
+    }),
   createSupportAttachment: (input: SupportAttachmentInput) =>
     request<Json>('/api/support/attachment', { method: 'POST', body: JSON.stringify(input) }),
   async uploadSupportAttachment(signedUrl: string, file: Blob, mimeType: string) {

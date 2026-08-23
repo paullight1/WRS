@@ -1,5 +1,13 @@
 import crypto from 'node:crypto'
-import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../_lib/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../_lib/http.js'
 import { requireSession } from '../_lib/session.js'
 import { createSignedUploadGrant } from '../_lib/storage.js'
 import { serviceRest } from '../_lib/supabase.js'
@@ -12,8 +20,12 @@ export default functionHandler(async (request) => {
   const resolved = await requireSession(request, { verified: true })
   const body = await readJson(request, 16_000)
   const ticketId = String(body.ticketId || '').trim()
-  const fileName = String(body.fileName || '').trim().slice(0, 180)
-  const mimeType = String(body.mimeType || '').trim().toLowerCase()
+  const fileName = String(body.fileName || '')
+    .trim()
+    .slice(0, 180)
+  const mimeType = String(body.mimeType || '')
+    .trim()
+    .toLowerCase()
   const sizeBytes = Number(body.sizeBytes)
   if (!ticketId || !fileName) throw new HttpError(400, 'Ticket and file name are required.', 'attachment-required')
   if (!allowedMime.has(mimeType)) throw new HttpError(415, 'Support attachment type is not allowed.', 'invalid-mime')
@@ -23,8 +35,16 @@ export default functionHandler(async (request) => {
   const { data: tickets } = await serviceRest(
     `/rest/v1/support_tickets?id=eq.${encodeURIComponent(ticketId)}&user_id=eq.${encodeURIComponent(resolved.user.id)}&select=id&limit=1`,
   )
-  if (!Array.isArray(tickets) || !tickets.length) throw new HttpError(404, 'Support ticket not found.', 'ticket-not-found')
-  const extension = mimeType === 'application/pdf' ? 'pdf' : mimeType === 'text/plain' ? 'txt' : mimeType === 'image/png' ? 'png' : 'jpg'
+  if (!Array.isArray(tickets) || !tickets.length)
+    throw new HttpError(404, 'Support ticket not found.', 'ticket-not-found')
+  const extension =
+    mimeType === 'application/pdf'
+      ? 'pdf'
+      : mimeType === 'text/plain'
+        ? 'txt'
+        : mimeType === 'image/png'
+          ? 'png'
+          : 'jpg'
   const objectKey = `${resolved.user.id}/support/${ticketId}/${Date.now()}-${crypto.randomUUID()}.${extension}`
   const grant = await createSignedUploadGrant(objectKey)
   const { data } = await serviceRest('/rest/v1/support_attachments', {
@@ -42,5 +62,17 @@ export default functionHandler(async (request) => {
     },
   })
   const attachment = Array.isArray(data) ? data[0] : data
-  return appendCookies(json({ attachmentId: attachment?.id, signedUrl: grant.signedUrl, token: grant.token, path: grant.path, expiresInSeconds: grant.expiresInSeconds }, 201), resolved.cookies)
+  return appendCookies(
+    json(
+      {
+        attachmentId: attachment?.id,
+        signedUrl: grant.signedUrl,
+        token: grant.token,
+        path: grant.path,
+        expiresInSeconds: grant.expiresInSeconds,
+      },
+      201,
+    ),
+    resolved.cookies,
+  )
 })
