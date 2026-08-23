@@ -1,6 +1,6 @@
 import type { AuthSession } from './types'
 
-export type RoutePolicy = 'public' | 'authenticated' | 'verified' | 'kyc' | 'admin' | 'account-recovery'
+export type RoutePolicy = 'public' | 'authenticated' | 'verified' | 'kyc' | 'admin' | 'operations' | 'account-recovery'
 
 export interface AuthorizationDecision {
   allowed: boolean
@@ -13,6 +13,16 @@ export interface AuthorizationDecision {
     | 'suspended'
     | 'deletion-pending'
 }
+
+const OPERATIONS_ROLES = new Set([
+  'admin',
+  'support_operator',
+  'kyc_operator',
+  'finance_operator',
+  'data_operator',
+  'deployment_operator',
+  'risk_operator',
+])
 
 export function authorizeSession(
   session: AuthSession | null,
@@ -35,6 +45,11 @@ export function authorizeSession(
     return { allowed: false, reason: 'unverified' }
   }
   if (policy === 'verified') return { allowed: true }
+  if (policy === 'operations') {
+    return session.roles.some((role) => OPERATIONS_ROLES.has(role))
+      ? { allowed: true }
+      : { allowed: false, reason: 'forbidden' }
+  }
   if (session.kycStatus !== 'verified') return { allowed: false, reason: 'kyc-required' }
   if (policy === 'kyc') return { allowed: true }
   return session.roles.includes('admin') ? { allowed: true } : { allowed: false, reason: 'forbidden' }
