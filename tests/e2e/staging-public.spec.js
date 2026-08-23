@@ -1,6 +1,22 @@
+import fs from 'node:fs'
 import { expect, test } from '@playwright/test'
 
+const matrix = JSON.parse(
+  fs.readFileSync('Docs/production-readiness/11-live-activation/EVIDENCE_MATRIX.json', 'utf8'),
+)
+const expectedRelease = String(matrix.releaseCandidate || '')
+  .slice(0, 12)
+  .toLowerCase()
 const routes = ['/', '/app', '/login', '/register']
+
+test('staging API health attests the frozen application candidate', async ({ request }) => {
+  const response = await request.get('/api/health')
+  expect(response.ok()).toBeTruthy()
+  expect(response.headers()['cache-control']).toContain('no-store')
+  const payload = await response.json()
+  expect(payload.status).toBe('ok')
+  expect(String(payload.release || '').toLowerCase()).toBe(expectedRelease)
+})
 
 for (const route of routes) {
   test(`staging ${route} has secure headers and no browser errors`, async ({ page }) => {
