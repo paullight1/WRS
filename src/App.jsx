@@ -50,13 +50,20 @@ import ReferralsProduction from './screens/ReferralsProduction.jsx'
 import Notifications from './screens/Notifications.jsx'
 import More from './screens/More.jsx'
 import Profile from './screens/Profile.jsx'
+import ProfileProduction from './screens/ProfileProduction.jsx'
 import Settings from './screens/Settings.jsx'
+import SettingsProduction from './screens/SettingsProduction.jsx'
 import SecuritySettings from './screens/SecuritySettings.jsx'
 import Support from './screens/Support.jsx'
+import SupportProduction from './screens/SupportProduction.jsx'
+import AccountDeletionRecoveryProduction from './screens/AccountDeletionRecoveryProduction.jsx'
+import AdminOperationsProduction from './screens/AdminOperationsProduction.jsx'
 
 const authenticated = (element) => <ProtectedRoute policy="authenticated">{element}</ProtectedRoute>
 const verified = (element) => <ProtectedRoute requireVerified>{element}</ProtectedRoute>
 const kyc = (element) => <ProtectedRoute policy="kyc">{element}</ProtectedRoute>
+const operations = (element) => <ProtectedRoute policy="operations">{element}</ProtectedRoute>
+const accountRecovery = (element) => <ProtectedRoute policy="account-recovery">{element}</ProtectedRoute>
 
 const DeployScreen = runtimeConfig.isDemo ? Deploy : DeployProduction
 const DeploymentDetailsScreen = runtimeConfig.isDemo ? DeploymentDetails : DeploymentDetailsProduction
@@ -68,6 +75,9 @@ const MarketplaceScreen = runtimeConfig.isDemo ? Marketplace : MarketplaceProduc
 const AcademyScreen = runtimeConfig.isDemo ? Academy : AcademyProduction
 const CommunityScreen = runtimeConfig.isDemo ? Community : CommunityProduction
 const ReferralsScreen = runtimeConfig.isDemo ? Referrals : ReferralsProduction
+const ProfileScreen = runtimeConfig.isDemo ? Profile : ProfileProduction
+const SettingsScreen = runtimeConfig.isDemo ? Settings : SettingsProduction
+const SupportScreen = runtimeConfig.isDemo ? Support : SupportProduction
 
 export default function App() {
   return (
@@ -82,6 +92,8 @@ export default function App() {
             <Route path="/verify" element={<Verify />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+
+            <Route path="/account/deletion" element={accountRecovery(<AccountDeletionRecoveryProduction />)} />
 
             <Route path="/onboarding" element={verified(<Onboarding />)} />
             <Route path="/home" element={verified(<Home />)} />
@@ -119,10 +131,11 @@ export default function App() {
             <Route path="/notifications" element={authenticated(<Notifications />)} />
 
             <Route path="/more" element={authenticated(<More />)} />
-            <Route path="/profile" element={authenticated(<Profile />)} />
-            <Route path="/settings" element={authenticated(<Settings />)} />
+            <Route path="/profile" element={authenticated(<ProfileScreen />)} />
+            <Route path="/settings" element={authenticated(<SettingsScreen />)} />
             <Route path="/settings/security" element={authenticated(<SecuritySettings />)} />
-            <Route path="/support" element={authenticated(<Support />)} />
+            <Route path="/support" element={authenticated(<SupportScreen />)} />
+            <Route path="/admin/operations" element={operations(<AdminOperationsProduction />)} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </NotifyProvider>
