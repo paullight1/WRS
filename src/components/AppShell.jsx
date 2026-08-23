@@ -181,7 +181,6 @@ export function Drawer({ open, onClose }) {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
     const query = window.matchMedia('(min-width: 1024px)')
     const onChange = (event) => setDesktop(event.matches)
-    setDesktop(query.matches)
     query.addEventListener('change', onChange)
     return () => query.removeEventListener('change', onChange)
   }, [])
