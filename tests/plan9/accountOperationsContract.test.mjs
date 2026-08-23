@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 
+// Plan 9 RED verification: attachment grants and operator navigation remain intentionally unmet here.
 const root = new URL('../..', import.meta.url)
 const exists = (path) => fs.existsSync(new URL(path, root))
 const read = (path) => fs.readFileSync(new URL(path, root), 'utf8')
