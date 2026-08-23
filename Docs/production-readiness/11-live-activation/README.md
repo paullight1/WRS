@@ -20,3 +20,9 @@ For each phase: define evidence → run the real probe/drill → record result a
 10. 11.10 Merge, promote and controlled feature activation
 
 `EVIDENCE_MATRIX.json` is the machine-readable source of launch truth. `npm run plan11:gate` exits non-zero until every required gate is PASS.
+
+## Frozen application candidate
+
+The live-evidence process currently targets application candidate `900068dda9802129ff312de828fd3735273af1db`. The Plan 11 activation workflow checks that later commits are evidence/governance-only; any runtime drift requires a new application candidate before evidence collection can continue.
+
+The repository activation framework is intentionally separate from the live GO decision. A green PR/CI state does not override an `EXTERNAL_BLOCKER`, and PR #4 remains draft until the strict all-PASS gate succeeds for the selected application candidate.
