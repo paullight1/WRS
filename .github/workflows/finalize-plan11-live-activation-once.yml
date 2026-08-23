@@ -1,0 +1,41 @@
+# Trigger after workflow registration. Self-deletes after deterministic formatting.
+name: One-shot Plan 11 Activation Format
+
+on:
+  push:
+    branches:
+      - prod/plan-11-live-activation
+    paths:
+      - .github/workflows/finalize-plan11-live-activation-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: prod/plan-11-live-activation
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Format Plan 11 owned surface
+        run: >-
+          npx prettier --write
+          api/health.js api/_lib/paystack.js
+          scripts/plan11 tests/plan11 tests/e2e/staging-public.spec.js tests/unit/health.test.mjs
+          .github/workflows/plan11-live-activation-gate.yml
+          package.json playwright.config.js
+      - name: Commit formatting and remove formatter
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/finalize-plan11-live-activation-once.yml
+          git add api/health.js api/_lib/paystack.js scripts/plan11 tests/plan11 tests/e2e/staging-public.spec.js tests/unit/health.test.mjs .github/workflows/plan11-live-activation-gate.yml package.json playwright.config.js
+          git commit -m "style: format Plan 11 live activation surface"
+          git push origin HEAD:prod/plan-11-live-activation
