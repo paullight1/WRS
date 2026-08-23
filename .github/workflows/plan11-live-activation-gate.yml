@@ -13,6 +13,10 @@ on:
         required: false
         default: false
         type: boolean
+      release_candidate_sha:
+        description: 'Exact application commit being promoted; required when enforce_go=true'
+        required: false
+        type: string
       staging_url:
         description: 'Optional HTTPS staging URL for live probes'
         required: false
@@ -129,10 +133,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      WRS_EXPECTED_RELEASE_CANDIDATE: ${{ github.sha }}
+      WRS_EXPECTED_RELEASE_CANDIDATE: ${{ inputs.release_candidate_sha }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+      - name: Validate release candidate input
+        run: |
+          if ! printf '%s' "$WRS_EXPECTED_RELEASE_CANDIDATE" | grep -Eq '^[0-9a-fA-F]{40}$'; then
+            echo 'release_candidate_sha must be a full 40-character commit SHA' >&2
+            exit 2
+          fi
       - run: npm run plan11:gate
