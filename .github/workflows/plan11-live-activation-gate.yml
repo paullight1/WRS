@@ -46,12 +46,15 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: node --test tests/plan11/*.test.mjs
+      - run: node scripts/plan11/assert-release-candidate.mjs
       - run: npm run plan11:status
 
   staging-probe:
@@ -136,6 +139,8 @@ jobs:
       WRS_EXPECTED_RELEASE_CANDIDATE: ${{ inputs.release_candidate_sha }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v5
         with:
           node-version: 24
@@ -145,4 +150,5 @@ jobs:
             echo 'release_candidate_sha must be a full 40-character commit SHA' >&2
             exit 2
           fi
+      - run: node scripts/plan11/assert-release-candidate.mjs
       - run: npm run plan11:gate
