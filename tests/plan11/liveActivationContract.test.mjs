@@ -85,3 +85,13 @@ test('Playwright can target an external staging URL without starting the local V
   assert.match(source, /webServer:\s*externalBaseURL/)
   assert.match(source, /\? undefined/)
 })
+
+test('payment activation tools refuse live-key probes and production pins Paystack to its official API origin', () => {
+  const probe = fs.readFileSync('scripts/plan11/paystack-sandbox-probe.mjs', 'utf8')
+  const provider = fs.readFileSync('api/_lib/paystack.js', 'utf8')
+  assert.match(probe, /sk_test_/)
+  assert.match(probe, /refuses non-test keys/i)
+  assert.match(provider, /OFFICIAL_PAYSTACK_ORIGIN/)
+  assert.match(provider, /VITE_WRS_MODE/)
+  assert.match(provider, /production/i)
+})
