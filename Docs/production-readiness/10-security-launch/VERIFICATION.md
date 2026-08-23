@@ -42,6 +42,20 @@ The following read-only GitHub Actions runs completed successfully on the certif
 - Plan 8 Ecosystem Database Gate — `32621587058` — PASS
 - Plan 9 Account Operations Database Gate — `32621587048` — PASS
 
+## Final documentation-head re-verification
+
+After the certification and fail-closed launch-decision documents were updated, the resulting PR head `7beb66d8734d8996cdd9fe247469befcdbd585b4` was re-verified with read-only CI:
+
+- WRS Quality Gate — `32621725519` — PASS
+- Plan 10 Security and Launch Gate — `32621725483` — PASS
+- Plan 10 Recovery Gate — `32621725534` — PASS
+- Plans 3–4 Database Gate — `32621725447` — PASS
+- Plan 5 Financial Database Gate — `32621725453` — PASS
+- Plan 6 Privacy Database Gate — `32621725464` — PASS
+- Plan 7 Deployment Database Gate — `32621725432` — PASS
+- Plan 8 Ecosystem Database Gate — `32621725530` — PASS
+- Plan 9 Account Operations Database Gate — `32621725478` — PASS
+
 ## Adversarial findings fixed during Plan 10
 
 - Added bounded JSON/content-type enforcement and request-size rejection at the shared HTTP boundary.
@@ -57,6 +71,6 @@ The following read-only GitHub Actions runs completed successfully on the certif
 
 ## Classification
 
-Plan 10 is **code-side production-ready for the repository-controlled security, reliability and release scope** on the certified code head above.
+Plan 10 is **code-side production-ready for the repository-controlled security, reliability and release scope** on the certified code head above, and the final documentation head was independently re-verified green.
 
 This does **not** classify WRS live production activation as GO. Live provider, staging, operational, legal/manual and repository-governance evidence listed as `EXTERNAL BLOCKER` in `LAUNCH_DECISION.md` remains unresolved. Critical transactional/sensitive features must remain fail-closed until those blockers are converted to evidence-backed PASS results.
