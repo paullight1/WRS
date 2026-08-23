@@ -25,7 +25,7 @@
     "plan11:status": "node scripts/plan11/evaluate-launch-evidence.mjs --allow-blocked",
     "plan11:gate": "node scripts/plan11/evaluate-launch-evidence.mjs",
     "plan11:staging-probe": "node scripts/plan11/staging-probe.mjs",
-    "plan11:staging-e2e": "playwright test tests/e2e/accessibility.spec.js tests/e2e/smoke.spec.js",
+    "plan11:staging-e2e": "playwright test tests/e2e/staging-public.spec.js",
     "plan11:staging-lab-vitals": "node scripts/plan11/staging-lab-vitals.mjs",
     "plan11:paystack-probe": "node scripts/plan11/paystack-sandbox-probe.mjs",
     "ci": "npm run lint && npm run typecheck && npm run format:check && npm run test:contracts && npm test && npm run check:secrets && npm run build && npm run check:bundle-budget && npm run audit"
