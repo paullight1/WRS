@@ -18,7 +18,13 @@ function providerMessage(data, fallback) {
 }
 
 function isTimeout(error) {
-  return error?.name === 'TimeoutError' || (error?.name === 'AbortError' && String(error?.message || '').toLowerCase().includes('timeout'))
+  return (
+    error?.name === 'TimeoutError' ||
+    (error?.name === 'AbortError' &&
+      String(error?.message || '')
+        .toLowerCase()
+        .includes('timeout'))
+  )
 }
 
 export async function supabaseRequest(path, options = {}) {

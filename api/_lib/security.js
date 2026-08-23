@@ -1,7 +1,8 @@
 import crypto from 'node:crypto'
 
 const REQUEST_ID = /^[A-Za-z0-9._:-]{8,128}$/
-const SENSITIVE_KEY = /(password|passcode|secret|token|authorization|cookie|session|email|phone|amount|wallet|bank|card|biometric|voice|face|movement|document|nin|bvn)/i
+const SENSITIVE_KEY =
+  /(password|passcode|secret|token|authorization|cookie|session|email|phone|amount|wallet|bank|card|biometric|voice|face|movement|document|nin|bvn)/i
 const MAX_REDACTION_DEPTH = 6
 
 function sanitizeTelemetryString(value, maxLength = 1000) {
@@ -10,11 +11,16 @@ function sanitizeTelemetryString(value, maxLength = 1000) {
     .replace(/\bBearer\s+[^\s,;]+/gi, 'Bearer [REDACTED]')
     .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[REDACTED_EMAIL]')
     .replace(/\+[1-9][0-9]{7,14}\b/g, '[REDACTED_PHONE]')
-    .replace(/\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{30,}|sk_live_[A-Za-z0-9]{16,}|sb_secret_[A-Za-z0-9_-]{16,})\b/g, '[REDACTED_CREDENTIAL]')
+    .replace(
+      /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{30,}|sk_live_[A-Za-z0-9]{16,}|sb_secret_[A-Za-z0-9_-]{16,})\b/g,
+      '[REDACTED_CREDENTIAL]',
+    )
 }
 
 export function requestId(request) {
-  const supplied = String(request?.headers?.get?.('x-request-id') || request?.headers?.get?.('x-vercel-id') || '').trim()
+  const supplied = String(
+    request?.headers?.get?.('x-request-id') || request?.headers?.get?.('x-vercel-id') || '',
+  ).trim()
   return REQUEST_ID.test(supplied) ? supplied : crypto.randomUUID()
 }
 

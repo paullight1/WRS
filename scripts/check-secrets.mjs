@@ -23,9 +23,7 @@ export function scanText(text) {
 }
 
 export function trackedFiles() {
-  return execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' })
-    .split('\0')
-    .filter(Boolean)
+  return execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean)
 }
 
 export function scanRepository(files = trackedFiles()) {

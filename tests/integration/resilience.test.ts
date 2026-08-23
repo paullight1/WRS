@@ -45,7 +45,10 @@ describe('fail-closed upstream resilience', () => {
   })
 
   it('maps an upstream outage to an unavailable error rather than success', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"message":"down"}', { status: 503 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{"message":"down"}', { status: 503 })),
+    )
     const { supabaseRequest } = await supabase()
     await expect(supabaseRequest('/rest/v1/health')).rejects.toMatchObject({ status: 502, code: 'upstream-error' })
   })

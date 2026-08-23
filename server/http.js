@@ -109,15 +109,32 @@ export function functionHandler(handler) {
       try {
         const response = await handler(request)
         response.headers.set('x-request-id', telemetry.requestId)
-        telemetry.info('api.request.completed', { method: request.method, status: response.status, durationMs: telemetry.durationMs() })
+        telemetry.info('api.request.completed', {
+          method: request.method,
+          status: response.status,
+          durationMs: telemetry.durationMs(),
+        })
         return response
       } catch (error) {
         if (error instanceof HttpError) {
-          telemetry.warn('api.request.rejected', { method: request.method, status: error.status, code: error.code, durationMs: telemetry.durationMs() })
-          return json({ message: error.message, code: error.code }, error.status, { 'x-request-id': telemetry.requestId })
+          telemetry.warn('api.request.rejected', {
+            method: request.method,
+            status: error.status,
+            code: error.code,
+            durationMs: telemetry.durationMs(),
+          })
+          return json({ message: error.message, code: error.code }, error.status, {
+            'x-request-id': telemetry.requestId,
+          })
         }
-        telemetry.error('api.request.failed', error, { method: request.method, status: 500, durationMs: telemetry.durationMs() })
-        return json({ message: 'The service could not complete the request.' }, 500, { 'x-request-id': telemetry.requestId })
+        telemetry.error('api.request.failed', error, {
+          method: request.method,
+          status: 500,
+          durationMs: telemetry.durationMs(),
+        })
+        return json({ message: 'The service could not complete the request.' }, 500, {
+          'x-request-id': telemetry.requestId,
+        })
       }
     },
   }

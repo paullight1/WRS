@@ -7,9 +7,7 @@ for (const route of criticalRoutes) {
   test(`no serious WCAG 2.1 AA violations on ${route}`, async ({ page }) => {
     await page.goto(route)
     await page.waitForLoadState('networkidle')
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .analyze()
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
     const highImpact = results.violations
       .filter((violation) => ['critical', 'serious'].includes(violation.impact || ''))
       .map((violation) => ({ id: violation.id, impact: violation.impact, nodes: violation.nodes.length }))
