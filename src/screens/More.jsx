@@ -5,12 +5,23 @@ import { useRobot } from '../components/robot/RobotProvider.jsx'
 import { Icon, List, Row, SectionTitle } from '../components/ui.jsx'
 import { packageDefinition } from '../domain/robot/packages.ts'
 
+const operatorRoles = new Set([
+  'admin',
+  'support_operator',
+  'kyc_operator',
+  'finance_operator',
+  'data_operator',
+  'deployment_operator',
+  'risk_operator',
+])
+
 export default function More() {
   const auth = useAuth()
   const robotState = useRobot()
   const navigate = useNavigate()
   const accountLabel = auth.isDemo ? 'Demo account' : `Account ${auth.session?.userId?.slice(0, 8) || ''}`
   const packageLabel = robotState.robot ? packageDefinition(robotState.robot.packageSlug).name : 'No active robot'
+  const canOperate = !auth.isDemo && (auth.session?.roles || []).some((role) => operatorRoles.has(role))
 
   const groups = [
     {
@@ -69,6 +80,17 @@ export default function More() {
         { icon: 'person', t: 'outline', title: 'Profile', to: '/profile' },
         { icon: 'settings', t: 'outline', title: 'Settings', to: '/settings' },
         { icon: 'help_outline', t: 'outline', title: 'Support', to: '/support' },
+        ...(canOperate
+          ? [
+              {
+                icon: 'admin_panel_settings',
+                t: 'secondary',
+                title: 'Operations',
+                subtitle: 'Role-scoped production operations',
+                to: '/admin/operations',
+              },
+            ]
+          : []),
       ],
     },
   ]
