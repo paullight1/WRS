@@ -16,7 +16,9 @@ const allowedExact = new Set(['.github/workflows/plan11-live-activation-gate.yml
 
 let changed
 try {
-  changed = execFileSync('git', ['diff', '--name-only', `${candidate}..HEAD`], { encoding: 'utf8' })
+  changed = execFileSync('git', ['diff', '--name-only', `${candidate}..HEAD`], {
+    encoding: 'utf8',
+  })
     .split('\n')
     .map((value) => value.trim())
     .filter(Boolean)
@@ -36,4 +38,14 @@ if (runtimeDrift.length) {
   )
 }
 
-console.log(JSON.stringify({ status: 'PASS', releaseCandidate: candidate, evidenceOnlyChanges: changed }, null, 2))
+console.log(
+  JSON.stringify(
+    {
+      status: 'PASS',
+      releaseCandidate: candidate,
+      evidenceOnlyChanges: changed,
+    },
+    null,
+    2,
+  ),
+)
