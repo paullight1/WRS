@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 const base = String(process.env.WRS_STAGING_URL || process.argv[2] || '').replace(/\/$/, '')
+const expectedCandidate = String(process.env.WRS_EXPECTED_RELEASE_CANDIDATE || '').trim()
 if (!/^https:\/\//.test(base)) throw new Error('WRS_STAGING_URL must be an https URL')
+if (!/^[0-9a-f]{40}$/i.test(expectedCandidate)) {
+  throw new Error('WRS_EXPECTED_RELEASE_CANDIDATE must be a full 40-character commit SHA')
+}
 
 const routes = ['/', '/app', '/login']
 for (const route of routes) {
@@ -25,4 +29,22 @@ if (!healthResponse.headers.get('cache-control')?.includes('no-store')) {
   throw new Error('/api/health must be no-store')
 }
 
-console.log(JSON.stringify({ status: 'PASS', base, health }, null, 2))
+const expectedRelease = expectedCandidate.slice(0, 12).toLowerCase()
+const deployedRelease = String(health.release || '').toLowerCase()
+if (deployedRelease !== expectedRelease) {
+  throw new Error(`staging release mismatch: deployed=${deployedRelease || 'unknown'} expected=${expectedRelease}`)
+}
+
+console.log(
+  JSON.stringify(
+    {
+      status: 'PASS',
+      base,
+      releaseCandidate: expectedCandidate,
+      deployedRelease,
+      healthStatus: health.status,
+    },
+    null,
+    2,
+  ),
+)
