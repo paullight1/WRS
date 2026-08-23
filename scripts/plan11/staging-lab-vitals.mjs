@@ -1,8 +1,23 @@
 #!/usr/bin/env node
 import { chromium } from '@playwright/test'
+import { loadEvidence } from './evidence.mjs'
 
+const matrix = loadEvidence('Docs/production-readiness/11-live-activation/EVIDENCE_MATRIX.json')
 const base = String(process.env.WRS_STAGING_URL || process.argv[2] || '').replace(/\/$/, '')
+const expectedRelease = String(matrix.releaseCandidate || '')
+  .slice(0, 12)
+  .toLowerCase()
 if (!/^https:\/\//.test(base)) throw new Error('WRS_STAGING_URL must be an https URL')
+if (!/^[0-9a-f]{12}$/i.test(expectedRelease)) throw new Error('Plan 11 release candidate is invalid')
+
+const healthResponse = await fetch(`${base}/api/health`, { headers: { accept: 'application/json' } })
+if (!healthResponse.ok) throw new Error(`/api/health returned ${healthResponse.status}`)
+const health = await healthResponse.json().catch(() => null)
+if (health?.status !== 'ok' || String(health.release || '').toLowerCase() !== expectedRelease) {
+  throw new Error(
+    `staging release mismatch: deployed=${String(health?.release || 'unknown').toLowerCase()} expected=${expectedRelease}`,
+  )
+}
 
 const LCP_BUDGET_MS = 2500
 const CLS_BUDGET = 0.1
@@ -57,6 +72,7 @@ const result = {
   gate: 'mobile-web-vitals',
   status: failed.length ? 'LAB_FAIL' : 'LAB_PASS',
   checkedAt: new Date().toISOString(),
+  releaseCandidate: matrix.releaseCandidate,
   profile: 'mobile-lab-1.6Mbps-150ms',
   budgets: { lcpMs: LCP_BUDGET_MS, cls: CLS_BUDGET },
   measurements: evidence,
