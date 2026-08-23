@@ -4,6 +4,17 @@ import test from 'node:test'
 import { decision, loadEvidence, REQUIRED_GATES } from '../../scripts/plan11/evidence.mjs'
 
 const matrixPath = 'Docs/production-readiness/11-live-activation/EVIDENCE_MATRIX.json'
+const humanSignoffGates = new Set(['manual-accessibility', 'legal-privacy-compliance', 'named-launch-owners'])
+
+function passGate(gate) {
+  return {
+    ...gate,
+    status: 'PASS',
+    evidenceRef: `run:test:${gate.id}`,
+    checkedAt: '2026-08-23T06:30:00.000Z',
+    ...(humanSignoffGates.has(gate.id) ? { approvedBy: ['Named Reviewer'] } : {}),
+  }
+}
 
 test('Plan 11 live-activation phase files and machine-readable evidence exist', () => {
   assert.ok(fs.existsSync(matrixPath))
@@ -26,15 +37,32 @@ test('launch evidence is fail-closed and every required live gate is represented
   assert.ok(result.blockers.every((gate) => gate.status !== 'PASS'))
 })
 
-test('GO requires every required gate to be PASS', () => {
+test('GO requires every required gate to have structured PASS evidence', () => {
   const matrix = loadEvidence(matrixPath)
-  const allPass = { ...matrix, gates: matrix.gates.map((gate) => ({ ...gate, status: 'PASS' })) }
+  const unprovenPass = { ...matrix, gates: matrix.gates.map((gate) => ({ ...gate, status: 'PASS' })) }
+  assert.equal(decision(unprovenPass).decision, 'NO_GO')
+  assert.ok(decision(unprovenPass).issues.some((issue) => issue.includes('evidenceRef')))
+
+  const allPass = { ...matrix, gates: matrix.gates.map(passGate) }
   assert.equal(decision(allPass).decision, 'GO')
+
   const oneBlocked = {
     ...allPass,
-    gates: allPass.gates.map((gate, index) => (index === 0 ? { ...gate, status: 'EXTERNAL_BLOCKER' } : gate)),
+    gates: allPass.gates.map((gate, index) =>
+      index === 0 ? { ...gate, status: 'EXTERNAL_BLOCKER', evidenceRef: undefined, checkedAt: undefined } : gate,
+    ),
   }
   assert.equal(decision(oneBlocked).decision, 'NO_GO')
+})
+
+test('human sign-off gates require named approval evidence', () => {
+  const matrix = loadEvidence(matrixPath)
+  const gates = matrix.gates.map(passGate)
+  const target = gates.find((gate) => gate.id === 'legal-privacy-compliance')
+  delete target.approvedBy
+  const result = decision({ ...matrix, gates })
+  assert.equal(result.decision, 'NO_GO')
+  assert.ok(result.issues.some((issue) => issue.includes('approvedBy')))
 })
 
 test('staging probe is HTTPS-only and checks production browser security headers', () => {
@@ -45,6 +73,15 @@ test('staging probe is HTTPS-only and checks production browser security headers
     'strict-transport-security',
     'x-content-type-options',
     'referrer-policy',
-  ])
+  ]) {
     assert.match(source, new RegExp(header))
+  }
+})
+
+test('Playwright can target an external staging URL without starting the local Vite server', () => {
+  const source = fs.readFileSync('playwright.config.js', 'utf8')
+  assert.match(source, /WRS_E2E_BASE_URL/)
+  assert.match(source, /externalBaseURL/)
+  assert.match(source, /webServer:\s*externalBaseURL/)
+  assert.match(source, /\? undefined/)
 })
