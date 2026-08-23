@@ -1,4 +1,5 @@
 import crypto from 'node:crypto'
+import { enforceRateLimit } from '../_lib/auth.js'
 import {
   appendCookies,
   assertSameOrigin,
@@ -18,6 +19,7 @@ export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
   assertSameOrigin(request)
   const resolved = await requireSession(request, { verified: true })
+  await enforceRateLimit(request, 'support-attachment-grant', resolved.user.id, 12, 600)
   const body = await readJson(request, 16_000)
   const ticketId = String(body.ticketId || '').trim()
   const fileName = String(body.fileName || '')
