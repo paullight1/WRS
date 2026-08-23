@@ -26,9 +26,9 @@
       "phase": "11.2",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Repository admin",
-      "evidence": "Connected GitHub action surface exposes repository/PR/workflow writes but no branch-protection or ruleset mutation.",
-      "evidenceRef": "connector:github:capability-audit:2026-08-23",
-      "checkedAt": "2026-08-23T06:30:00.000Z"
+      "evidence": "GitHub branch metadata reports main protected=false with required-status-check enforcement off. The connected GitHub action surface exposes no branch-protection or ruleset mutation, so this must be enabled by a repository administrator outside the current connector.",
+      "evidenceRef": "github:branches/main:protected-false:2026-08-23",
+      "checkedAt": "2026-08-23T06:48:00.000Z"
     },
     {
       "id": "payment-sandbox",
