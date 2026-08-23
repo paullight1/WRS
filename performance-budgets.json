@@ -1,0 +1,14 @@
+{
+  "bundle": {
+    "maxInitialJsKb": 575,
+    "maxLargestLazyJsKb": 850,
+    "maxTotalJsKb": 1450,
+    "maxInitialCssKb": 50
+  },
+  "webVitals": {
+    "lcpMs": 3000,
+    "inpMs": 250,
+    "cls": 0.1
+  },
+  "notes": "Bundle limits are raw minified bytes measured from the Vite production build. Web Vital targets are staging/mobile launch gates and require production-like browser evidence."
+}
