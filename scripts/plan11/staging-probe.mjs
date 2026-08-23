@@ -16,4 +16,13 @@ for (const route of routes) {
     if (!headers.get(required)) throw new Error(`${route} missing ${required}`)
   }
 }
-console.log(`staging probe passed for ${base}`)
+
+const healthResponse = await fetch(`${base}/api/health`, { headers: { accept: 'application/json' } })
+if (!healthResponse.ok) throw new Error(`/api/health returned ${healthResponse.status}`)
+const health = await healthResponse.json().catch(() => null)
+if (health?.status !== 'ok') throw new Error('/api/health did not report ok')
+if (!healthResponse.headers.get('cache-control')?.includes('no-store')) {
+  throw new Error('/api/health must be no-store')
+}
+
+console.log(JSON.stringify({ status: 'PASS', base, health }, null, 2))
