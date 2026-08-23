@@ -1,9 +1,7 @@
 import fs from 'node:fs'
 import { expect, test } from '@playwright/test'
 
-const matrix = JSON.parse(
-  fs.readFileSync('Docs/production-readiness/11-live-activation/EVIDENCE_MATRIX.json', 'utf8'),
-)
+const matrix = JSON.parse(fs.readFileSync('Docs/production-readiness/11-live-activation/EVIDENCE_MATRIX.json', 'utf8'))
 const expectedRelease = String(matrix.releaseCandidate || '')
   .slice(0, 12)
   .toLowerCase()
