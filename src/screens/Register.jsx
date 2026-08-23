@@ -167,7 +167,7 @@ export default function Register() {
         </div>
         <p className="mt-6 text-center text-label-sm text-outline">
           Already registered?{' '}
-          <Link to="/login" className="text-primary hover:text-tertiary">
+          <Link to="/login" className="text-primary underline decoration-current underline-offset-2 hover:text-tertiary">
             Login
           </Link>
         </p>
