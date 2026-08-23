@@ -82,12 +82,24 @@ jobs:
           insert into public.user_settings(user_id,language,currency,timezone)
           values('00000000-0000-4000-8000-000000000099','en','USD','UTC');
           SQL
-      - name: Dump and restore into isolated database
+      - name: Dump and restore into isolated database with PostgreSQL 17 client
         run: |
           set -euo pipefail
-          pg_dump --format=custom --no-owner --no-privileges -f /tmp/wrs.dump wrs_recovery_source
+          mkdir -p /tmp/wrs-recovery
+          docker run --rm --network host \
+            -e PGPASSWORD=postgres \
+            -v /tmp/wrs-recovery:/backup \
+            postgres:17 \
+            pg_dump -h 127.0.0.1 -U postgres -d wrs_recovery_source \
+              --format=custom --no-owner --no-privileges -f /backup/wrs.dump
           createdb wrs_recovery_restored
-          pg_restore --no-owner --no-privileges --exit-on-error -d wrs_recovery_restored /tmp/wrs.dump
+          docker run --rm --network host \
+            -e PGPASSWORD=postgres \
+            -v /tmp/wrs-recovery:/backup \
+            postgres:17 \
+            pg_restore -h 127.0.0.1 -U postgres \
+              --no-owner --no-privileges --exit-on-error \
+              -d wrs_recovery_restored /backup/wrs.dump
       - name: Verify restored integrity
         run: |
           set -euo pipefail
