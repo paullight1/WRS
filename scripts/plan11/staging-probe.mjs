@@ -1,9 +1,14 @@
 #!/usr/bin/env node
+import { loadEvidence } from './evidence.mjs'
+
+const matrixPath = 'Docs/production-readiness/11-live-activation/EVIDENCE_MATRIX.json'
+const matrix = loadEvidence(matrixPath)
 const base = String(process.env.WRS_STAGING_URL || process.argv[2] || '').replace(/\/$/, '')
-const expectedCandidate = String(process.env.WRS_EXPECTED_RELEASE_CANDIDATE || '').trim()
+const expectedCandidate = String(process.env.WRS_EXPECTED_RELEASE_CANDIDATE || matrix.releaseCandidate || '').trim()
+
 if (!/^https:\/\//.test(base)) throw new Error('WRS_STAGING_URL must be an https URL')
 if (!/^[0-9a-f]{40}$/i.test(expectedCandidate)) {
-  throw new Error('WRS_EXPECTED_RELEASE_CANDIDATE must be a full 40-character commit SHA')
+  throw new Error('Plan 11 evidence must identify a full 40-character release candidate SHA')
 }
 
 const routes = ['/', '/app', '/login']
