@@ -55,7 +55,7 @@ test('GO requires every required gate to have structured PASS evidence', () => {
   assert.equal(decision(oneBlocked).decision, 'NO_GO')
 })
 
-test('strict GO evidence is bound to the exact release candidate commit', () => {
+test('strict GO evidence is bound to the explicitly selected application release candidate', () => {
   const matrix = loadEvidence(matrixPath)
   const allPass = { ...matrix, gates: matrix.gates.map(passGate) }
   assert.equal(decision(allPass, { expectedReleaseCandidate: matrix.releaseCandidate }).decision, 'GO')
@@ -64,8 +64,9 @@ test('strict GO evidence is bound to the exact release candidate commit', () => 
   assert.ok(mismatch.issues.some((issue) => issue.includes('release candidate mismatch')))
 
   const workflow = fs.readFileSync('.github/workflows/plan11-live-activation-gate.yml', 'utf8')
+  assert.match(workflow, /release_candidate_sha/)
   assert.match(workflow, /WRS_EXPECTED_RELEASE_CANDIDATE/)
-  assert.match(workflow, /github\.sha/)
+  assert.match(workflow, /inputs\.release_candidate_sha/)
 })
 
 test('human sign-off gates require named approval evidence', () => {
@@ -89,6 +90,7 @@ test('staging probe is HTTPS-only and checks production browser security headers
   ]) {
     assert.match(source, new RegExp(header))
   }
+  assert.match(source, /\/api\/health/)
 })
 
 test('Playwright can target an external staging URL without starting the local Vite server', () => {
