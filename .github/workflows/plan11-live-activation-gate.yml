@@ -1,0 +1,60 @@
+name: Plan 11 Live Activation Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - prod/plan-11-live-activation
+      - main
+  workflow_dispatch:
+    inputs:
+      enforce_go:
+        description: 'Require every live gate to be PASS'
+        required: false
+        default: false
+        type: boolean
+      staging_url:
+        description: 'Optional HTTPS staging URL for the live browser/header probe'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/plan11/*.test.mjs
+      - run: npm run plan11:status
+
+  staging-probe:
+    if: github.event_name == 'workflow_dispatch' && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WRS_STAGING_URL: ${{ inputs.staging_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm run plan11:staging-probe
+
+  strict-go:
+    if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm run plan11:gate
