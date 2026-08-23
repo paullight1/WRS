@@ -1,0 +1,35 @@
+# Trigger after workflow registration. Self-deletes after deterministic formatting.
+name: One-shot Plan 11 Staging Test Format
+
+on:
+  push:
+    branches:
+      - prod/plan-11-live-activation
+    paths:
+      - .github/workflows/finalize-plan11-staging-test-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: prod/plan-11-live-activation
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prettier --write tests/e2e/staging-public.spec.js
+      - name: Commit deterministic formatting and self-delete
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/finalize-plan11-staging-test-once.yml
+          git add tests/e2e/staging-public.spec.js
+          git commit -m "style: format Plan 11 staging browser evidence"
+          git push origin HEAD:prod/plan-11-live-activation
