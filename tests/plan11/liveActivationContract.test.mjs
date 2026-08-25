@@ -16,6 +16,11 @@ function passGate(gate) {
   }
 }
 
+function unprovenPassGate(gate) {
+  const { evidenceRef: _evidenceRef, checkedAt: _checkedAt, approvedBy: _approvedBy, ...rest } = gate
+  return { ...rest, status: 'PASS' }
+}
+
 test('Plan 11 live-activation phase files and machine-readable evidence exist', () => {
   assert.ok(fs.existsSync(matrixPath))
   for (let phase = 1; phase <= 10; phase += 1) {
@@ -39,7 +44,7 @@ test('launch evidence is fail-closed and every required live gate is represented
 
 test('GO requires every required gate to have structured PASS evidence', () => {
   const matrix = loadEvidence(matrixPath)
-  const unprovenPass = { ...matrix, gates: matrix.gates.map((gate) => ({ ...gate, status: 'PASS' })) }
+  const unprovenPass = { ...matrix, gates: matrix.gates.map(unprovenPassGate) }
   assert.equal(decision(unprovenPass).decision, 'NO_GO')
   assert.ok(decision(unprovenPass).issues.some((issue) => issue.includes('evidenceRef')))
 
