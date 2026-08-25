@@ -97,13 +97,20 @@ BEGIN
     raise exception 'WRS operational verification failed: recent critical deployment incident exists';
   end if;
 
+  -- A long-running deployment is not stale merely because its row has not
+  -- transitioned recently. Treat it as stale only when state, event and work
+  -- evidence have all been quiet for 24 hours.
   if exists (
     select 1
     from public.deployments d
     where d.status = 'active'
-      and d.updated_at < now() - interval '24 hours'
+      and greatest(
+        d.updated_at,
+        coalesce((select max(e.occurred_at) from public.deployment_events e where e.deployment_id=d.id), d.updated_at),
+        coalesce((select max(w.recorded_at) from public.deployment_work_logs w where w.deployment_id=d.id), d.updated_at)
+      ) < now() - interval '24 hours'
   ) then
-    raise exception 'WRS operational verification failed: active deployment has stale state timestamp';
+    raise exception 'WRS operational verification failed: active deployment has no recent state/work evidence';
   end if;
 
   raise notice 'WRS Plan 11.5 operational-health verification PASS';
