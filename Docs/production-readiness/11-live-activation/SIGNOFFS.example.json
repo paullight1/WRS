@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "releaseCandidate": "<commit-sha>",
+  "signoffs": {
+    "manualAccessibility": {
+      "status": "PENDING",
+      "reviewers": [],
+      "checkedAt": null,
+      "evidenceRef": null,
+      "scope": ["keyboard-only", "visible-focus", "200%-zoom-reflow", "contrast-touch-targets", "assistive-technology"]
+    },
+    "legalPrivacyCompliance": {
+      "status": "PENDING",
+      "reviewers": [],
+      "checkedAt": null,
+      "evidenceRef": null,
+      "scope": ["launch-jurisdictions", "biometric-processing", "data-processing", "payments-payouts", "retention", "terms-privacy-notice"]
+    },
+    "launchOwners": {
+      "status": "PENDING",
+      "incidentCommander": null,
+      "releaseOwner": null,
+      "rollbackOwner": null,
+      "checkedAt": null,
+      "evidenceRef": null
+    }
+  }
+}
