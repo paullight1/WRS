@@ -1,5 +1,10 @@
 # Product
 
+> This file captures the original product/design thesis. The maintained product plan,
+> feature phases, trust rules, roles, and information architecture are indexed in
+> [Docs/README.md](Docs/README.md). New feature decisions should use the
+> [feature specification template](Docs/product/FEATURE_SPEC_TEMPLATE.md).
+
 ## Register
 
 product
