@@ -34,7 +34,6 @@ export default function Overview() {
     <div className="space-y-5">
       {error ? <div role="status" className="flex items-center justify-between gap-3 rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-body-sm text-error"><span>{error}</span><button className="text-label-md underline" onClick={load}>Retry</button></div> : null}
       <section className="relative overflow-hidden rounded-3xl border border-[#b995ff]/30 bg-[radial-gradient(circle_at_86%_10%,rgba(185,149,255,.22),transparent_34%),linear-gradient(135deg,#1c163c,#10161f_66%)] p-5 sm:p-7">
-        <img src="/assets/rbc-mining-hero.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 h-full w-[58%] object-cover object-center opacity-55 mix-blend-screen" />
         <div className="absolute -right-12 -top-12 grid h-52 w-52 place-items-center rounded-full border border-[#d9caff]/20 text-[#d9caff]/20"><Icon name="currency_bitcoin" fill className="text-[108px]" /></div>
         <div className="relative max-w-xl">
           <p className="flex items-center gap-2 text-label-md uppercase tracking-[.14em] text-[#dfd2ff]"><Icon name="currency_bitcoin" fill /> RobotCoin (RBC)</p>
