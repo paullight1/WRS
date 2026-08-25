@@ -11,7 +11,9 @@ const bankCode = String(process.env.WRS_PAYSTACK_TEST_BANK_CODE || '057').trim()
 const amountMinor = Number(process.env.WRS_PAYSTACK_TEST_PAYOUT_AMOUNT_MINOR || 10_000)
 const currency = 'NGN'
 
-if (!/^\d{10}$/.test(accountNumber)) throw new Error('WRS_PAYSTACK_TEST_ACCOUNT must be a 10-digit test account')
+if (!/^\d{10}$/.test(accountNumber)) {
+  throw new Error('WRS_PAYSTACK_TEST_ACCOUNT must be a 10-digit test account')
+}
 if (!/^\d{3,6}$/.test(bankCode)) throw new Error('WRS_PAYSTACK_TEST_BANK_CODE is invalid')
 if (!Number.isSafeInteger(amountMinor) || amountMinor < 100 || amountMinor > 100_000) {
   throw new Error('WRS_PAYSTACK_TEST_PAYOUT_AMOUNT_MINOR must be an integer between 100 and 100000')
@@ -58,7 +60,9 @@ const recipient = await providerRequest('/transferrecipient', {
 })
 
 if (!recipient.recipient_code) throw new Error('Paystack did not return a transfer recipient code')
-if (recipient.domain && recipient.domain !== 'test') throw new Error('Paystack transfer recipient was not created in test mode')
+if (recipient.domain && recipient.domain !== 'test') {
+  throw new Error('Paystack transfer recipient was not created in test mode')
+}
 
 const transfer = await providerRequest('/transfer', {
   method: 'POST',
@@ -76,10 +80,14 @@ if (transfer.domain && transfer.domain !== 'test') throw new Error('Paystack tra
 if (String(transfer.reference || '') !== reference) throw new Error('Paystack transfer reference mismatch')
 
 const verified = await providerRequest(`/transfer/verify/${encodeURIComponent(reference)}`)
-if (verified.domain && verified.domain !== 'test') throw new Error('Paystack verified transfer was not in test mode')
+if (verified.domain && verified.domain !== 'test') {
+  throw new Error('Paystack verified transfer was not in test mode')
+}
 if (String(verified.reference || '') !== reference) throw new Error('Paystack verified transfer reference mismatch')
 if (Number(verified.amount) !== amountMinor) throw new Error('Paystack verified transfer amount mismatch')
-if (String(verified.currency || '').toUpperCase() !== currency) throw new Error('Paystack verified transfer currency mismatch')
+if (String(verified.currency || '').toUpperCase() !== currency) {
+  throw new Error('Paystack verified transfer currency mismatch')
+}
 
 const evidence = {
   gate: 'payout-sandbox',
