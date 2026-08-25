@@ -59,6 +59,11 @@ on:
         required: false
         default: false
         type: boolean
+      run_hosting_rollback_drill:
+        description: 'Promote, roll back and restore the frozen candidate on the dedicated staging project'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -212,6 +217,29 @@ jobs:
         with:
           name: plan11-alert-routing
           path: plan11-alert-routing.json
+
+  vercel-staging-rollback-drill:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_hosting_rollback_drill && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRS_VERCEL_ENVIRONMENT: staging
+      WRS_STAGING_URL: ${{ inputs.staging_url }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.WRS_STAGING_VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.WRS_STAGING_VERCEL_PROJECT_ID }}
+      WRS_VERCEL_STAGING_CANDIDATE_DEPLOYMENT: ${{ secrets.WRS_STAGING_VERCEL_CANDIDATE_DEPLOYMENT }}
+      WRS_VERCEL_STAGING_PREVIOUS_DEPLOYMENT: ${{ secrets.WRS_STAGING_VERCEL_PREVIOUS_DEPLOYMENT }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/vercel-staging-rollback-drill.mjs | tee plan11-hosting-rollback.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-hosting-rollback
+          path: plan11-hosting-rollback.json
 
   strict-go:
     if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
