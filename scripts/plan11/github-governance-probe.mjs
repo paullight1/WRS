@@ -38,13 +38,12 @@ const encodedRepo = repository
   .split('/')
   .map((part) => encodeURIComponent(part))
   .join('/')
-const branch = await githubJson(`/repos/${encodedRepo}/branches/${branchName}`, 'main branch inspection')
+const branchPath = `/repos/${encodedRepo}/branches/main`
+const protectionPath = `/repos/${encodedRepo}/branches/main/protection`
+const branch = await githubJson(branchPath, 'main branch inspection')
 if (branch.protected !== true) throw new Error('main is not protected')
 
-const protection = await githubJson(
-  `/repos/${encodedRepo}/branches/${branchName}/protection`,
-  'main branch protection inspection',
-)
+const protection = await githubJson(protectionPath, 'main branch protection inspection')
 
 const requiredStatusChecks = protection.required_status_checks
 if (!requiredStatusChecks) throw new Error('required_status_checks are not configured on main')
