@@ -2,13 +2,13 @@
 
 ## Global mobile navigation
 
-| Label | Destination | Who sees it | Purpose |
-| --- | --- | --- | --- |
-| Home | `/home` | all members | status and best next action |
-| My Robot | `/robot` | activated members | robot identity, growth, training, performance |
-| Deploy | `/deploy` | all members; gated opportunities | find and monitor real available opportunities |
-| Marketplace | `/marketplace` | all members | skills, language packs, upgrades, and services |
-| More | `/more` | all members | lower-frequency capabilities and account tools |
+| Label       | Destination    | Who sees it                      | Purpose                                        |
+| ----------- | -------------- | -------------------------------- | ---------------------------------------------- |
+| Home        | `/home`        | all members                      | status and best next action                    |
+| My Robot    | `/robot`       | activated members                | robot identity, growth, training, performance  |
+| Deploy      | `/deploy`      | all members; gated opportunities | find and monitor real available opportunities  |
+| Marketplace | `/marketplace` | all members                      | skills, language packs, upgrades, and services |
+| More        | `/more`        | all members                      | lower-frequency capabilities and account tools |
 
 The five labels remain stable. A badge may signal pending work, but navigation order does
 not change by role or campaign.
@@ -25,17 +25,17 @@ labels such as Finance, Revenue, or Income.
 
 ## Local navigation
 
-| Section | Pattern | Items |
-| --- | --- | --- |
-| My Robot | tabs | Overview, Training, Performance |
-| Training Center | tabs | My Training, Data Tasks |
-| Data Contribution | tabs | Available, In Progress, History |
-| Contribution Quality | subviews | Score, Feedback, Appeals |
-| Deploy | tabs | Opportunities, Requests, Active |
-| Wallet & Earnings | tabs | Overview, Transactions, Programs |
-| Community | tabs | Feed, Events, Groups, Leadership |
-| Validator workspace | tabs/sidebar | Queue, Assigned, Appeals, Quality, Credentials |
-| Leadership workspace | tabs/sidebar | Overview, Members, Events, Support, Reports |
+| Section              | Pattern      | Items                                          |
+| -------------------- | ------------ | ---------------------------------------------- |
+| My Robot             | tabs         | Overview, Training, Performance                |
+| Training Center      | tabs         | My Training, Data Tasks                        |
+| Data Contribution    | tabs         | Available, In Progress, History                |
+| Contribution Quality | subviews     | Score, Feedback, Appeals                       |
+| Deploy               | tabs         | Opportunities, Requests, Active                |
+| Wallet & Earnings    | tabs         | Overview, Transactions, Programs               |
+| Community            | tabs         | Feed, Events, Groups, Leadership               |
+| Validator workspace  | tabs/sidebar | Queue, Assigned, Appeals, Quality, Credentials |
+| Leadership workspace | tabs/sidebar | Overview, Members, Events, Support, Reports    |
 
 Tabs are limited to five. On small screens, use a select/menu for longer role-workspace
 lists rather than a horizontally scrolling mystery tab row.
@@ -81,4 +81,3 @@ lists rather than a horizontally scrolling mystery tab row.
   `/validator/reviews/:id`, `/leadership/events/:id`, and `/wallet/programs/:id`;
 - preserve old routes with redirects when labels or hierarchy move; analytics use a
   canonical screen name independent of the URL.
-

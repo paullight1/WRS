@@ -35,14 +35,14 @@ Every part of the product supports this one loop:
 
 ## Primary users and jobs
 
-| User | Primary job |
-| --- | --- |
-| Member/owner | Understand what the robot can do and the best next action |
-| Contributor | Find suitable tasks and build a trusted contribution record |
-| Validator | Review work consistently and improve dataset quality |
-| Ambassador/leader | Educate and support a healthy local community |
+| User                | Primary job                                                     |
+| ------------------- | --------------------------------------------------------------- |
+| Member/owner        | Understand what the robot can do and the best next action       |
+| Contributor         | Find suitable tasks and build a trusted contribution record     |
+| Validator           | Review work consistently and improve dataset quality            |
+| Ambassador/leader   | Educate and support a healthy local community                   |
 | Enterprise customer | License or commission traceable, consented, quality-scored data |
-| Administrator | Operate the platform safely with auditable decisions |
+| Administrator       | Operate the platform safely with auditable decisions            |
 
 The initial member is likely to use a mid-range Android phone, on an intermittent
 connection, for short daily sessions. No robotics or AI expertise is assumed.
@@ -86,4 +86,3 @@ Guardrail metrics include:
 - leader/member support resolution and community safety incidents;
 - withdrawal, payment, and dataset licensing reconciliation breaks;
 - clear comprehension of package, reward, and earnings labels in user research.
-

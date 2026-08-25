@@ -49,12 +49,14 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 1: Freeze the production domain contracts
 
 **Files:**
+
 - Modify: `Docs/production-readiness.md`
 - Create: `Docs/architecture/production-domain-contracts.md`
 - Create: `server/contracts/`
 - Test: `server/tests/contracts.test.js`
 
 **Interfaces:**
+
 - Produces stable status enums and API payload contracts consumed by the payment, media, ledger, deployment, and client workstreams.
 - Defines the canonical identifiers: `tenantId`, `userId`, `packageSlug`, `packageVersion`, `entitlementId`, `paymentAttemptId`, `ledgerEntryId`, `mediaObjectId`, and `deploymentId`.
 
@@ -101,6 +103,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 2: Make normalized PostgreSQL the production source of truth
 
 **Files:**
+
 - Create: `supabase/migrations/202608150001_wrs_production_core.sql`
 - Create: `supabase/migrations/202608150002_wrs_production_money.sql`
 - Create: `supabase/migrations/202608150003_wrs_production_operations.sql`
@@ -113,6 +116,7 @@ Data migration/cutover           ├── Media pipeline + review
 - Test: `server/tests/migrations.test.js`
 
 **Interfaces:**
+
 - `createRepositories({ pool })` returns owner-scoped repositories for users, packages, entitlements, payments, media, reviews, ledger, withdrawals, deployments, audit events, notifications, and idempotency keys.
 - Every repository method accepts a transaction client or executes through `withTransaction(callback)`; no business operation loads and rewrites one JSON document.
 - `createPostgresStateStore` is retained only for a local compatibility mode and must throw when `NODE_ENV=production`.
@@ -184,6 +188,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 3: Replace mock checkout with payment and entitlement activation
 
 **Files:**
+
 - Create: `server/payments/provider.js`
 - Create: `server/payments/paystack-provider.js`
 - Create: `server/payments/stripe-provider.js`
@@ -199,6 +204,7 @@ Data migration/cutover           ├── Media pipeline + review
 - Test: `src/lib/paymentsApi.test.js`
 
 **Interfaces:**
+
 - `createPaymentAttempt({ userId, packageSlug, packageVersion, currency, promoCode })` returns `{ paymentAttemptId, provider, checkoutUrlOrClientSecret, expiresAt }`.
 - `handleProviderWebhook({ provider, rawBody, signature, receivedAt })` verifies the signature over the raw body, deduplicates by provider event ID, and applies one transactionally safe state transition.
 - `getEntitlement(userId)` returns the server-owned package, version, status, start/end dates, and source payment ID.
@@ -242,6 +248,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 4: Move sensitive uploads to a private, scanned media pipeline
 
 **Files:**
+
 - Create: `server/media/media-service.js`
 - Create: `server/media/upload-policy.js`
 - Create: `server/media/scanner.js`
@@ -256,6 +263,7 @@ Data migration/cutover           ├── Media pipeline + review
 - Test: `server/tests/media-retention.test.js`
 
 **Interfaces:**
+
 - `createUploadIntent({ userId, moduleId, kind, contentType, byteSize, checksum, consentId })` returns a short-lived signed upload URL and `mediaObjectId`.
 - `completeUpload({ userId, mediaObjectId, checksum })` verifies object existence and checksum before queueing scanning.
 - `getMediaStatus(userId, mediaObjectId)` exposes only owner-scoped status and safe metadata.
@@ -293,6 +301,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 5: Harden authentication and browser session security
 
 **Files:**
+
 - Modify: `src/lib/api.js`
 - Modify: `src/lib/auth.js`
 - Modify: `src/components/AuthProvider.jsx`
@@ -305,6 +314,7 @@ Data migration/cutover           ├── Media pipeline + review
 - Test: `scripts/security-headers.test.js`
 
 **Interfaces:**
+
 - `createSessionFromSupabaseIdentity()` creates a short-lived server session represented by an `HttpOnly`, `Secure`, `SameSite=Lax` cookie in production.
 - `requireAuthenticatedRequest()` validates the current session and revocation state for every protected API request.
 
@@ -337,6 +347,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 6: Build the immutable wallet, review, payout, and settlement path
 
 **Files:**
+
 - Create: `server/ledger/ledger-service.js`
 - Create: `server/ledger/ledger-reconciliation.js`
 - Modify: `server/rbc.js`
@@ -351,6 +362,7 @@ Data migration/cutover           ├── Media pipeline + review
 - Test: `server/tests/review-settlement.test.js`
 
 **Interfaces:**
+
 - `postLedgerTransaction({ tenantId, idempotencyKey, entries, sourceType, sourceId })` requires balanced debit/credit entries and returns an immutable transaction.
 - `requestWithdrawal({ userId, quoteId, bankDetails })` creates a pending withdrawal without paying it.
 - `reviewWithdrawal({ adminId, withdrawalId, decision, note })` moves it to approved/rejected.
@@ -385,6 +397,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 7: Replace deployment simulation with a safe operational boundary
 
 **Files:**
+
 - Create: `server/deployments/provider.js`
 - Create: `server/deployments/dispatch-service.js`
 - Create: `server/deployments/telemetry-service.js`
@@ -399,6 +412,7 @@ Data migration/cutover           ├── Media pipeline + review
 - Test: `server/tests/deployment-provider.test.js`
 
 **Interfaces:**
+
 - `requestDeployment()` creates a request only.
 - `approveDeployment()` requires tier, contract, consent, safety, and payment gates.
 - `dispatchDeployment()` calls a provider with an idempotency key and returns a provider job ID.
@@ -434,6 +448,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 8: Add durable background jobs and notifications
 
 **Files:**
+
 - Create: `server/jobs/queue.js`
 - Create: `server/jobs/worker.js`
 - Create: `server/jobs/dead-letter.js`
@@ -468,6 +483,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 9: Add observability, backups, and incident readiness
 
 **Files:**
+
 - Modify: `server/security.js`
 - Modify: `server/app.js`
 - Create: `server/observability/metrics.js`
@@ -506,6 +522,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 10: Close CI, dependency, frontend, and end-to-end gaps
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml`
 - Modify: `package.json`
 - Modify: `package-lock.json`
@@ -561,6 +578,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 11: Remove production mock paths and add feature flags
 
 **Files:**
+
 - Modify: `src/screens/Checkout.jsx`
 - Modify: `src/screens/PaymentSuccess.jsx`
 - Modify: `src/screens/Packages.jsx`
@@ -594,6 +612,7 @@ Data migration/cutover           ├── Media pipeline + review
 ## Task 12: Staging cutover and launch certification
 
 **Files:**
+
 - Modify: `Docs/production-readiness.md`
 - Create: `Docs/operations/release-checklist.md`
 - Create: `Docs/operations/rollback-plan.md`

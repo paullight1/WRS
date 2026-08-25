@@ -141,4 +141,3 @@ Agents 1–10 work in separate branches. Agent 5 owns the canonical task state m
 - [ ] Revenue requires approved data and reconciliation.
 - [ ] Resumable, accessible, truthful frontend states pass tests.
 - [ ] End-to-end sandbox flow and failure injection pass.
-

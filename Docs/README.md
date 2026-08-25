@@ -23,6 +23,7 @@ should be recorded here.
 - [Roles and permissions](product/ROLES_AND_PERMISSIONS.md)
 - [Governance model](product/GOVERNANCE.md)
 - [Feature specification template](product/FEATURE_SPEC_TEMPLATE.md)
+
 ## Information architecture
 
 - [IA overview](ia/IA.md)

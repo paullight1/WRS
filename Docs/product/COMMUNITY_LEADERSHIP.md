@@ -8,16 +8,16 @@ grant a claim on member purchases or earnings.
 
 ## Progression model
 
-| Role | Purpose | Typical evidence | Scope |
-| --- | --- | --- | --- |
-| Member | Own and train a robot profile; learn and participate | verified account and community-rule acceptance | self |
-| Contributor | Create useful AI training data | accepted work and contributor standing | assigned tasks |
-| Ambassador | Educate, welcome, and organize | training, conduct record, supported events/members | assigned program/community |
-| City Leader | Coordinate active city operations | sustained ambassador performance and local need | one city |
-| State Leader | Support multiple active cities | operating need and successful city leadership | one state/province |
-| Country Director | Coordinate national programs | legal/operational approval and measurable demand | one country |
-| Regional Director | Align several countries | executive appointment and active regional operation | named region |
-| Global Ambassador | Represent WRS in a defined international mandate | exceptional record and executive approval | time-bound global mandate |
+| Role              | Purpose                                              | Typical evidence                                    | Scope                      |
+| ----------------- | ---------------------------------------------------- | --------------------------------------------------- | -------------------------- |
+| Member            | Own and train a robot profile; learn and participate | verified account and community-rule acceptance      | self                       |
+| Contributor       | Create useful AI training data                       | accepted work and contributor standing              | assigned tasks             |
+| Ambassador        | Educate, welcome, and organize                       | training, conduct record, supported events/members  | assigned program/community |
+| City Leader       | Coordinate active city operations                    | sustained ambassador performance and local need     | one city                   |
+| State Leader      | Support multiple active cities                       | operating need and successful city leadership       | one state/province         |
+| Country Director  | Coordinate national programs                         | legal/operational approval and measurable demand    | one country                |
+| Regional Director | Align several countries                              | executive appointment and active regional operation | named region               |
+| Global Ambassador | Represent WRS in a defined international mandate     | exceptional record and executive approval           | time-bound global mandate  |
 
 Progression is not automatic. Higher roles are created only when the lower-level
 network and operating workload justify them. Package tier, referrals alone, or payment
@@ -107,4 +107,3 @@ No role receives automatic percentage income from members beneath it.
   training, reviews, and safety cases.
 - **Phase 3:** add higher geographic levels only as real operations require them;
   introduce formal Community Leadership Council charter.
-

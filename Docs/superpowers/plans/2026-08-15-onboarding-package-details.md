@@ -21,10 +21,12 @@
 ### Task 1: Generate and install package artwork
 
 **Files:**
+
 - Create: `public/robots/package-tier-lineup-v2.png`
 - Modify: `src/components/RobotFace.jsx:91-103`
 
 **Interfaces:**
+
 - Consumes: `tier` and `size` props already passed by onboarding package rows.
 - Produces: a six-panel vertical sprite selected by the `generated` branch, with one panel per package tier.
 
@@ -47,9 +49,11 @@ Run `rg -n "generated|package-tier-lineup" src public` and confirm the onboardin
 ### Task 2: Implement package detail state
 
 **Files:**
+
 - Modify: `src/screens/Onboarding.jsx:14-183`
 
 **Interfaces:**
+
 - Consumes: the selected `pkg` slug and the existing `packages` metadata.
 - Produces: a package list view, a package detail view, and a confirmed Continue action that advances to step 3.
 
@@ -76,9 +80,11 @@ Exercise package selection, Continue, detail back, detail confirmation, and fina
 ### Task 3: Verify the finished onboarding change
 
 **Files:**
+
 - Test: existing project test/build commands; no new test file required for this UI-only state change.
 
 **Interfaces:**
+
 - Consumes: the completed asset and onboarding UI.
 - Produces: a verified production build with no regression in existing checks.
 

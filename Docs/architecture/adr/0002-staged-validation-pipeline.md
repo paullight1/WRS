@@ -31,4 +31,3 @@ no self-review. Corrections append a new version or decision; history is not ove
   Phase 2 does not require destructive migration.
 - An accepted submission cannot appear in an enterprise dataset until a release manifest
   passes independent rights, privacy, quality, and safety gates.
-

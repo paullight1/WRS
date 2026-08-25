@@ -32,4 +32,3 @@ posted or exchanged through these ledgers.
   must support multiple account types and transaction histories.
 - Future conversion programs require a new reviewed rule and ledger transfer model; no
   implicit XP-to-cash exchange exists.
-

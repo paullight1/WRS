@@ -17,12 +17,12 @@ dataset.
 
 ## Validator levels
 
-| Level | Name | Allowed work | Eligibility |
-| --- | --- | --- | --- |
-| 1 | Community Validator | completeness, obvious label errors, task-instruction checks | verified account, training, calibration threshold, good standing |
-| 2 | Professional Validator | language accuracy, transcription/translation, image/audio quality | sustained Level 1 quality plus domain/language assessment |
-| 3 | Expert Validator | high-risk or specialist medical, legal, finance, engineering, agriculture work | verified credentials where required, jurisdiction and conflict checks |
-| 4 | Master Validator | release-readiness review and final QA within an authorized program | proven expert record, release training, explicit appointment and separation of duties |
+| Level | Name                   | Allowed work                                                                   | Eligibility                                                                           |
+| ----- | ---------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| 1     | Community Validator    | completeness, obvious label errors, task-instruction checks                    | verified account, training, calibration threshold, good standing                      |
+| 2     | Professional Validator | language accuracy, transcription/translation, image/audio quality              | sustained Level 1 quality plus domain/language assessment                             |
+| 3     | Expert Validator       | high-risk or specialist medical, legal, finance, engineering, agriculture work | verified credentials where required, jurisdiction and conflict checks                 |
+| 4     | Master Validator       | release-readiness review and final QA within an authorized program             | proven expert record, release training, explicit appointment and separation of duties |
 
 A level is a credential with scope and expiry, not a permanent status. Package purchase
 may provide training tools but never validation authority.
@@ -92,4 +92,3 @@ be approved.
 Key metrics are gold-set accuracy, inter-reviewer agreement, false accept/reject rates,
 appeal overturn rate, time to decision, quality incidents after release, and performance
 disparities by language/region where lawful to assess.
-

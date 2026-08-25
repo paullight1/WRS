@@ -41,4 +41,3 @@
 
 - [ ] Run `node --test server/tests/support.test.js`.
 - [ ] Run the frontend build and `git diff --check` for the track.
-

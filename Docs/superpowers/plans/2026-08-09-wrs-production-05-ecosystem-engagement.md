@@ -146,4 +146,3 @@ Agents 1–10 work in isolated branches. Agent 1 owns shared catalogue conventio
 - [ ] Notifications are durable, preference-aware, and retry-safe.
 - [ ] Support tickets, attachments, assignment, and escalation work.
 - [ ] Frontend integration tests prove no static mock creates factual user state.
-

@@ -140,4 +140,3 @@ Agents 1–10 work in isolated branches. Agent 2 owns the canonical deployment s
 - [ ] Contracts, work evidence, disputes, and settlement are integrated.
 - [ ] Operations has least-privilege controls and runbooks.
 - [ ] Full simulation and failure drills pass before production flags are enabled.
-

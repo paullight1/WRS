@@ -42,17 +42,17 @@ the member mental model.
 
 ## Product vocabulary
 
-| Use | Meaning | Avoid |
-| --- | --- | --- |
-| Robot profile | persistent digital identity and capabilities | physical robot, asset, investment |
-| Package | platform access tier and entitlements | investment package |
-| Opportunity | available work/application with eligibility | guaranteed job |
-| Estimated | forecast or provisional amount | balance, earned |
-| Pending | verified event awaiting settlement/conditions | available |
-| Confirmed | settled monetary ledger amount | projected |
-| Data task | structured contribution assignment | mining |
-| Review | quality decision on a submission | approval when only one stage passed |
-| Dataset release | version approved for a defined license/use | all approved contributions |
+| Use             | Meaning                                       | Avoid                               |
+| --------------- | --------------------------------------------- | ----------------------------------- |
+| Robot profile   | persistent digital identity and capabilities  | physical robot, asset, investment   |
+| Package         | platform access tier and entitlements         | investment package                  |
+| Opportunity     | available work/application with eligibility   | guaranteed job                      |
+| Estimated       | forecast or provisional amount                | balance, earned                     |
+| Pending         | verified event awaiting settlement/conditions | available                           |
+| Confirmed       | settled monetary ledger amount                | projected                           |
+| Data task       | structured contribution assignment            | mining                              |
+| Review          | quality decision on a submission              | approval when only one stage passed |
+| Dataset release | version approved for a defined license/use    | all approved contributions          |
 
 ## Open decisions before Phase 2
 
@@ -68,4 +68,3 @@ Use `object_action_outcome`, for example `data_task_submit_succeeded`,
 `consent_withdraw_requested`, `review_appeal_upheld`, and
 `deployment_request_submitted`. Never encode email, phone, free text, or raw biometric
 identifiers in analytics properties.
-

@@ -49,4 +49,3 @@
 
 - [ ] Run marketplace and event-code test files.
 - [ ] Run existing mining tests, frontend build, and `git diff --check`.
-

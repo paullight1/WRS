@@ -21,11 +21,13 @@
 ## Workstream 1: Authenticated robot setup
 
 **Files:**
+
 - Modify: `server/app.js`, `server/validation.js`, `server/tests/api.test.js`
 - Modify: `src/lib/api.js`, `src/screens/Login.jsx`, `src/screens/Register.jsx`, `src/screens/Onboarding.jsx`
 - Create/modify: `src/components/RequireAuth.jsx`, `src/components/AppShell.jsx`, `src/App.jsx`
 
 **Contract:**
+
 - `PATCH /api/v1/robot` accepts `name`, `personality`, and a bounded `config` object; it persists only the authenticated user's robot.
 - `GET /api/v1/me` remains the session source of truth.
 - Unauthenticated application routes redirect to `/login`; public package routes remain public.
@@ -33,6 +35,7 @@
 - Verification is not claimed complete by navigation alone; until an external provider exists, the UI must show verification as unavailable/pending rather than silently accepting arbitrary codes.
 
 **Tests:**
+
 - Authenticated user can persist robot setup and retrieve it.
 - User A cannot mutate User B's robot.
 - Protected route guard does not render private content without a token.
@@ -41,11 +44,13 @@
 ## Workstream 2: Training and data-task lifecycle
 
 **Files:**
+
 - Create: `server/dataTasks.js`
 - Modify: `server/app.js`, `server/seed.js`, `server/tests/api.test.js`
 - Modify: `src/screens/TrainingModule.jsx`, `src/screens/Training.jsx`, `src/screens/DataContribution.jsx`, `src/screens/DataTask.jsx`, `src/screens/DataQuality.jsx`
 
 **Contract:**
+
 - `GET /api/v1/training/modules` returns server-owned lock/completion state.
 - `POST /api/v1/training/modules/:id/complete` remains idempotent and is called from the real training completion action.
 - `POST /api/v1/data/tasks/:id/accept` creates one user-scoped assignment with status `accepted`.
@@ -54,6 +59,7 @@
 - Client progress is read from the API and cannot award RBC by itself.
 
 **Tests:**
+
 - Tier-gated training completion works and duplicate completion awards XP once.
 - A task cannot be accepted twice as two assignments.
 - A user cannot submit another user's assignment.
@@ -63,11 +69,13 @@
 ## Workstream 3: Deployment request lifecycle
 
 **Files:**
+
 - Create: `server/deployments.js`
 - Modify: `server/app.js`, `server/seed.js`, `server/tests/api.test.js`
 - Modify: `src/screens/Deploy.jsx`, `src/screens/DeploymentDetails.jsx`, `src/screens/ActiveDeployment.jsx`
 
 **Contract:**
+
 - `GET /api/v1/deployments/opportunities` returns a server-owned opportunity catalogue with simulation/real availability labels.
 - `POST /api/v1/deployments/requests` accepts an industry slug and optional note, validates tier eligibility, creates status `requested`, and is idempotent by user/opportunity.
 - `GET /api/v1/deployments` returns only the authenticated user's requests.
@@ -75,6 +83,7 @@
 - No screen may claim an active physical deployment.
 
 **Tests:**
+
 - Eligible package can submit a deployment request.
 - Ineligible package receives `FORBIDDEN`.
 - Duplicate requests are idempotent.
@@ -83,11 +92,13 @@
 ## Workstream 4: Wallet and mining integrity
 
 **Files:**
+
 - Create: `server/ledger.js`
 - Modify: `server/mining.js`, `server/app.js`, `server/tests/api.test.js`
 - Modify: `src/screens/Mining.jsx`, `src/screens/Wallet.jsx`, `src/screens/Transactions.jsx`, `src/screens/DataRevenue.jsx`
 
 **Contract:**
+
 - Wallet reads are server-backed and distinguish XP, RBC, pending rewards, and confirmed money.
 - Mining progress endpoints no longer accept arbitrary “+1” contribution credit as proof of work; progress must reference a server-created task assignment/submission or remain clearly development-only.
 - Event codes and boosts remain idempotent and user-scoped.
@@ -95,6 +106,7 @@
 - Withdraw/deposit controls are disabled until a provider and reconciliation workflow exist; no success toast may imply money moved.
 
 **Tests:**
+
 - Client cannot award mission progress without a valid server-side source event.
 - Reusing an idempotency key for a different operation returns a conflict.
 - Wallet totals are derived from server-owned records.
@@ -111,4 +123,3 @@
 ## Release gate
 
 This slice is a functional development beta only. It is not public production until PostgreSQL, managed secrets, rate limiting, real verification/provider integrations, consent/deletion/audit controls, payment webhooks, and operational monitoring are implemented.
-

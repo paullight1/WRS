@@ -166,4 +166,3 @@ Agents 1–10 may work in parallel only in isolated branches/worktrees. They mus
 - [ ] Cross-user authorization tests pass.
 - [ ] Restore drill and incident runbook are complete.
 - [ ] `npm run test:api`, `npm run build`, and production configuration checks pass.
-

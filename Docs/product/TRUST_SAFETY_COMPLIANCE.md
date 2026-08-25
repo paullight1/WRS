@@ -86,4 +86,3 @@ A feature owner must document data map, risk class, permissions, user disclosure
 retention, abuse cases, audit events, support/appeal route, incident owner, metrics, and
 jurisdiction approvals. If an operational control does not yet exist, the public UI
 must not imply that the underlying service is available.
-

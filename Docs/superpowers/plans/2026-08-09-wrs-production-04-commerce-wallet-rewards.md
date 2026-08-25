@@ -142,4 +142,3 @@ Agents 1–10 work in isolated branches. Agent 3 owns the canonical ledger schem
 - [ ] Refunds, chargebacks, fraud holds, and support operations work.
 - [ ] Frontend never claims success from navigation or local state.
 - [ ] Independent financial integrity review is approved.
-

@@ -2,15 +2,15 @@
 
 ## Document control
 
-| Field | Value |
-| --- | --- |
-| Status | Draft / In review / Approved / Shipped / Retired |
-| Phase | MVP / Phase 2 / Phase 3 / Future |
-| Product owner | [name/role] |
-| Engineering owner | [name/role] |
-| Trust/compliance owner | [name/role] |
-| Last updated | YYYY-MM-DD |
-| Related decisions | [ADR/IA/other links] |
+| Field                  | Value                                            |
+| ---------------------- | ------------------------------------------------ |
+| Status                 | Draft / In review / Approved / Shipped / Retired |
+| Phase                  | MVP / Phase 2 / Phase 3 / Future                 |
+| Product owner          | [name/role]                                      |
+| Engineering owner      | [name/role]                                      |
+| Trust/compliance owner | [name/role]                                      |
+| Last updated           | YYYY-MM-DD                                       |
+| Related decisions      | [ADR/IA/other links]                             |
 
 ## Problem and outcome
 
@@ -29,9 +29,9 @@ feature is unavailable or the user is ineligible.
 
 Number requirements for traceability.
 
-| ID | Requirement | Priority | Acceptance evidence |
-| --- | --- | --- | --- |
-| F-001 | [observable behavior] | Must | [test/demo/approved artifact] |
+| ID    | Requirement           | Priority | Acceptance evidence           |
+| ----- | --------------------- | -------- | ----------------------------- |
+| F-001 | [observable behavior] | Must     | [test/demo/approved artifact] |
 
 ## Roles and permissions
 
@@ -83,4 +83,3 @@ finished screen is not sufficient release evidence.
 
 Record unresolved choices, decision owner, due point, and what is blocked. Move accepted
 architectural choices into an ADR and navigation/naming choices into `Docs/ia`.
-

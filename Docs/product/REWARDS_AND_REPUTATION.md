@@ -5,15 +5,15 @@ storage, and user experience.
 
 ## Value types
 
-| Type | Meaning | Cash value | Example |
-| --- | --- | --- | --- |
-| XP | progression signal for verified participation | none | course or accepted training XP |
-| Points | program score for eligible actions | none unless a specific promotion says otherwise | event participation points |
-| Upgrade token/boost | capability entitlement inside WRS | none | temporary task-limit boost |
-| Platform credit | restricted purchasing value under stated terms | normally non-withdrawable | marketplace credit |
-| Pending money | a conditional amount not yet settled or withdrawable | not yet | contribution awaiting reconciliation |
-| Confirmed money | settled monetary balance subject to withdrawal rules | yes | paid service or approved distribution |
-| Promotional reward | time-limited benefit with disclosed terms | varies | campaign bonus |
+| Type                | Meaning                                              | Cash value                                      | Example                               |
+| ------------------- | ---------------------------------------------------- | ----------------------------------------------- | ------------------------------------- |
+| XP                  | progression signal for verified participation        | none                                            | course or accepted training XP        |
+| Points              | program score for eligible actions                   | none unless a specific promotion says otherwise | event participation points            |
+| Upgrade token/boost | capability entitlement inside WRS                    | none                                            | temporary task-limit boost            |
+| Platform credit     | restricted purchasing value under stated terms       | normally non-withdrawable                       | marketplace credit                    |
+| Pending money       | a conditional amount not yet settled or withdrawable | not yet                                         | contribution awaiting reconciliation  |
+| Confirmed money     | settled monetary balance subject to withdrawal rules | yes                                             | paid service or approved distribution |
+| Promotional reward  | time-limited benefit with disclosed terms            | varies                                          | campaign bonus                        |
 
 No exchange rate between XP/points and money should be implied unless a specific,
 lawfully reviewed program defines it. Balances use separate ledgers and transaction
@@ -70,4 +70,3 @@ event exactly once.
 Users can inspect the rule and source event for material rewards. Corrections use
 reversal and replacement entries rather than editing history. Monetary disputes,
 contribution appeals, and community conduct appeals follow separate workflows.
-

@@ -167,4 +167,3 @@
 - [ ] **Step 4: Verify member mission/boost/event-code/wallet flows and admin conversion/withdrawal review flows with safe test data.**
 - [ ] **Step 5: Confirm transfer and weekly-event controls are absent and no UI reports an automatic payout.
 - [ ] **Step 6: Review the final diff for mock data, authorization gaps, unmasked bank data, or conflicting route ownership.
-

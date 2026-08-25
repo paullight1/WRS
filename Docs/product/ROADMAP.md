@@ -96,4 +96,3 @@ clear ownership terms.
 - physical robot ownership or guaranteed deployment;
 - cash conversion of XP, points, badges, or boosts;
 - compensation based primarily on recruitment or package purchase.
-

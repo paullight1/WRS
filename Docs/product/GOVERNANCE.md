@@ -15,14 +15,14 @@ or fiduciary duties.
 
 ## Proposed bodies
 
-| Body | Scope | Does not control |
-| --- | --- | --- |
-| Global Advisory Board | long-term strategy, public-interest and market perspective | daily operations or individual cases |
-| Technical Council | architecture standards, interoperability, reliability, developer policy | production access by virtue of membership |
-| Ethics & AI Safety Council | high-risk use review, dataset/model safety, prohibited uses, incident advice | legal determinations without qualified counsel |
-| Community Leadership Council | member experience, events, leadership standards, regional feedback | wallets, private submissions, staff employment |
-| Validator Council | rubrics, calibration, credential standards, appeals trends | reviewing members' own work or unilateral release |
-| Developer Council | APIs, marketplace quality, compatibility, ecosystem feedback | marketplace approval without security/product review |
+| Body                         | Scope                                                                        | Does not control                                     |
+| ---------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Global Advisory Board        | long-term strategy, public-interest and market perspective                   | daily operations or individual cases                 |
+| Technical Council            | architecture standards, interoperability, reliability, developer policy      | production access by virtue of membership            |
+| Ethics & AI Safety Council   | high-risk use review, dataset/model safety, prohibited uses, incident advice | legal determinations without qualified counsel       |
+| Community Leadership Council | member experience, events, leadership standards, regional feedback           | wallets, private submissions, staff employment       |
+| Validator Council            | rubrics, calibration, credential standards, appeals trends                   | reviewing members' own work or unilateral release    |
+| Developer Council            | APIs, marketplace quality, compatibility, ecosystem feedback                 | marketplace approval without security/product review |
 
 ## Charter requirements
 
@@ -48,4 +48,3 @@ Security, safety, privacy, fraud, or legal owners may suspend a feature, dataset
 deployment, account permission, or program immediately under a documented emergency
 policy. The action is time-bounded, reviewed after the incident, and does not permanently
 bypass ordinary appeal or governance processes.
-

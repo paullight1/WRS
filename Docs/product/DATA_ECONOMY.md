@@ -99,4 +99,3 @@ must not display forecasts as account balances.
 - **Phase 2:** human validation, lineage, release candidates, controlled buyer pilots.
 - **Phase 3:** expert review, enterprise catalog, contracting, delivery, licensing,
   distributions, safety monitoring, and release governance.
-
