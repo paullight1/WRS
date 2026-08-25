@@ -1,32 +1,28 @@
-# Plan 11 — WRS Live Production Activation Package
+# Plan 11 — Live Production Activation
 
-This directory is the handoff for activating the code-side production-ready WRS system against real infrastructure later. No unrelated Supabase/Vercel project is reused, and no external blocker is treated as PASS without evidence.
+Plan 11 converts the code-side production-ready WRS candidate into an evidence-backed live release. It is fail-closed: repository tests may prove implementation quality, but provider, staging, operational, legal, governance and human-review gates remain blocking until real evidence exists.
 
-## Phase index
+## Execution loop
 
-| Phase | Repository status | Key handoff |
-|---|---|---|
-| 11.1 Production infrastructure | SQL/repository ready | `supabase/MIGRATION_GUIDE.md`, `.env.live.example`, live preflight, post-migration verification SQL |
-| 11.2 Repository governance | Policy ready | `CODEOWNERS`, production release checklist; GitHub branch protection still manual/external |
-| 11.3 Payment sandbox | Tooling ready | Paystack sandbox workflow/script + `plan11_payment_checks.sql` |
-| 11.4 Sensitive data | SQL/runbook ready | private storage migration, `plan11_data_checks.sql`, sensitive-data activation runbook |
-| 11.5 Observability/incidents | SQL/runbook ready | `plan11_operational_health.sql`, alert/incident runbook |
-| 11.6 Staging validation | Remote harness ready | staging HTTP preflight + remote Playwright workflow/config/spec |
-| 11.7 Recovery/rollback | SQL/runbook ready | recovery fingerprint SQL + Supabase PITR/Vercel rollback runbook |
-| 11.8 Human launch review | Review template ready | `Docs/releases/HUMAN_LAUNCH_REVIEW.md` |
-| 11.9 Final GO gate | Fail-closed evaluator ready | evidence JSON schema, evaluator workflow/script + final database GO SQL |
-| 11.10 Merge/activation | Activation sequence ready | stacked PR merge/promotion/rollback procedure |
+For each phase: define evidence → run the real probe/drill → record result and owner → review P0/P1 findings → fix → rerun → only then mark PASS.
 
-## Supabase SQL
+## Phases
 
-Migrations: **25 files**, timestamp ordered under `supabase/migrations/`.
+1. 11.1 Dedicated staging/production infrastructure
+2. 11.2 Repository governance and required checks
+3. 11.3 Real payment/payout sandbox verification
+4. 11.4 Sensitive-data storage/scanning/deletion verification
+5. 11.5 Live observability, alert routing and incident exercise
+6. 11.6 Production-like staging E2E, accessibility and Web Vitals
+7. 11.7 Provider backup/PITR and hosting rollback drill
+8. 11.8 Human accessibility, privacy/legal/compliance sign-off
+9. 11.9 Final GO/NO-GO evidence gate
+10. 11.10 Merge, promote and controlled feature activation
 
-Do not invent a new order. Follow `supabase/MIGRATION_GUIDE.md` exactly.
+`EVIDENCE_MATRIX.json` is the machine-readable source of launch truth. `npm run plan11:gate` exits non-zero until every required gate is PASS.
 
-Read-only activation checks are indexed in `supabase/verification/README.md`.
+## Frozen application candidate
 
-## Current decision
+The live-evidence process currently targets application candidate `900068dda9802129ff312de828fd3735273af1db`. The Plan 11 activation workflow checks that later commits are evidence/governance-only; any runtime drift requires a new application candidate before evidence collection can continue.
 
-**LIVE RELEASE: NO-GO.**
-
-This repository package is designed so you can add the real Supabase/Vercel/Paystack/scanner/monitoring configuration later. Until the live evidence template is completed with real PASS evidence and the final evaluators pass, PR #7 and PR #3 must remain unmerged for production activation.
+The repository activation framework is intentionally separate from the live GO decision. A green PR/CI state does not override an `EXTERNAL_BLOCKER`, and PR #4 remains draft until the strict all-PASS gate succeeds for the selected application candidate.

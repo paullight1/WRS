@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "decision": "NO_GO",
+  "releaseCandidate": "07245b181e66e55634c2e2a08a2fd74c1b4af7a8",
+  "gates": [
+    {
+      "id": "supabase-infrastructure",
+      "phase": "11.1",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Operations",
+      "evidence": "Connected Supabase discovery found the crescivacapital organization and an unrelated Cresciva project only. No WRS project was provisioned or reused. The complete ordered WRS SQL migration and verification handoff is stored under supabase/ for later application to dedicated WRS staging and production projects.",
+      "evidenceRef": "repo:supabase/MIGRATION_GUIDE.md",
+      "checkedAt": "2026-08-25T04:55:00.000Z"
+    },
+    {
+      "id": "vercel-infrastructure",
+      "phase": "11.1",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Operations",
+      "evidence": "The connected Vercel team contains zero projects and does not expose a WRS hosting project. No unrelated hosting project was reused.",
+      "evidenceRef": "repo:Docs/production-readiness/11-live-activation/PHASE-11.1-INFRASTRUCTURE.md",
+      "checkedAt": "2026-08-25T04:30:00.000Z"
+    },
+    {
+      "id": "github-branch-protection",
+      "phase": "11.2",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Repository admin",
+      "evidence": "GitHub branch metadata reports main protected=false with required-status-check enforcement off. A read-only governance verifier is implemented to require main protection, at least one review, stale-review dismissal, admin enforcement, no force-push/deletion and the critical Quality/Security/Recovery check contexts. A repository administrator must enable those controls.",
+      "evidenceRef": "repo:scripts/plan11/github-governance-probe.mjs:prepared",
+      "checkedAt": "2026-08-25T04:55:00.000Z"
+    },
+    {
+      "id": "payment-sandbox",
+      "phase": "11.3",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Finance",
+      "evidence": "A test-key-only Paystack initialization probe and manual evidence job are implemented. PAYSTACK_TEST_SECRET_KEY is not available to the connected workflow, and signed webhook, duplicate/delayed callback, WRS entitlement, refund/chargeback and ledger reconciliation evidence still require a controlled staging environment.",
+      "evidenceRef": "repo:scripts/plan11/paystack-sandbox-probe.mjs:prepared",
+      "checkedAt": "2026-08-25T04:30:00.000Z"
+    },
+    {
+      "id": "payout-sandbox",
+      "phase": "11.3",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Finance",
+      "evidence": "A test-key-only Paystack recipient/transfer/verification drill is implemented using the provider test account and official API origin. PAYSTACK_TEST_SECRET_KEY is unavailable, and full WRS KYC-gated withdrawal, webhook/reversal and ledger reconciliation evidence remains outstanding.",
+      "evidenceRef": "repo:scripts/plan11/paystack-payout-probe.mjs:prepared",
+      "checkedAt": "2026-08-25T04:30:00.000Z"
+    },
+    {
+      "id": "storage-scanning-deletion",
+      "phase": "11.4",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Privacy/Data",
+      "evidence": "A synthetic two-stage staging drill is implemented against the real WRS login, consent, signed private upload, pending scan, trusted scanner callback, queued deletion and deletion-worker APIs. It cannot execute until dedicated WRS staging, a verified synthetic identity, private storage and scanner/deletion secrets exist; an actual malware-scanning provider is still required for PASS.",
+      "evidenceRef": "repo:scripts/plan11/sensitive-data-staging-drill.mjs:prepared",
+      "checkedAt": "2026-08-25T04:30:00.000Z"
+    },
+    {
+      "id": "alert-routing",
+      "phase": "11.5",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Operations",
+      "evidence": "A synthetic critical-incident acknowledgement drill is implemented for auth abuse, upstream timeout, payment failure, deletion-worker failure and ledger/reconciliation anomaly. It requires a real HTTPS monitoring bridge to return incident IDs, named responders, acknowledgement timestamps and escalation owners within the configured SLO. No production monitoring/paging destination is currently connected.",
+      "evidenceRef": "repo:scripts/plan11/alert-routing-drill.mjs:prepared",
+      "checkedAt": "2026-08-25T04:55:00.000Z"
+    },
+    {
+      "id": "staging-e2e",
+      "phase": "11.6",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Engineering",
+      "evidence": "Production-like deployed staging URL/services are unavailable through the connected Vercel team. Candidate-attested external-URL Playwright and security-header probes are implemented and ready to run once staging exists.",
+      "evidenceRef": "repo:plan11:staging-probes-prepared",
+      "checkedAt": "2026-08-25T04:30:00.000Z"
+    },
+    {
+      "id": "manual-accessibility",
+      "phase": "11.6",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Accessibility",
+      "evidence": "Human keyboard, zoom, reflow and assistive-technology review is required. The evidence model requires named approval before this gate can become PASS.",
+      "evidenceRef": "plan11:phase-11.6:manual-review-pending",
+      "checkedAt": "2026-08-25T04:55:00.000Z"
+    },
+    {
+      "id": "mobile-web-vitals",
+      "phase": "11.6",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Frontend/Operations",
+      "evidence": "Candidate-attested mobile staging lab LCP/CLS probe is implemented; real staging and field or representative p75 LCP/INP/CLS evidence remains required.",
+      "evidenceRef": "repo:scripts/plan11/staging-lab-vitals.mjs:prepared",
+      "checkedAt": "2026-08-25T04:30:00.000Z"
+    },
+    {
+      "id": "provider-backup-restore",
+      "phase": "11.7",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Database/Operations",
+      "evidence": "A read-only PostgreSQL 17 source-vs-restored integrity comparator is implemented for a frozen synthetic identity across auth/profile, robot, entitlement, consent/data and financial-ledger records. A real Supabase provider backup or PITR restore into an isolated project must still be performed and referenced.",
+      "evidenceRef": "repo:scripts/plan11/provider-restore-compare.mjs:prepared",
+      "checkedAt": "2026-08-25T04:55:00.000Z"
+    },
+    {
+      "id": "hosting-rollback",
+      "phase": "11.7",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Release owner",
+      "evidence": "A staging-only Vercel drill is implemented to candidate-attest a direct deployment, promote it, roll back to a named previous known-good deployment, verify the stable staging alias, and re-promote and verify the frozen candidate. It cannot execute because the connected Vercel account does not expose a dedicated WRS staging project.",
+      "evidenceRef": "repo:scripts/plan11/vercel-staging-rollback-drill.mjs:prepared",
+      "checkedAt": "2026-08-25T04:55:00.000Z"
+    },
+    {
+      "id": "legal-privacy-compliance",
+      "phase": "11.8",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Legal/Privacy",
+      "evidence": "Actual jurisdiction, privacy, biometric, payments, retention and terms review is required. The evidence model requires named human approval before PASS.",
+      "evidenceRef": "plan11:phase-11.8:human-signoff-pending",
+      "checkedAt": "2026-08-25T04:55:00.000Z"
+    },
+    {
+      "id": "named-launch-owners",
+      "phase": "11.8",
+      "status": "EXTERNAL_BLOCKER",
+      "owner": "Operations",
+      "evidence": "Named incident, release and rollback owners are still required. The evidence model requires named approval and owner evidence before PASS.",
+      "evidenceRef": "plan11:phase-11.8:owners-pending",
+      "checkedAt": "2026-08-25T04:55:00.000Z"
+    }
+  ]
+}

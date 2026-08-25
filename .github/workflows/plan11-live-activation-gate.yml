@@ -1,0 +1,337 @@
+name: Plan 11 Live Activation Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - prod/plan-11-live-activation
+      - main
+  workflow_dispatch:
+    inputs:
+      enforce_go:
+        description: 'Require every live gate to be PASS'
+        required: false
+        default: false
+        type: boolean
+      release_candidate_sha:
+        description: 'Exact application commit being promoted; required when enforce_go=true'
+        required: false
+        type: string
+      staging_url:
+        description: 'Optional HTTPS staging URL for live probes'
+        required: false
+        type: string
+      run_staging_e2e:
+        description: 'Run the deployed-staging public browser suite'
+        required: false
+        default: false
+        type: boolean
+      run_staging_lab_vitals:
+        description: 'Run mobile lab LCP/CLS regression measurements'
+        required: false
+        default: false
+        type: boolean
+      run_paystack_probe:
+        description: 'Initialize a synthetic Paystack test-mode transaction'
+        required: false
+        default: false
+        type: boolean
+      run_paystack_payout_probe:
+        description: 'Create and verify a synthetic Paystack test-mode transfer'
+        required: false
+        default: false
+        type: boolean
+      run_sensitive_data_drill:
+        description: 'Synthetic staging data lifecycle stage'
+        required: false
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - prepare
+          - finalize
+      data_deletion_request_id:
+        description: 'Deletion request ID emitted by prepare; required for finalize'
+        required: false
+        type: string
+      run_alert_drill:
+        description: 'Inject and require acknowledgement of synthetic critical incidents'
+        required: false
+        default: false
+        type: boolean
+      run_hosting_rollback_drill:
+        description: 'Promote, roll back and restore the frozen candidate on the dedicated staging project'
+        required: false
+        default: false
+        type: boolean
+      run_provider_restore_compare:
+        description: 'Compare frozen source vs isolated provider-restored database fingerprints'
+        required: false
+        default: false
+        type: boolean
+      run_repository_governance_probe:
+        description: 'Verify live main-branch protection, reviews and required release checks'
+        required: false
+        default: false
+        type: boolean
+      run_supabase_live_audit:
+        description: 'Audit the dedicated WRS staging Supabase project, RLS, migrations and private storage'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/plan11/*.test.mjs
+      - run: node scripts/plan11/assert-release-candidate.mjs
+      - run: npm run plan11:status
+
+  staging-probe:
+    if: github.event_name == 'workflow_dispatch' && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WRS_STAGING_URL: ${{ inputs.staging_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm run plan11:staging-probe
+
+  staging-browser:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_staging_e2e && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      WRS_E2E_BASE_URL: ${{ inputs.staging_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run plan11:staging-e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: plan11-staging-browser-failure
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+
+  staging-lab-vitals:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_staging_lab_vitals && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRS_STAGING_URL: ${{ inputs.staging_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run plan11:staging-lab-vitals | tee plan11-staging-lab-vitals.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-staging-lab-vitals
+          path: plan11-staging-lab-vitals.json
+
+  paystack-test-mode:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_paystack_probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PAYSTACK_TEST_SECRET_KEY: ${{ secrets.PAYSTACK_TEST_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm run plan11:paystack-probe | tee plan11-paystack-probe.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-paystack-test-mode-probe
+          path: plan11-paystack-probe.json
+
+  paystack-payout-test-mode:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_paystack_payout_probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PAYSTACK_TEST_SECRET_KEY: ${{ secrets.PAYSTACK_TEST_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/paystack-payout-probe.mjs | tee plan11-paystack-payout-probe.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-paystack-payout-test-mode-probe
+          path: plan11-paystack-payout-probe.json
+
+  sensitive-data-staging:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_sensitive_data_drill != 'none' && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRS_STAGING_URL: ${{ inputs.staging_url }}
+      WRS_DATA_DRILL_PHASE: ${{ inputs.run_sensitive_data_drill }}
+      WRS_DATA_DELETION_REQUEST_ID: ${{ inputs.data_deletion_request_id }}
+      WRS_STAGING_TEST_EMAIL: ${{ secrets.WRS_STAGING_TEST_EMAIL }}
+      WRS_STAGING_TEST_PASSWORD: ${{ secrets.WRS_STAGING_TEST_PASSWORD }}
+      WRS_DATA_SCANNER_SECRET: ${{ secrets.WRS_DATA_SCANNER_SECRET }}
+      WRS_DATA_DELETION_SECRET: ${{ secrets.WRS_DATA_DELETION_SECRET }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/sensitive-data-staging-drill.mjs "$WRS_DATA_DRILL_PHASE" | tee plan11-sensitive-data.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-sensitive-data-${{ inputs.run_sensitive_data_drill }}
+          path: plan11-sensitive-data.json
+
+  alert-routing-drill:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_alert_drill
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRS_ALERT_DRILL_URL: ${{ secrets.WRS_ALERT_DRILL_URL }}
+      WRS_ALERT_DRILL_SECRET: ${{ secrets.WRS_ALERT_DRILL_SECRET }}
+      WRS_ALERT_MAX_ACK_SECONDS: ${{ vars.WRS_ALERT_MAX_ACK_SECONDS || '120' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/alert-routing-drill.mjs | tee plan11-alert-routing.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-alert-routing
+          path: plan11-alert-routing.json
+
+  vercel-staging-rollback-drill:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_hosting_rollback_drill && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRS_VERCEL_ENVIRONMENT: staging
+      WRS_STAGING_URL: ${{ inputs.staging_url }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.WRS_STAGING_VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.WRS_STAGING_VERCEL_PROJECT_ID }}
+      WRS_VERCEL_STAGING_CANDIDATE_DEPLOYMENT: ${{ secrets.WRS_STAGING_VERCEL_CANDIDATE_DEPLOYMENT }}
+      WRS_VERCEL_STAGING_PREVIOUS_DEPLOYMENT: ${{ secrets.WRS_STAGING_VERCEL_PREVIOUS_DEPLOYMENT }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/vercel-staging-rollback-drill.mjs | tee plan11-hosting-rollback.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-hosting-rollback
+          path: plan11-hosting-rollback.json
+
+  provider-restore-integrity:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_provider_restore_compare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WRS_RECOVERY_SOURCE_DB_URL: ${{ secrets.WRS_RECOVERY_SOURCE_DB_URL }}
+      WRS_RECOVERY_RESTORED_DB_URL: ${{ secrets.WRS_RECOVERY_RESTORED_DB_URL }}
+      WRS_STAGING_TEST_EMAIL: ${{ secrets.WRS_STAGING_TEST_EMAIL }}
+      WRS_RECOVERY_SOURCE_FROZEN: 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/provider-restore-compare.mjs | tee plan11-provider-restore-integrity.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-provider-restore-integrity
+          path: plan11-provider-restore-integrity.json
+
+  repository-governance:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_repository_governance_probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      WRS_GITHUB_GOVERNANCE_TOKEN: ${{ secrets.WRS_GITHUB_GOVERNANCE_TOKEN }}
+      WRS_GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/github-governance-probe.mjs | tee plan11-repository-governance.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-repository-governance
+          path: plan11-repository-governance.json
+
+  supabase-live-infrastructure:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_supabase_live_audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WRS_SUPABASE_STAGING_DB_URL: ${{ secrets.WRS_SUPABASE_STAGING_DB_URL }}
+      WRS_SUPABASE_STAGING_PUBLISHABLE_KEY: ${{ secrets.WRS_SUPABASE_STAGING_PUBLISHABLE_KEY }}
+      WRS_SUPABASE_STAGING_PROJECT_REF: ${{ vars.WRS_SUPABASE_STAGING_PROJECT_REF }}
+      WRS_SUPABASE_STAGING_URL: ${{ vars.WRS_SUPABASE_STAGING_URL }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/supabase-live-audit.mjs | tee plan11-supabase-live-infrastructure.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-supabase-live-infrastructure
+          path: plan11-supabase-live-infrastructure.json
+
+  strict-go:
+    if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      WRS_EXPECTED_RELEASE_CANDIDATE: ${{ inputs.release_candidate_sha }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Validate release candidate input
+        run: |
+          if ! printf '%s' "$WRS_EXPECTED_RELEASE_CANDIDATE" | grep -Eq '^[0-9a-fA-F]{40}$'; then
+            echo 'release_candidate_sha must be a full 40-character commit SHA' >&2
+            exit 2
+          fi
+      - run: node scripts/plan11/assert-release-candidate.mjs
+      - run: npm run plan11:gate
