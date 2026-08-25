@@ -56,6 +56,8 @@ No Vercel project was provisioned or reused. Deployment/environment configuratio
 
 **SQL/REPOSITORY READY — MANUAL LIVE APPLICATION PENDING.**
 
+Current live-production decision: **NO-GO** until the manual/live evidence below is completed.
+
 Phase 11.1 is complete for the requested repository/SQL scope. You can later create dedicated WRS staging/production Supabase projects, apply all 25 migrations in timestamp order and run the verification SQL without redesigning the schema.
 
 The following remain live/manual evidence rather than unfinished repository work:
