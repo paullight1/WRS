@@ -81,7 +81,7 @@ test('human sign-off gates require named approval evidence', () => {
 
 test('all deployed staging evidence attests the frozen candidate', () => {
   const probe = fs.readFileSync('scripts/plan11/staging-probe.mjs', 'utf8')
-  assert.match(probe, /https:\\\/\\\//)
+  assert.match(probe, /https:\\/\\//)
   assert.match(probe, /matrix\.releaseCandidate/)
   assert.match(probe, /\/api\/health/)
   for (const header of [
@@ -122,4 +122,18 @@ test('payment activation tools refuse live-key probes and production pins Paysta
   assert.match(provider, /OFFICIAL_PAYSTACK_ORIGIN/)
   assert.match(provider, /VITE_WRS_MODE/)
   assert.match(provider, /production/i)
+})
+
+test('payout activation has a test-key-only Paystack transfer drill and never requires a live key', () => {
+  const probe = fs.readFileSync('scripts/plan11/paystack-payout-probe.mjs', 'utf8')
+  const workflow = fs.readFileSync('.github/workflows/plan11-live-activation-gate.yml', 'utf8')
+  assert.match(probe, /sk_test_/)
+  assert.match(probe, /0000000000/)
+  assert.match(probe, /057/)
+  assert.match(probe, /\/transferrecipient/)
+  assert.match(probe, /\/transfer/)
+  assert.match(probe, /\/transfer\/verify\//)
+  assert.match(probe, /domain/)
+  assert.match(workflow, /paystack-payout-test-mode/)
+  assert.doesNotMatch(workflow, /PAYSTACK_LIVE_SECRET_KEY/)
 })
