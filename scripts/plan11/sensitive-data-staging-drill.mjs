@@ -11,7 +11,9 @@ const expectedCandidate = String(process.env.WRS_EXPECTED_RELEASE_CANDIDATE || m
 
 if (!['prepare', 'finalize'].includes(mode)) throw new Error('WRS_DATA_DRILL_PHASE must be prepare or finalize')
 if (!/^https:\/\//.test(base)) throw new Error('WRS_STAGING_URL must be an https URL')
-if (!/^[0-9a-f]{40}$/i.test(expectedCandidate)) throw new Error('Plan 11 evidence must identify a full release candidate SHA')
+if (!/^[0-9a-f]{40}$/i.test(expectedCandidate)) {
+  throw new Error('Plan 11 evidence must identify a full release candidate SHA')
+}
 
 async function parseResponse(response, label) {
   const payload = await response.json().catch(() => null)
@@ -61,13 +63,19 @@ async function appJson(path, { body, cookie, bearer } = {}) {
 }
 
 async function prepare() {
-  const email = String(process.env.WRS_STAGING_TEST_EMAIL || '').trim().toLowerCase()
+  const email = String(process.env.WRS_STAGING_TEST_EMAIL || '')
+    .trim()
+    .toLowerCase()
   const password = String(process.env.WRS_STAGING_TEST_PASSWORD || '')
   const scannerSecret = String(process.env.WRS_DATA_SCANNER_SECRET || '')
   const policyVersion = Number(process.env.WRS_CONSENT_POLICY_VERSION || 1)
-  if (!email || !password) throw new Error('WRS_STAGING_TEST_EMAIL and WRS_STAGING_TEST_PASSWORD are required')
+  if (!email || !password) {
+    throw new Error('WRS_STAGING_TEST_EMAIL and WRS_STAGING_TEST_PASSWORD are required')
+  }
   if (!scannerSecret) throw new Error('WRS_DATA_SCANNER_SECRET is required')
-  if (!Number.isInteger(policyVersion) || policyVersion <= 0) throw new Error('WRS_CONSENT_POLICY_VERSION must be positive')
+  if (!Number.isInteger(policyVersion) || policyVersion <= 0) {
+    throw new Error('WRS_CONSENT_POLICY_VERSION must be positive')
+  }
 
   const loginResponse = await fetch(`${base}/api/auth/login`, {
     method: 'POST',
@@ -79,7 +87,9 @@ async function prepare() {
   if (!login?.session?.emailVerified || !login?.session?.phoneVerified) {
     throw new Error('Synthetic staging identity must have verified email and phone')
   }
-  if (login.session.accountDeletionPending) throw new Error('Synthetic staging identity has account deletion pending')
+  if (login.session.accountDeletionPending) {
+    throw new Error('Synthetic staging identity has account deletion pending')
+  }
 
   await appJson('/api/data/consent', {
     cookie,
@@ -105,15 +115,21 @@ async function prepare() {
       synthetic: true,
     },
   })
-  if (!grant?.assetId || !grant?.signedUrl || !grant?.path) throw new Error('Signed upload grant is incomplete')
-  if (!String(grant.path).includes('/document/')) throw new Error('Server-owned storage path did not include document category')
+  if (!grant?.assetId || !grant?.signedUrl || !grant?.path) {
+    throw new Error('Signed upload grant is incomplete')
+  }
+  if (!String(grant.path).includes('/document/')) {
+    throw new Error('Server-owned storage path did not include document category')
+  }
 
   const uploadResponse = await fetch(grant.signedUrl, {
     method: 'PUT',
     headers: { 'content-type': 'text/plain' },
     body: content,
   })
-  if (!uploadResponse.ok) throw new Error(`Signed private upload failed with HTTP ${uploadResponse.status}`)
+  if (!uploadResponse.ok) {
+    throw new Error(`Signed private upload failed with HTTP ${uploadResponse.status}`)
+  }
 
   const { payload: uploaded } = await appJson('/api/data/upload-complete', {
     cookie,
@@ -182,9 +198,13 @@ async function finalize() {
         note: 'Internal deletion worker completed the exact synthetic request. A real malware-scanning provider must still be connected before the launch matrix gate can become PASS.',
       }
     }
-    if (target?.status === 'retry-scheduled') throw new Error('Synthetic deletion worker scheduled a retry')
+    if (target?.status === 'retry-scheduled') {
+      throw new Error('Synthetic deletion worker scheduled a retry')
+    }
   }
-  throw new Error('Synthetic deletion request was not finalized; confirm the two-hour grant grace has elapsed and worker backlog is clear')
+  throw new Error(
+    'Synthetic deletion request was not finalized; confirm the two-hour grant grace has elapsed and worker backlog is clear',
+  )
 }
 
 await attestRelease()
