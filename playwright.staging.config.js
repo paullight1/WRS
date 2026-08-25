@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const baseURL = String(process.env.WRS_STAGING_URL || '').trim().replace(/\/$/, '')
+const baseURL = String(process.env.WRS_STAGING_URL || '')
+  .trim()
+  .replace(/\/$/, '')
 if (!baseURL.startsWith('https://') || /localhost|127\.0\.0\.1|\.invalid/i.test(baseURL)) {
   throw new Error('WRS_STAGING_URL must be a real HTTPS staging deployment URL.')
 }

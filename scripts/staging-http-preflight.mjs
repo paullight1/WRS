@@ -1,4 +1,6 @@
-const baseURL = String(process.env.WRS_STAGING_URL || '').trim().replace(/\/$/, '')
+const baseURL = String(process.env.WRS_STAGING_URL || '')
+  .trim()
+  .replace(/\/$/, '')
 const errors = []
 
 if (!baseURL.startsWith('https://') || /localhost|127\.0\.0\.1|\.invalid/i.test(baseURL)) {

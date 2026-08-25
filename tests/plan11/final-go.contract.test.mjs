@@ -18,10 +18,7 @@ test('Phase 11.9 evidence template is fail closed by default', async () => {
 
 test('Phase 11.9 evaluator rejects the example evidence package', () => {
   const script = resolve(process.cwd(), 'scripts/evaluate-live-go.mjs')
-  const evidence = resolve(
-    process.cwd(),
-    'Docs/production-readiness/11-live-activation/LIVE_EVIDENCE.example.json',
-  )
+  const evidence = resolve(process.cwd(), 'Docs/production-readiness/11-live-activation/LIVE_EVIDENCE.example.json')
   const result = spawnSync(process.execPath, [script, evidence], { encoding: 'utf8' })
   assert.equal(result.status, 1)
   assert.match(`${result.stdout}\n${result.stderr}`, /NO-GO/)

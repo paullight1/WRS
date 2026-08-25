@@ -33,7 +33,8 @@ async function main() {
   const failures = []
 
   if (evidence.schemaVersion !== 1) failures.push('unsupported or missing schemaVersion')
-  if (!/^[0-9a-f]{40}$/i.test(String(evidence.releaseCommit || ''))) failures.push('releaseCommit is not an exact commit SHA')
+  if (!/^[0-9a-f]{40}$/i.test(String(evidence.releaseCommit || '')))
+    failures.push('releaseCommit is not an exact commit SHA')
   if (!realReference(evidence.stagingDeployment)) failures.push('stagingDeployment evidence is missing')
   if (!realReference(evidence.productionTarget)) failures.push('productionTarget evidence is missing')
   if (Number(evidence.openP0) !== 0) failures.push(`openP0 must be 0, got ${evidence.openP0}`)
