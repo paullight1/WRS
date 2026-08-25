@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "releaseCommit": "<exact-release-commit-sha>",
+  "stagingDeployment": "<staging-deployment-reference>",
+  "productionTarget": "<production-project/deployment-reference>",
+  "decision": "NO-GO",
+  "openP0": 0,
+  "openP1": 0,
+  "gates": {
+    "infrastructure": {
+      "status": "EXTERNAL BLOCKER",
+      "evidence": []
+    },
+    "governance": {
+      "status": "EXTERNAL BLOCKER",
+      "evidence": []
+    },
+    "payments": {
+      "status": "EXTERNAL BLOCKER",
+      "evidence": []
+    },
+    "sensitiveData": {
+      "status": "EXTERNAL BLOCKER",
+      "evidence": []
+    },
+    "observability": {
+      "status": "EXTERNAL BLOCKER",
+      "evidence": []
+    },
+    "staging": {
+      "status": "EXTERNAL BLOCKER",
+      "evidence": []
+    },
+    "recovery": {
+      "status": "EXTERNAL BLOCKER",
+      "evidence": []
+    },
+    "humanReview": {
+      "status": "EXTERNAL BLOCKER",
+      "evidence": []
+    }
+  },
+  "repositoryChecks": {
+    "quality": "<workflow-run-id>",
+    "securityLaunch": "<workflow-run-id>",
+    "recovery": "<workflow-run-id>",
+    "database": ["<workflow-run-id>"]
+  },
+  "approvals": {
+    "releaseOwner": "",
+    "rollbackOwner": "",
+    "incidentOwner": "",
+    "privacyOwner": "",
+    "financeOwner": ""
+  },
+  "evaluatedAtUtc": null
+}
