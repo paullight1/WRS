@@ -64,6 +64,11 @@ on:
         required: false
         default: false
         type: boolean
+      run_provider_restore_compare:
+        description: 'Compare frozen source vs isolated provider-restored database fingerprints'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -240,6 +245,26 @@ jobs:
         with:
           name: plan11-hosting-rollback
           path: plan11-hosting-rollback.json
+
+  provider-restore-integrity:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_provider_restore_compare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WRS_RECOVERY_SOURCE_DB_URL: ${{ secrets.WRS_RECOVERY_SOURCE_DB_URL }}
+      WRS_RECOVERY_RESTORED_DB_URL: ${{ secrets.WRS_RECOVERY_RESTORED_DB_URL }}
+      WRS_STAGING_TEST_EMAIL: ${{ secrets.WRS_STAGING_TEST_EMAIL }}
+      WRS_RECOVERY_SOURCE_FROZEN: 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/provider-restore-compare.mjs | tee plan11-provider-restore-integrity.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-provider-restore-integrity
+          path: plan11-provider-restore-integrity.json
 
   strict-go:
     if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
