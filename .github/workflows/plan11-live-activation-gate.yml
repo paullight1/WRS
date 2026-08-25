@@ -74,6 +74,11 @@ on:
         required: false
         default: false
         type: boolean
+      run_supabase_live_audit:
+        description: 'Audit the dedicated WRS staging Supabase project, RLS, migrations and private storage'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -288,6 +293,26 @@ jobs:
         with:
           name: plan11-repository-governance
           path: plan11-repository-governance.json
+
+  supabase-live-infrastructure:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_supabase_live_audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WRS_SUPABASE_STAGING_DB_URL: ${{ secrets.WRS_SUPABASE_STAGING_DB_URL }}
+      WRS_SUPABASE_STAGING_PUBLISHABLE_KEY: ${{ secrets.WRS_SUPABASE_STAGING_PUBLISHABLE_KEY }}
+      WRS_SUPABASE_STAGING_PROJECT_REF: ${{ vars.WRS_SUPABASE_STAGING_PROJECT_REF }}
+      WRS_SUPABASE_STAGING_URL: ${{ vars.WRS_SUPABASE_STAGING_URL }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/supabase-live-audit.mjs | tee plan11-supabase-live-infrastructure.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-supabase-live-infrastructure
+          path: plan11-supabase-live-infrastructure.json
 
   strict-go:
     if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
