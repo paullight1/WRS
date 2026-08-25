@@ -12,7 +12,7 @@ should be recorded here.
 3. [Delivery roadmap](product/ROADMAP.md)
 4. [Trust, safety, and compliance](product/TRUST_SAFETY_COMPLIANCE.md)
 5. [Information architecture](ia/IA.md)
-6. [System architecture](architecture/ARCHITECTURE.md)
+6. [Engineering architecture](architecture/README.md)
 
 ## Product specifications
 
@@ -23,8 +23,6 @@ should be recorded here.
 - [Roles and permissions](product/ROLES_AND_PERMISSIONS.md)
 - [Governance model](product/GOVERNANCE.md)
 - [Feature specification template](product/FEATURE_SPEC_TEMPLATE.md)
-
-
 ## Information architecture
 
 - [IA overview](ia/IA.md)
@@ -35,7 +33,8 @@ should be recorded here.
 
 ## Architecture decisions
 
-- [ADR 0001: modular Node API](architecture/adr/0001-backend-foundation.md)
+- [Current ownership and dependency boundaries](architecture/README.md)
+- [Engineering baseline](architecture/engineering-baseline.md)
 - [ADR 0002: staged validation pipeline](architecture/adr/0002-staged-validation-pipeline.md)
 - [ADR 0003: separate value ledgers](architecture/adr/0003-separate-value-ledgers.md)
 
