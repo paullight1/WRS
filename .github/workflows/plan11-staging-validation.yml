@@ -1,0 +1,37 @@
+name: Plan 11 Staging Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: staging
+    env:
+      WRS_STAGING_URL: ${{ vars.WRS_STAGING_URL }}
+      WRS_STAGING_EMAIL: ${{ secrets.WRS_STAGING_EMAIL }}
+      WRS_STAGING_PASSWORD: ${{ secrets.WRS_STAGING_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Validate deployed staging HTTP/security/session boundary
+        run: node scripts/staging-http-preflight.mjs
+      - run: npx playwright install --with-deps chromium
+      - name: Run deployed staging browser journeys
+        run: npx playwright test --config=playwright.staging.config.js
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: plan11-staging-playwright-report
+          path: |
+            playwright-staging-report
+            test-results
+          if-no-files-found: ignore
