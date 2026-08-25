@@ -30,7 +30,7 @@
     "ci": "npm run lint && npm run typecheck && npm run format:check && npm run test:contracts && npm test && npm run check:secrets && npm run build && npm run check:bundle-budget && npm run audit"
   },
   "dependencies": {
-    "@react-three/fiber": "^8.18.0",
+    "@react-three/fiber": "^9.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.18.2",
