@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "decision": "NO_GO",
-  "releaseCandidate": "900068dda9802129ff312de828fd3735273af1db",
+  "releaseCandidate": "6dd77cb230e373b78a351eada13874f29106f0ce",
   "gates": [
     {
       "id": "supabase-infrastructure",
       "phase": "11.1",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Operations",
-      "evidence": "Connected Supabase organization orvvuonkxipcbfqmytdo contains edutu.ai and turnpay only; no WRS project exists. A live staging auditor is now implemented to require PostgreSQL 17, full repository migration parity, critical-table RLS, Auth health and a private MIME/size-restricted wrs-private-data bucket once a dedicated project is provisioned. Project creation still requires explicit organization selection and cost confirmation.",
-      "evidenceRef": "repo:scripts/plan11/supabase-live-audit.mjs:prepared",
+      "evidence": "Connected Supabase discovery found the crescivacapital organization and an unrelated Cresciva project only. No WRS project was provisioned or reused. The complete ordered WRS SQL migration and verification handoff is stored under supabase/ for later application to dedicated WRS staging and production projects.",
+      "evidenceRef": "repo:supabase/MIGRATION_GUIDE.md",
       "checkedAt": "2026-08-25T04:55:00.000Z"
     },
     {
@@ -17,8 +17,8 @@
       "phase": "11.1",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Operations",
-      "evidence": "Connected Vercel team team_0m722looHPylaECSCKh2f6oa contains zero projects and does not expose the team owning the existing WRS deployment. The existing wrs-alpha deployment could not be brought under this connected team.",
-      "evidenceRef": "connector:vercel:list-projects-and-access:2026-08-25",
+      "evidence": "The connected Vercel team contains zero projects and does not expose a WRS hosting project. No unrelated hosting project was reused.",
+      "evidenceRef": "repo:Docs/production-readiness/11-live-activation/PHASE-11.1-INFRASTRUCTURE.md",
       "checkedAt": "2026-08-25T04:30:00.000Z"
     },
     {
@@ -26,7 +26,7 @@
       "phase": "11.2",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Repository admin",
-      "evidence": "GitHub branch metadata reports main protected=false with required-status-check enforcement off. A read-only governance verifier is implemented to require main protection, at least one review, stale-review dismissal, admin enforcement, no force-push/deletion and the critical Quality/Security/Recovery check contexts. The connected GitHub action surface cannot mutate branch protection, so a repository administrator must enable it first.",
+      "evidence": "GitHub branch metadata reports main protected=false with required-status-check enforcement off. A read-only governance verifier is implemented to require main protection, at least one review, stale-review dismissal, admin enforcement, no force-push/deletion and the critical Quality/Security/Recovery check contexts. A repository administrator must enable those controls.",
       "evidenceRef": "repo:scripts/plan11/github-governance-probe.mjs:prepared",
       "checkedAt": "2026-08-25T04:55:00.000Z"
     },
@@ -80,7 +80,7 @@
       "phase": "11.6",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Accessibility",
-      "evidence": "Human keyboard/zoom/reflow/assistive-technology review required. The evidence model requires named approval before this gate can become PASS.",
+      "evidence": "Human keyboard, zoom, reflow and assistive-technology review is required. The evidence model requires named approval before this gate can become PASS.",
       "evidenceRef": "plan11:phase-11.6:manual-review-pending",
       "checkedAt": "2026-08-25T04:55:00.000Z"
     },
@@ -89,7 +89,7 @@
       "phase": "11.6",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Frontend/Operations",
-      "evidence": "Candidate-attested mobile staging lab LCP/CLS probe is implemented; real staging and field/representative p75 LCP/INP/CLS evidence remains required.",
+      "evidence": "Candidate-attested mobile staging lab LCP/CLS probe is implemented; real staging and field or representative p75 LCP/INP/CLS evidence remains required.",
       "evidenceRef": "repo:scripts/plan11/staging-lab-vitals.mjs:prepared",
       "checkedAt": "2026-08-25T04:30:00.000Z"
     },
@@ -98,7 +98,7 @@
       "phase": "11.7",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Database/Operations",
-      "evidence": "A read-only PostgreSQL 17 source-vs-restored integrity comparator is implemented for the frozen synthetic identity across auth/profile, robot, entitlement, consent/data and financial-ledger records. A real Supabase provider backup/PITR restore into an isolated project must still be performed, frozen and referenced before the comparator can produce provider recovery evidence.",
+      "evidence": "A read-only PostgreSQL 17 source-vs-restored integrity comparator is implemented for a frozen synthetic identity across auth/profile, robot, entitlement, consent/data and financial-ledger records. A real Supabase provider backup or PITR restore into an isolated project must still be performed and referenced.",
       "evidenceRef": "repo:scripts/plan11/provider-restore-compare.mjs:prepared",
       "checkedAt": "2026-08-25T04:55:00.000Z"
     },
@@ -107,7 +107,7 @@
       "phase": "11.7",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Release owner",
-      "evidence": "A staging-only Vercel drill is implemented to candidate-attest a direct deployment, promote it, roll back to a named previous known-good deployment, verify the stable staging alias, and re-promote/verify the frozen candidate in a finally recovery path. It cannot execute because the connected Vercel account does not expose a dedicated WRS staging project.",
+      "evidence": "A staging-only Vercel drill is implemented to candidate-attest a direct deployment, promote it, roll back to a named previous known-good deployment, verify the stable staging alias, and re-promote and verify the frozen candidate. It cannot execute because the connected Vercel account does not expose a dedicated WRS staging project.",
       "evidenceRef": "repo:scripts/plan11/vercel-staging-rollback-drill.mjs:prepared",
       "checkedAt": "2026-08-25T04:55:00.000Z"
     },
@@ -116,7 +116,7 @@
       "phase": "11.8",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Legal/Privacy",
-      "evidence": "Actual jurisdiction/privacy/biometric/payments/retention/terms review required. The evidence model requires named human approval before PASS.",
+      "evidence": "Actual jurisdiction, privacy, biometric, payments, retention and terms review is required. The evidence model requires named human approval before PASS.",
       "evidenceRef": "plan11:phase-11.8:human-signoff-pending",
       "checkedAt": "2026-08-25T04:55:00.000Z"
     },
@@ -125,7 +125,7 @@
       "phase": "11.8",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Operations",
-      "evidence": "Named incident, release and rollback owners are still required. The evidence model requires named approval/owner evidence before PASS.",
+      "evidence": "Named incident, release and rollback owners are still required. The evidence model requires named approval and owner evidence before PASS.",
       "evidenceRef": "plan11:phase-11.8:owners-pending",
       "checkedAt": "2026-08-25T04:55:00.000Z"
     }
