@@ -25,7 +25,8 @@ const requiredSecrets = [
 const problems = []
 const value = (key) => String(env[key] || '').trim()
 const enabled = (key) => ['1', 'true', 'enabled', 'on'].includes(value(key).toLowerCase())
-const placeholder = (input) => /example|placeholder|replace-with|your-wrs|localhost|127\.0\.0\.1|\.invalid/i.test(input)
+const placeholder = (input) =>
+  /example|placeholder|replace-with|your-wrs|localhost|127\.0\.0\.1|\.invalid/i.test(input)
 
 function requireValue(key) {
   const current = value(key)
@@ -41,13 +42,19 @@ function requireHttps(key) {
 }
 
 const mode = value('VITE_WRS_MODE').toLowerCase()
-if (!['staging', 'production'].includes(mode)) problems.push('VITE_WRS_MODE must be staging or production')
+if (!['staging', 'production'].includes(mode)) {
+  problems.push('VITE_WRS_MODE must be staging or production')
+}
 
 requireHttps('VITE_WRS_AUTHORITY_URL')
-for (const key of clientFlags) if (!enabled(key)) problems.push(`${key} must be enabled`)
+for (const key of clientFlags) {
+  if (!enabled(key)) problems.push(`${key} must be enabled`)
+}
 
 const supabaseUrl = requireHttps('SUPABASE_URL')
-if (supabaseUrl && !/supabase/i.test(supabaseUrl)) problems.push('SUPABASE_URL must point to the dedicated Supabase authority')
+if (supabaseUrl && !/supabase/i.test(supabaseUrl)) {
+  problems.push('SUPABASE_URL must point to the dedicated Supabase authority')
+}
 requireValue('SUPABASE_PUBLISHABLE_KEY')
 requireValue('SUPABASE_SECRET_KEY')
 
@@ -60,7 +67,9 @@ if (mode === 'production' && paystackKey && !paystackKey.startsWith('sk_live_'))
 }
 
 const bucket = requireValue('WRS_DATA_BUCKET')
-if (bucket && !/^[a-zA-Z0-9._-]{3,63}$/.test(bucket)) problems.push('WRS_DATA_BUCKET is invalid')
+if (bucket && !/^[a-zA-Z0-9._-]{3,63}$/.test(bucket)) {
+  problems.push('WRS_DATA_BUCKET is invalid')
+}
 
 for (const key of requiredSecrets) {
   const current = requireValue(key)
