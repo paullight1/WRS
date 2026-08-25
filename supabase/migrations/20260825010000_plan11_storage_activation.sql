@@ -14,45 +14,59 @@
 -- - Malware/quality scan results are recorded in the application tables from
 --   Plan 6 and must be processed before submitted assets become eligible for
 --   downstream use.
+-- - Generic PostgreSQL CI does not contain Supabase's managed Storage schema.
+--   In that environment only, this migration emits a NOTICE and skips the
+--   managed bucket insert. The required post-migration verification SQL still
+--   fails on a real Supabase project if Storage is not enabled or the bucket is
+--   missing/unsafe.
 
 begin;
 
-insert into storage.buckets (
-  id,
-  name,
-  public,
-  file_size_limit,
-  allowed_mime_types
-)
-values (
-  'wrs-private-data',
-  'wrs-private-data',
-  false,
-  52428800,
-  array[
-    'audio/webm',
-    'audio/ogg',
-    'audio/mpeg',
-    'audio/wav',
-    'audio/mp4',
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'video/webm',
-    'video/mp4',
-    'application/json',
-    'application/pdf',
-    'text/plain',
-    'text/csv',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  ]::text[]
-)
-on conflict (id) do update
-set
-  name = excluded.name,
-  public = false,
-  file_size_limit = excluded.file_size_limit,
-  allowed_mime_types = excluded.allowed_mime_types;
+DO $$
+BEGIN
+  if to_regclass('storage.buckets') is null then
+    raise notice 'Supabase storage.buckets is unavailable; skipping managed bucket bootstrap in this PostgreSQL environment';
+    return;
+  end if;
+
+  insert into storage.buckets (
+    id,
+    name,
+    public,
+    file_size_limit,
+    allowed_mime_types
+  )
+  values (
+    'wrs-private-data',
+    'wrs-private-data',
+    false,
+    52428800,
+    array[
+      'audio/webm',
+      'audio/ogg',
+      'audio/mpeg',
+      'audio/wav',
+      'audio/mp4',
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'video/webm',
+      'video/mp4',
+      'application/json',
+      'application/pdf',
+      'text/plain',
+      'text/csv',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ]::text[]
+  )
+  on conflict (id) do update
+  set
+    name = excluded.name,
+    public = false,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types;
+END
+$$;
 
 -- Keep direct browser access fail-closed. The service-role key bypasses RLS
 -- for the server-side signed-URL and deletion flows. No broad authenticated or
