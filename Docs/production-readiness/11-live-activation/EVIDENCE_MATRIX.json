@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "decision": "NO_GO",
-  "releaseCandidate": "6dd77cb230e373b78a351eada13874f29106f0ce",
+  "releaseCandidate": "07245b181e66e55634c2e2a08a2fd74c1b4af7a8",
   "gates": [
     {
       "id": "supabase-infrastructure",
