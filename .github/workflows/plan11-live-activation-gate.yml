@@ -69,6 +69,11 @@ on:
         required: false
         default: false
         type: boolean
+      run_repository_governance_probe:
+        description: 'Verify live main-branch protection, reviews and required release checks'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -265,6 +270,24 @@ jobs:
         with:
           name: plan11-provider-restore-integrity
           path: plan11-provider-restore-integrity.json
+
+  repository-governance:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_repository_governance_probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      WRS_GITHUB_GOVERNANCE_TOKEN: ${{ secrets.WRS_GITHUB_GOVERNANCE_TOKEN }}
+      WRS_GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/github-governance-probe.mjs | tee plan11-repository-governance.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-repository-governance
+          path: plan11-repository-governance.json
 
   strict-go:
     if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
