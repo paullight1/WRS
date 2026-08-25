@@ -6,11 +6,12 @@ async function text(path) {
   return readFile(new URL(`../../${path}`, import.meta.url), 'utf8')
 }
 
-test('Phase 11.6 staging Playwright config has no localhost fallback', async () => {
+test('Phase 11.6 staging Playwright config rejects localhost fallback', async () => {
   const config = await text('playwright.staging.config.js')
   assert.match(config, /WRS_STAGING_URL/)
   assert.match(config, /https:/i)
-  assert.doesNotMatch(config, /localhost|127\.0\.0\.1/)
+  assert.match(config, /localhost|127\.0\.0\.1/)
+  assert.match(config, /throw new Error/)
   assert.doesNotMatch(config, /webServer/)
 })
 
