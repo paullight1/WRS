@@ -41,6 +41,19 @@ on:
         required: false
         default: false
         type: boolean
+      run_sensitive_data_drill:
+        description: 'Synthetic staging data lifecycle stage'
+        required: false
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - prepare
+          - finalize
+      data_deletion_request_id:
+        description: 'Deletion request ID emitted by prepare; required for finalize'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -152,6 +165,29 @@ jobs:
         with:
           name: plan11-paystack-payout-test-mode-probe
           path: plan11-paystack-payout-probe.json
+
+  sensitive-data-staging:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_sensitive_data_drill != 'none' && inputs.staging_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRS_STAGING_URL: ${{ inputs.staging_url }}
+      WRS_DATA_DRILL_PHASE: ${{ inputs.run_sensitive_data_drill }}
+      WRS_DATA_DELETION_REQUEST_ID: ${{ inputs.data_deletion_request_id }}
+      WRS_STAGING_TEST_EMAIL: ${{ secrets.WRS_STAGING_TEST_EMAIL }}
+      WRS_STAGING_TEST_PASSWORD: ${{ secrets.WRS_STAGING_TEST_PASSWORD }}
+      WRS_DATA_SCANNER_SECRET: ${{ secrets.WRS_DATA_SCANNER_SECRET }}
+      WRS_DATA_DELETION_SECRET: ${{ secrets.WRS_DATA_DELETION_SECRET }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/sensitive-data-staging-drill.mjs "$WRS_DATA_DRILL_PHASE" | tee plan11-sensitive-data.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-sensitive-data-${{ inputs.run_sensitive_data_drill }}
+          path: plan11-sensitive-data.json
 
   strict-go:
     if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
