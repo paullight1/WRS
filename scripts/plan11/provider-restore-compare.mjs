@@ -9,7 +9,10 @@ const restoredDatabaseUrl = String(process.env.WRS_RECOVERY_RESTORED_DB_URL || '
 const syntheticEmail = String(process.env.WRS_STAGING_TEST_EMAIL || '')
   .trim()
   .toLowerCase()
-const sourceFrozen = String(process.env.WRS_RECOVERY_SOURCE_FROZEN || '').trim().toLowerCase() === 'true'
+const sourceFrozen =
+  String(process.env.WRS_RECOVERY_SOURCE_FROZEN || '')
+    .trim()
+    .toLowerCase() === 'true'
 const postgresImage = 'postgres:17-alpine'
 
 function validateDatabaseUrl(value, label) {
@@ -138,7 +141,11 @@ function databaseFingerprint(databaseUrl, label) {
 
   if (result.error) throw new Error(`${label} PostgreSQL fingerprint process failed`)
   if (result.status !== 0) throw new Error(`${label} PostgreSQL fingerprint query failed`)
-  const fingerprint = String(result.stdout || '').trim().split(/\s+/).pop() || ''
+  const fingerprint =
+    String(result.stdout || '')
+      .trim()
+      .split(/\s+/)
+      .pop() || ''
   if (!/^[0-9a-f]{64}$/i.test(fingerprint)) {
     throw new Error(`${label} synthetic recovery identity was missing or fingerprint output was invalid`)
   }

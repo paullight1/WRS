@@ -39,9 +39,7 @@ function cookieHeader(response) {
   const values = typeof response.headers.getSetCookie === 'function' ? response.headers.getSetCookie() : []
   const fallback = response.headers.get('set-cookie')
   const cookies = values.length ? values : fallback ? [fallback] : []
-  const pairs = cookies
-    .map((value) => String(value).split(';', 1)[0].trim())
-    .filter((value) => value.includes('='))
+  const pairs = cookies.map((value) => String(value).split(';', 1)[0].trim()).filter((value) => value.includes('='))
   if (!pairs.length) throw new Error('WRS login did not return session cookies')
   return pairs.join('; ')
 }

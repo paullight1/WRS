@@ -29,7 +29,9 @@ async function githubJson(path, label) {
   })
   const payload = await response.json().catch(() => null)
   if (!response.ok || !payload) {
-    throw new Error(`${label} failed with HTTP ${response.status}; governance token needs repository Administration:read`)
+    throw new Error(
+      `${label} failed with HTTP ${response.status}; governance token needs repository Administration:read`,
+    )
   }
   return payload
 }
@@ -48,8 +50,8 @@ const protection = await githubJson(protectionPath, 'main branch protection insp
 const requiredStatusChecks = protection.required_status_checks
 if (!requiredStatusChecks) throw new Error('required_status_checks are not configured on main')
 const configuredContexts = new Set([
-  ...((requiredStatusChecks.contexts || []).map(String)),
-  ...((requiredStatusChecks.checks || []).map((check) => String(check.context || ''))),
+  ...(requiredStatusChecks.contexts || []).map(String),
+  ...(requiredStatusChecks.checks || []).map((check) => String(check.context || '')),
 ])
 const missingContexts = requiredContexts.filter((context) => !configuredContexts.has(context))
 if (missingContexts.length) {

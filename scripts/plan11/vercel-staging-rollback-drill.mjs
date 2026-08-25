@@ -3,7 +3,9 @@ import { execFileSync } from 'node:child_process'
 import { loadEvidence } from './evidence.mjs'
 
 const matrix = loadEvidence('Docs/production-readiness/11-live-activation/EVIDENCE_MATRIX.json')
-const environment = String(process.env.WRS_VERCEL_ENVIRONMENT || '').trim().toLowerCase()
+const environment = String(process.env.WRS_VERCEL_ENVIRONMENT || '')
+  .trim()
+  .toLowerCase()
 const token = String(process.env.VERCEL_TOKEN || '')
 const orgId = String(process.env.VERCEL_ORG_ID || '').trim()
 const projectId = String(process.env.VERCEL_PROJECT_ID || '').trim()
@@ -17,7 +19,8 @@ if (environment !== 'staging') {
 }
 if (!token) throw new Error('VERCEL_TOKEN is required')
 if (!orgId) throw new Error('VERCEL_ORG_ID is required')
-if (!/^prj_[A-Za-z0-9]+$/.test(projectId)) throw new Error('VERCEL_PROJECT_ID must identify the dedicated staging project')
+if (!/^prj_[A-Za-z0-9]+$/.test(projectId))
+  throw new Error('VERCEL_PROJECT_ID must identify the dedicated staging project')
 if (!/^https:\/\//.test(stagingUrl)) throw new Error('WRS_STAGING_URL must be HTTPS')
 if (candidateDeployment === previousDeployment) throw new Error('Candidate and previous deployment must be different')
 for (const [label, value] of [
@@ -34,16 +37,12 @@ if (!/^[0-9a-f]{40}$/i.test(String(matrix.releaseCandidate || ''))) {
 }
 
 function vercel(args) {
-  execFileSync(
-    'npx',
-    ['--yes', `vercel@${cliVersion}`, ...args, '--token', token, '--scope', orgId, '--yes'],
-    {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      encoding: 'utf8',
-      env: { ...process.env, VERCEL_TOKEN: token, VERCEL_ORG_ID: orgId, VERCEL_PROJECT_ID: projectId },
-      timeout: 120_000,
-    },
-  )
+  execFileSync('npx', ['--yes', `vercel@${cliVersion}`, ...args, '--token', token, '--scope', orgId, '--yes'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    encoding: 'utf8',
+    env: { ...process.env, VERCEL_TOKEN: token, VERCEL_ORG_ID: orgId, VERCEL_PROJECT_ID: projectId },
+    timeout: 120_000,
+  })
 }
 
 async function health(base, label) {
@@ -106,7 +105,9 @@ try {
   } catch (restoreError) {
     const detail = restoreError instanceof Error ? restoreError.message : String(restoreError)
     if (primaryError) {
-      throw new Error(`rollback drill failed and candidate restore also failed: ${primaryError.message}; restore=${detail}`)
+      throw new Error(
+        `rollback drill failed and candidate restore also failed: ${primaryError.message}; restore=${detail}`,
+      )
     }
     throw new Error(`candidate restore failed after rollback drill: ${detail}`)
   }

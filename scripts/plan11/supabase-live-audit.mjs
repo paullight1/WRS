@@ -133,7 +133,12 @@ function postgresAudit() {
     },
   )
   if (result.error || result.status !== 0) throw new Error('Live Supabase PostgreSQL audit failed')
-  const line = String(result.stdout || '').trim().split('\n').filter(Boolean).pop() || ''
+  const line =
+    String(result.stdout || '')
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .pop() || ''
   try {
     return JSON.parse(line)
   } catch {
