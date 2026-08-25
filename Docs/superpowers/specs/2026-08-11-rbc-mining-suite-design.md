@@ -1,8 +1,14 @@
 # RBC Mining Suite Design
 
+> **Status: superseded historical proposal.** Do not implement this design as written.
+> The accepted IA decision replaces “Mining” with contribution-oriented language, and
+> RBC has no approved value, conversion, or withdrawal semantics. See
+> [`../../ia/DECISIONS.md`](../../ia/DECISIONS.md) and
+> [`../../product/REWARDS_AND_REPUTATION.md`](../../product/REWARDS_AND_REPUTATION.md).
+
 **Date:** 2026-08-11
 
-**Status:** Approved for implementation
+**Status:** Superseded
 
 ## Goal
 

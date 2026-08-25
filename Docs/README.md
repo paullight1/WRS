@@ -1,9 +1,15 @@
 # WRS documentation
 
-This directory is the decision-oriented source of truth for World Robotic System. The
-long-form files in the repository root (`mobile.md`, `about.md`, `wrs2.md`, and
-`uiux.md`) remain useful source material, but new product and engineering decisions
-should be recorded here.
+The maintained decision-oriented source of truth for World Robotic System lives in
+`Docs/product`, `Docs/ia`, and `Docs/architecture`. The long-form files in the
+repository root (`mobile.md`, `about.md`, `wrs2.md`, and `uiux.md`) remain useful source
+material, but new product and engineering decisions should be recorded in those three
+maintained directories.
+
+`Docs/superpowers` contains dated design and implementation-planning artifacts. Those
+files preserve decision history, but they are not current product authority unless a
+maintained document explicitly promotes them. Where they disagree, accepted IA and
+product decisions take precedence.
 
 ## Start here
 

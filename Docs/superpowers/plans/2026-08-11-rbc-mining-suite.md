@@ -1,5 +1,11 @@
 # RBC Mining Suite Implementation Plan
 
+> **Status: superseded historical plan.** Do not execute this plan. The accepted IA
+> decision replaces “Mining” with contribution-oriented language, and RBC has no
+> approved value, conversion, or withdrawal semantics. See
+> [`../../ia/DECISIONS.md`](../../ia/DECISIONS.md) and
+> [`../../product/REWARDS_AND_REPUTATION.md`](../../product/REWARDS_AND_REPUTATION.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the compressed mining page with a dedicated member mining workspace and protected admin controls for conversion rates and withdrawal review.
@@ -96,7 +102,7 @@
 - [ ] **Step 2: Run focused member tests** and confirm the new screen behavior is missing.
 - [ ] **Step 3: Implement each screen as a focused route** with real API calls, one primary action, and traceable reward/source detail.
 - [ ] **Step 4: Add charts using accessible SVG/native markup** and keep chart values derived from API responses.
-- [ ] **Step 5: Run focused member tests and verify mobile/desktop route rendering.
+- [ ] **Step 5: Run focused member tests and verify mobile/desktop route rendering.**
 
 ### Task 4: RBC wallet, conversion quote, and withdrawal request UI
 
@@ -118,7 +124,7 @@
 - [ ] **Step 2: Run focused wallet tests** and confirm failure.
 - [ ] **Step 3: Implement wallet tabs/sections** for balance, conversion quote, withdrawal request, withdrawal status, and history.
 - [ ] **Step 4: Implement validation and safe copy** that distinguishes “request submitted” from “bank payout completed.”
-- [ ] **Step 5: Run focused wallet tests and verify the mobile wallet route.
+- [ ] **Step 5: Run focused wallet tests and verify the mobile wallet route.**
 
 ### Task 5: Admin mining control plane
 
@@ -140,7 +146,7 @@
 - [ ] **Step 2: Run focused admin tests** and confirm failure.
 - [ ] **Step 3: Implement the conversion-rate editor** with effective dates, source note, version history, and publish confirmation.
 - [ ] **Step 4: Implement the withdrawal queue** with explicit state actions and no automatic payout claim.
-- [ ] **Step 5: Implement the audit view and run focused admin tests.
+- [ ] **Step 5: Implement the audit view and run focused admin tests.**
 
 ### Task 6: RBC visual asset and visual integration
 
@@ -152,7 +158,7 @@
 
 - [ ] **Step 1: Generate one transparent-background RBC coin/robot hero asset** in the approved WRS dark industrial style, with no embedded text that must be localized.
 - [ ] **Step 2: Add responsive image loading and an accessible fallback** so the feature works if the asset fails.
-- [ ] **Step 3: Verify the asset is compressed and does not appear on every mining screen.
+- [ ] **Step 3: Verify the asset is compressed and does not appear on every mining screen.**
 
 ### Task 7: Integration, review, and browser acceptance
 
@@ -165,5 +171,5 @@
 - [ ] **Step 2: Run the production build and production dependency audit.**
 - [ ] **Step 3: Verify desktop and mobile mining navigation in the local browser.**
 - [ ] **Step 4: Verify member mission/boost/event-code/wallet flows and admin conversion/withdrawal review flows with safe test data.**
-- [ ] **Step 5: Confirm transfer and weekly-event controls are absent and no UI reports an automatic payout.
-- [ ] **Step 6: Review the final diff for mock data, authorization gaps, unmasked bank data, or conflicting route ownership.
+- [ ] **Step 5: Confirm transfer and weekly-event controls are absent and no UI reports an automatic payout.**
+- [ ] **Step 6: Review the final diff for mock data, authorization gaps, unmasked bank data, or conflicting route ownership.**

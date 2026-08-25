@@ -1,5 +1,10 @@
 # WRS Functional Surfaces Design
 
+> **Status: partially superseded historical proposal.** Its “Mining” and RBC sections
+> are not approved product definitions and must not be implemented without a new
+> maintained product decision. See [`../../ia/DECISIONS.md`](../../ia/DECISIONS.md) and
+> [`../../product/REWARDS_AND_REPUTATION.md`](../../product/REWARDS_AND_REPUTATION.md).
+
 Date: 2026-08-15
 
 ## Goal

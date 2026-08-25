@@ -1,5 +1,10 @@
 # WRS Shared Product Surfaces Implementation Plan
 
+> **Status: partially superseded historical plan.** Do not execute its “Mining” or RBC
+> work without a new maintained product decision defining compliant terminology and
+> value semantics. See [`../../ia/DECISIONS.md`](../../ia/DECISIONS.md) and
+> [`../../product/REWARDS_AND_REPUTATION.md`](../../product/REWARDS_AND_REPUTATION.md).
+
 > **For agentic workers:** This is the main integration plan. It owns shared client/server contracts and must be applied after independent tracks are reviewed.
 
 **Goal:** Integrate the twelve annotated surfaces: identity-safe onboarding, package/entitlement messaging, functional leaderboard, launch-aware wallet, and multi-step withdrawal UX.
