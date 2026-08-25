@@ -27,7 +27,7 @@ Create alerts for at least these conditions:
 5. **Sensitive-data scanning** — scanner callback failures, infected findings, or submissions attempting to progress without `scan_status=clean`.
 6. **Privacy deletion** — processing deletion jobs stuck beyond threshold, retry exhaustion, storage deletion failures.
 7. **Account deletion** — stuck/failed finalization jobs or identity-provider redaction failures.
-8. **Deployment operations** — critical deployment incident, stale active deployment, failed settlement/verification workflows.
+8. **Deployment operations** — a **critical incident** in a deployment, stale active deployment, or failed settlement/verification workflows.
 9. **Application/server errors** — elevated 5xx, upstream timeout/unreachable, repeated function exceptions.
 10. **Security indicators** — suspicious operator/admin activity, repeated step-up/MFA failures or forbidden internal-endpoint access.
 
@@ -68,7 +68,7 @@ Run:
 
 `supabase/verification/plan11_operational_health.sql`
 
-It is read-only and fails if it detects stale financial events, withdrawal/reconciliation problems, stuck deletion jobs, urgent support backlog, recent critical deployment incidents or stale active deployment state.
+It is read-only and fails if it detects stale financial events, withdrawal/reconciliation problems, stuck deletion jobs, urgent support backlog, a recent critical incident in a deployment, or stale active deployment state.
 
 ## Evidence package
 
