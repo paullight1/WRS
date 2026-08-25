@@ -26,11 +26,7 @@ function config() {
     .trim()
     .toLowerCase()
   if (mode === 'production' && baseUrl !== OFFICIAL_PAYSTACK_ORIGIN) {
-    throw new HttpError(
-      500,
-      'Production Paystack traffic must use the official API origin.',
-      'provider-config',
-    )
+    throw new HttpError(500, 'Production Paystack traffic must use the official API origin.', 'provider-config')
   }
   return { secretKey, baseUrl }
 }
