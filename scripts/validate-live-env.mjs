@@ -25,8 +25,7 @@ const requiredSecrets = [
 const problems = []
 const value = (key) => String(env[key] || '').trim()
 const enabled = (key) => ['1', 'true', 'enabled', 'on'].includes(value(key).toLowerCase())
-const placeholder = (input) =>
-  /example|placeholder|replace-with|your-wrs|localhost|127\.0\.0\.1|\.invalid/i.test(input)
+const placeholder = (input) => /example|placeholder|replace-with|your-wrs|localhost|127\.0\.0\.1|\.invalid/i.test(input)
 
 function requireValue(key) {
   const current = value(key)
