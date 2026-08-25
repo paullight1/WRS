@@ -25,6 +25,7 @@ All must pass on the exact head being promoted:
 - [ ] Plan 7 Deployment Database Gate
 - [ ] Plan 8 Ecosystem Database Gate
 - [ ] Plan 9 Account Operations Database Gate
+- [ ] Plan 11 Activation Database Gate
 - [ ] Plan 11 live-activation contracts/preflight
 
 ## Live environment evidence
