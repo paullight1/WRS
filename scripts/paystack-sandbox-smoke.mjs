@@ -1,10 +1,14 @@
 import crypto from 'node:crypto'
 
 const key = String(process.env.PAYSTACK_TEST_SECRET_KEY || '').trim()
-const stagingUrl = String(process.env.WRS_STAGING_URL || '').trim().replace(/\/$/, '')
+const stagingUrl = String(process.env.WRS_STAGING_URL || '')
+  .trim()
+  .replace(/\/$/, '')
 const email = String(process.env.WRS_SANDBOX_EMAIL || '').trim()
 const verifyReference = String(process.env.PAYSTACK_TEST_REFERENCE || '').trim()
-const baseUrl = String(process.env.PAYSTACK_TEST_BASE_URL || 'https://api.paystack.co').trim().replace(/\/$/, '')
+const baseUrl = String(process.env.PAYSTACK_TEST_BASE_URL || 'https://api.paystack.co')
+  .trim()
+  .replace(/\/$/, '')
 
 const errors = []
 if (!key) errors.push('PAYSTACK_TEST_SECRET_KEY is missing')
@@ -58,8 +62,9 @@ async function main() {
     throw new Error('Paystack sandbox did not return a valid transaction initialization response')
   }
 
+  // Do not persist the authorization URL/access code in CI logs. The generated
+  // reference is sufficient to correlate later manual sandbox evidence.
   console.log(`Paystack sandbox initialization PASS reference=${reference}`)
-  console.log(`Authorization URL: ${initialized.authorization_url}`)
 
   if (verifyReference) {
     const verified = await request(`/transaction/verify/${encodeURIComponent(verifyReference)}`)
