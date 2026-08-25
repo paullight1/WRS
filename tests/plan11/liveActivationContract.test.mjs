@@ -81,7 +81,7 @@ test('human sign-off gates require named approval evidence', () => {
 
 test('all deployed staging evidence attests the frozen candidate', () => {
   const probe = fs.readFileSync('scripts/plan11/staging-probe.mjs', 'utf8')
-  assert.match(probe, /https:\/\//)
+  assert.match(probe, /WRS_STAGING_URL must be an https URL/)
   assert.match(probe, /matrix\.releaseCandidate/)
   assert.match(probe, /\/api\/health/)
   for (const header of [
