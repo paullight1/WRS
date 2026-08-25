@@ -54,6 +54,11 @@ on:
         description: 'Deletion request ID emitted by prepare; required for finalize'
         required: false
         type: string
+      run_alert_drill:
+        description: 'Inject and require acknowledgement of synthetic critical incidents'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -188,6 +193,25 @@ jobs:
         with:
           name: plan11-sensitive-data-${{ inputs.run_sensitive_data_drill }}
           path: plan11-sensitive-data.json
+
+  alert-routing-drill:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_alert_drill
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRS_ALERT_DRILL_URL: ${{ secrets.WRS_ALERT_DRILL_URL }}
+      WRS_ALERT_DRILL_SECRET: ${{ secrets.WRS_ALERT_DRILL_SECRET }}
+      WRS_ALERT_MAX_ACK_SECONDS: ${{ vars.WRS_ALERT_MAX_ACK_SECONDS || '120' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/plan11/alert-routing-drill.mjs | tee plan11-alert-routing.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-alert-routing
+          path: plan11-alert-routing.json
 
   strict-go:
     if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
