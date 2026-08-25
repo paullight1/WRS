@@ -36,6 +36,11 @@ on:
         required: false
         default: false
         type: boolean
+      run_paystack_payout_probe:
+        description: 'Create and verify a synthetic Paystack test-mode transfer'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -130,6 +135,23 @@ jobs:
         with:
           name: plan11-paystack-test-mode-probe
           path: plan11-paystack-probe.json
+
+  paystack-payout-test-mode:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_paystack_payout_probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PAYSTACK_TEST_SECRET_KEY: ${{ secrets.PAYSTACK_TEST_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm run plan11:paystack-payout-probe | tee plan11-paystack-payout-probe.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan11-paystack-payout-test-mode-probe
+          path: plan11-paystack-payout-probe.json
 
   strict-go:
     if: github.event_name == 'workflow_dispatch' && inputs.enforce_go
