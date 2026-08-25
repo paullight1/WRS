@@ -100,10 +100,6 @@ export function walletTabs() {
   return ['Overview', 'Withdrawals', 'History']
 }
 
-export function isUnavailableConversionRate(error) {
-  return Number(error?.status) === 404
-}
-
 export function normalizeEventCode(value) {
   const code = String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
   if (!/^[A-Z0-9]{6,30}$/.test(code)) throw new Error('Enter a six to thirty character event code')
