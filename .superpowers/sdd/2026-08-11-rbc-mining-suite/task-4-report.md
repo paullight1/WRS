@@ -35,7 +35,7 @@
 ## Verification
 
 - `node --test scripts/rbc-wallet.test.js` — 9 passing, 0 failing.
-- `npm run check` — passed: 46 project tests plus the production build.
+- `npm run check` — passed: 45 project tests plus the production build.
 - Browser route check at `/mining/wallet` — desktop mining rail and mobile five-item navigation include RBC Wallet; no console errors.
 
 ## Integration note
