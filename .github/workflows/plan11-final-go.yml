@@ -1,0 +1,25 @@
+name: Plan 11 Final GO Decision
+
+on:
+  workflow_dispatch:
+    inputs:
+      evidence_path:
+        description: Repository path to the completed live evidence JSON
+        required: true
+        default: Docs/production-readiness/11-live-activation/LIVE_EVIDENCE.json
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate-live-go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Evaluate fail-closed live evidence package
+        run: node scripts/evaluate-live-go.mjs "${{ inputs.evidence_path }}"

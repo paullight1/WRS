@@ -1,0 +1,30 @@
+name: Plan 11 Payment Sandbox Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      verified_reference:
+        description: Optional Paystack test reference that has already completed payment
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  paystack-sandbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    env:
+      PAYSTACK_TEST_SECRET_KEY: ${{ secrets.PAYSTACK_TEST_SECRET_KEY }}
+      WRS_STAGING_URL: ${{ vars.WRS_STAGING_URL }}
+      WRS_SANDBOX_EMAIL: ${{ secrets.WRS_SANDBOX_EMAIL }}
+      PAYSTACK_TEST_REFERENCE: ${{ inputs.verified_reference }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Validate sandbox key and initialize Paystack transaction
+        run: node scripts/paystack-sandbox-smoke.mjs

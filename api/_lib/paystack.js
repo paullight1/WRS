@@ -1,5 +1,7 @@
 import crypto from 'node:crypto'
 import { HttpError } from './http.js'
+import { fetchWithTimeout } from './security.js'
+import { telemetryEvent } from './telemetry.js'
 
 const DEFAULT_BASE_URL = 'https://api.paystack.co'
 
@@ -12,11 +14,22 @@ function config() {
   return { secretKey, baseUrl }
 }
 
+function isTimeout(error) {
+  return (
+    error?.name === 'TimeoutError' ||
+    (error?.name === 'AbortError' &&
+      String(error?.message || '')
+        .toLowerCase()
+        .includes('timeout'))
+  )
+}
+
 async function paystackRequest(path, options = {}) {
   const cfg = config()
+  const startedAt = Date.now()
   let response
   try {
-    response = await fetch(`${cfg.baseUrl}${path}`, {
+    response = await fetchWithTimeout(`${cfg.baseUrl}${path}`, {
       method: options.method || 'GET',
       headers: {
         authorization: `Bearer ${cfg.secretKey}`,
@@ -26,12 +39,28 @@ async function paystackRequest(path, options = {}) {
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
     })
   } catch (error) {
-    console.error('Paystack transport error', error)
-    throw new HttpError(502, 'Payment provider is unreachable.', 'provider-unreachable')
+    const timeout = isTimeout(error)
+    telemetryEvent('error', timeout ? 'payments.upstream_timeout' : 'payments.upstream_unreachable', {
+      provider: 'paystack',
+      routeFamily: String(path).split('?')[0].slice(0, 160),
+      durationMs: Date.now() - startedAt,
+      error,
+    })
+    throw new HttpError(
+      timeout ? 504 : 502,
+      timeout ? 'Payment provider timed out.' : 'Payment provider is unreachable.',
+      timeout ? 'provider-timeout' : 'provider-unreachable',
+    )
   }
 
   const data = await response.json().catch(() => null)
   if (!response.ok || !data?.status) {
+    telemetryEvent('warn', 'payments.upstream_rejected', {
+      provider: 'paystack',
+      routeFamily: String(path).split('?')[0].slice(0, 160),
+      upstreamStatus: response.status,
+      durationMs: Date.now() - startedAt,
+    })
     throw new HttpError(response.status >= 500 ? 502 : 400, 'Payment provider rejected the request.', 'provider-error')
   }
   return data.data

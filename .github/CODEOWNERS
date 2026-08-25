@@ -1,0 +1,11 @@
+# WRS production ownership
+* @paullight1
+
+# High-risk authority and release surfaces
+/api/ @paullight1
+/server/ @paullight1
+/supabase/migrations/ @paullight1
+/supabase/verification/ @paullight1
+/.github/workflows/ @paullight1
+/Docs/releases/ @paullight1
+/Docs/production-readiness/ @paullight1
