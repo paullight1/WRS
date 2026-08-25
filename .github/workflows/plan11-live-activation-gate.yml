@@ -147,7 +147,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-      - run: npm run plan11:paystack-payout-probe | tee plan11-paystack-payout-probe.json
+      - run: node scripts/plan11/paystack-payout-probe.mjs | tee plan11-paystack-payout-probe.json
       - uses: actions/upload-artifact@v4
         with:
           name: plan11-paystack-payout-test-mode-probe
