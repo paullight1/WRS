@@ -76,11 +76,12 @@ test('Phase 11.1 includes the complete ordered Supabase SQL pack', async () => {
   assert.match(verification, /WRS Supabase post-migration verification PASS/)
 })
 
-test('Phase 11.1 records connected-resource evidence and external blockers', async () => {
+test('Phase 11.1 records connected-resource evidence and manual live handoff', async () => {
   const evidence = await text('Docs/production-readiness/11-live-activation/PHASE-11.1-INFRASTRUCTURE.md')
   assert.match(evidence, /Supabase/i)
   assert.match(evidence, /Vercel/i)
-  assert.match(evidence, /EXTERNAL BLOCKER/)
+  assert.match(evidence, /SQL\/REPOSITORY READY|MANUAL LIVE APPLICATION PENDING/i)
+  assert.match(evidence, /NO-GO/i)
   assert.match(evidence, /crescivacapital/)
   assert.match(evidence, /zero projects|0 projects/i)
 })
