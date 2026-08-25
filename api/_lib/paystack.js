@@ -3,14 +3,35 @@ import { HttpError } from './http.js'
 import { fetchWithTimeout } from './security.js'
 import { telemetryEvent } from './telemetry.js'
 
-const DEFAULT_BASE_URL = 'https://api.paystack.co'
+const OFFICIAL_PAYSTACK_ORIGIN = 'https://api.paystack.co'
 
 function config() {
   const secretKey = String(process.env.PAYSTACK_SECRET_KEY || '')
   if (!secretKey) throw new HttpError(503, 'Payment provider is not configured.', 'payments-unavailable')
-  const baseUrl = String(process.env.PAYSTACK_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
-  if (!baseUrl.startsWith('https://'))
+
+  const baseUrl = String(process.env.PAYSTACK_BASE_URL || OFFICIAL_PAYSTACK_ORIGIN)
+    .trim()
+    .replace(/\/$/, '')
+  let parsed
+  try {
+    parsed = new URL(baseUrl)
+  } catch {
+    throw new HttpError(500, 'Payment provider URL is invalid.', 'provider-config')
+  }
+  if (parsed.protocol !== 'https:') {
     throw new HttpError(500, 'Payment provider URL must use HTTPS.', 'provider-config')
+  }
+
+  const mode = String(process.env.VITE_WRS_MODE || 'demo')
+    .trim()
+    .toLowerCase()
+  if (mode === 'production' && baseUrl !== OFFICIAL_PAYSTACK_ORIGIN) {
+    throw new HttpError(
+      500,
+      'Production Paystack traffic must use the official API origin.',
+      'provider-config',
+    )
+  }
   return { secretKey, baseUrl }
 }
 
