@@ -29,7 +29,14 @@ const ART = {
     <>
       <circle cx="24" cy="24" r="22" fill="#00dbe7" opacity="0.18" />
       <circle cx="24" cy="24" r="15" fill="#00dbe7" />
-      <path d="M17 24l5 5 10-11" fill="none" stroke="#00272a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M17 24l5 5 10-11"
+        fill="none"
+        stroke="#00272a"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </>
   ),
   error: (

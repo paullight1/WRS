@@ -1,24 +1,128 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
+import StateView, { LoadingView } from '../components/states/StateView.jsx'
 import { Button, ChipBar, Icon, List, SectionTitle } from '../components/ui.jsx'
-import StateView from '../components/states/StateView.jsx'
 import { transactions } from '../data/mock.js'
+import { browserFinanceClient } from '../infrastructure/finance/browserFinanceClient.ts'
+import { runtimeConfig } from '../lib/runtimeConfig.js'
 
-const filters = ['All', 'Confirmed', 'Pending', 'Completed', 'Promotional']
+const demoFilters = ['All', 'Confirmed', 'Pending', 'Completed', 'Promotional']
 
-export default function Transactions() {
-  const [f, setF] = useState('All')
-  const list = transactions.filter((t) => f === 'All' || t.state === f)
-
+function DemoTransactions() {
+  const [filter, setFilter] = useState('All')
+  const list = transactions.filter((item) => filter === 'All' || item.state === filter)
   return (
     <AppShell title="Transactions demo" back avatar={false}>
-      <ChipBar items={filters} value={f} onChange={setF} visible={3} />
+      <ChipBar items={demoFilters} value={filter} onChange={setFilter} visible={3} />
       {list.length ? (
         <section>
           <SectionTitle action={`${list.length} illustrative entries`}>Sample statement</SectionTitle>
-          <List>{list.map((t, i) => <div key={i} className="flex items-center gap-3.5 px-4 py-3"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${t.positive ? 'bg-tertiary/10' : 'bg-white/[.06]'}`}><Icon name={t.positive ? 'south_west' : 'north_east'} className={`text-[18px] ${t.positive ? 'text-tertiary' : 'text-on-surface-variant'}`} /></span><div className="min-w-0 flex-1"><p className="truncate text-title text-on-surface">{t.label}</p><p className="text-label-sm text-on-surface-variant">Sample record · {t.state}</p></div><p className={`tnum shrink-0 text-title ${t.positive ? 'text-tertiary' : 'text-on-surface'}`}>{t.amount}</p></div>)}</List>
+          <List>
+            {list.map((item, index) => (
+              <div key={index} className="flex items-center gap-3.5 px-4 py-3">
+                <Icon name={item.positive ? 'south_west' : 'north_east'} className="text-on-surface-variant" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-title text-on-surface">{item.label}</p>
+                  <p className="text-label-sm text-outline">Demo · {item.state}</p>
+                </div>
+                <span className="tnum text-title text-on-surface">{item.amount}</span>
+              </div>
+            ))}
+          </List>
         </section>
-      ) : <StateView live kind="noResults" title={`No ${f.toLowerCase()} demo transactions`} desc="These filters operate on illustrative data only." action={<Button variant="ghost" onClick={() => setF('All')}>Show all</Button>} />}
+      ) : (
+        <StateView
+          kind="noResults"
+          title={`No ${filter.toLowerCase()} demo transactions`}
+          desc="These filters operate on illustrative data only."
+          action={<Button onClick={() => setFilter('All')}>Show all</Button>}
+        />
+      )}
     </AppShell>
   )
+}
+
+function LiveTransactions() {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    browserFinanceClient
+      .transactions('USD')
+      .then((result) => {
+        if (active) setItems(result.transactions)
+      })
+      .catch((reason) => {
+        if (active) setError(reason instanceof Error ? reason.message : 'Ledger statement could not be loaded.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  if (loading) {
+    return (
+      <AppShell title="Transactions" back avatar={false}>
+        <LoadingView title="Loading ledger statement" desc="Reading immutable wallet entries." />
+      </AppShell>
+    )
+  }
+  if (error) {
+    return (
+      <AppShell title="Transactions" back avatar={false}>
+        <StateView kind="error" title="Statement unavailable" desc={error} />
+      </AppShell>
+    )
+  }
+
+  return (
+    <AppShell title="Transactions" subtitle="Authoritative wallet ledger" back avatar={false}>
+      {items.length ? (
+        <section>
+          <SectionTitle action={`${items.length} entries`}>Ledger statement</SectionTitle>
+          <List>
+            {items.map((item) => {
+              const incoming = item.direction === 'credit'
+              const amount = new Intl.NumberFormat(undefined, { style: 'currency', currency: item.currency }).format(
+                item.amountMinor / 100,
+              )
+              return (
+                <div key={`${item.id}:${item.createdAt}`} className="flex items-center gap-3.5 px-4 py-3">
+                  <Icon
+                    name={incoming ? 'south_west' : 'north_east'}
+                    className={incoming ? 'text-tertiary' : 'text-on-surface-variant'}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-title text-on-surface">{item.kind.replaceAll('-', ' ')}</p>
+                    <p className="truncate font-data text-data-sm text-outline">
+                      {item.reference} · {item.status}
+                    </p>
+                  </div>
+                  <span className={`tnum text-title ${incoming ? 'text-tertiary' : 'text-on-surface'}`}>
+                    {incoming ? '+' : '-'}
+                    {amount}
+                  </span>
+                </div>
+              )
+            })}
+          </List>
+        </section>
+      ) : (
+        <StateView
+          kind="empty"
+          title="No wallet entries yet"
+          desc="Verified earnings and withdrawals will appear here after they post to the ledger."
+        />
+      )}
+    </AppShell>
+  )
+}
+
+export default function Transactions() {
+  return runtimeConfig.isDemo ? <DemoTransactions /> : <LiveTransactions />
 }

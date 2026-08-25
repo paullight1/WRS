@@ -61,6 +61,11 @@ export const browserAuthClient = {
       method: 'POST',
       body: JSON.stringify({ enrollmentId, code }),
     }),
+  stepUpMfa: (code: string) =>
+    request<{ session: AuthSession }>('/api/auth/mfa/step-up', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
   disableMfa: (code: string) =>
     request<{ session: AuthSession }>('/api/auth/mfa/disable', { method: 'POST', body: JSON.stringify({ code }) }),
 }

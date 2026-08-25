@@ -29,12 +29,9 @@ function Metrics({ items }) {
 }
 
 function DeploymentCard({ d, history = false }) {
-  const t = tone(STATUS_TONE[d.status] || 'tertiary')
   return (
     <Card
-      className={`relative overflow-hidden p-4 ${
-        d.status === 'Active' ? 'border-success/25 bg-success/[.04]' : ''
-      }`}
+      className={`relative overflow-hidden p-4 ${d.status === 'Active' ? 'border-success/25 bg-success/[.04]' : ''}`}
     >
       <div className="relative flex items-start gap-3.5">
         <RobotFace tier={d.tier} size={56} className="shrink-0" />
@@ -47,9 +44,7 @@ function DeploymentCard({ d, history = false }) {
             </Badge>
           </div>
           <p className="truncate text-label-sm text-outline">{d.industry}</p>
-          <p className="mt-1.5 text-label-sm text-on-surface-variant">
-            {history ? d.period : `Since: ${d.since}`}
-          </p>
+          <p className="mt-1.5 text-label-sm text-on-surface-variant">{history ? d.period : `Since: ${d.since}`}</p>
         </div>
       </div>
 
@@ -115,9 +110,7 @@ export default function Deploy() {
           <section>
             <div className="mb-2 flex items-center gap-2">
               <Icon name="rocket_launch" className="text-[20px] text-tertiary" />
-              <span className="text-label-sm text-tertiary">
-                Deployment Console
-              </span>
+              <span className="text-label-sm text-tertiary">Deployment Console</span>
             </div>
             <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">
               Choose where your robot can work
@@ -172,9 +165,7 @@ export default function Deploy() {
                         iconSize={26}
                       />
                       <div className="min-w-0">
-                        <h3 className="truncate text-title text-on-surface group-hover:text-tertiary">
-                          {s.name}
-                        </h3>
+                        <h3 className="truncate text-title text-on-surface group-hover:text-tertiary">{s.name}</h3>
                         <p className="truncate text-label-sm text-outline">{s.desc}</p>
                         <p className="text-label-sm text-on-surface-variant">
                           Demand: {s.demand} · {s.rate}
@@ -191,7 +182,10 @@ export default function Deploy() {
                           <Icon name="lock" className="text-[13px]" /> {s.requires}
                         </Badge>
                       )}
-                      <Icon name="chevron_right" className="text-outline transition-transform group-hover:translate-x-1" />
+                      <Icon
+                        name="chevron_right"
+                        className="text-outline transition-transform group-hover:translate-x-1"
+                      />
                     </div>
                   </Link>
                 )

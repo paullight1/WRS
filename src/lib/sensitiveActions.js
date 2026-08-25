@@ -1,19 +1,19 @@
 import { runtimeConfig } from './runtimeConfig.js'
 
 export const SENSITIVE_ACTIONS = Object.freeze({
-  'payment.checkout': { service: 'payments', risk: 'P0', disposition: 'demo-label', implemented: false },
-  'payment.success': { service: 'payments', risk: 'P0', disposition: 'disable', implemented: false },
+  'payment.checkout': { service: 'payments', risk: 'P0', disposition: 'demo-label', implemented: true },
+  'payment.success': { service: 'payments', risk: 'P0', disposition: 'disable', implemented: true },
   'wallet.deposit': { service: 'payments', risk: 'P0', disposition: 'disable', implemented: false },
-  'wallet.withdraw': { service: 'payments', risk: 'P0', disposition: 'disable', implemented: false },
+  'wallet.withdraw': { service: 'payments', risk: 'P0', disposition: 'disable', implemented: true },
   'reward.eventCode': { service: 'rewards', risk: 'P0', disposition: 'demo-label', implemented: false },
   'reward.boost': { service: 'rewards', risk: 'P1', disposition: 'demo-label', implemented: false },
-  'training.biometricSubmit': { service: 'data', risk: 'P0', disposition: 'disable', implemented: false },
-  'training.fileUpload': { service: 'data', risk: 'P1', disposition: 'disable', implemented: false },
-  'data.taskSubmit': { service: 'data', risk: 'P1', disposition: 'demo-label', implemented: false },
+  'training.biometricSubmit': { service: 'data', risk: 'P0', disposition: 'disable', implemented: true },
+  'training.fileUpload': { service: 'data', risk: 'P1', disposition: 'disable', implemented: true },
+  'data.taskSubmit': { service: 'data', risk: 'P1', disposition: 'demo-label', implemented: true },
   'deployment.request': { service: 'deployments', risk: 'P0', disposition: 'demo-label', implemented: false },
   'deployment.pause': { service: 'deployments', risk: 'P1', disposition: 'disable', implemented: false },
   'marketplace.purchase': { service: 'payments', risk: 'P1', disposition: 'demo-label', implemented: false },
-  'account.deleteData': { service: 'data', risk: 'P0', disposition: 'disable', implemented: false },
+  'account.deleteData': { service: 'data', risk: 'P0', disposition: 'disable', implemented: true },
   'support.ticket': { service: 'support', risk: 'P1', disposition: 'demo-label', implemented: false },
   'account.deleteAccount': { service: 'identity', risk: 'P0', disposition: 'disable', implemented: false },
 })

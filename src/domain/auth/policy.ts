@@ -1,11 +1,22 @@
 import type { AuthSession } from './types'
 
-export type RoutePolicy = 'public' | 'authenticated' | 'verified' | 'kyc' | 'admin'
+export type RoutePolicy = 'public' | 'authenticated' | 'verified' | 'kyc' | 'admin' | 'operations' | 'account-recovery'
 
 export interface AuthorizationDecision {
   allowed: boolean
-  reason?: 'unauthenticated' | 'unverified' | 'kyc-required' | 'forbidden' | 'expired' | 'suspended'
+  reason?:
+    'unauthenticated' | 'unverified' | 'kyc-required' | 'forbidden' | 'expired' | 'suspended' | 'deletion-pending'
 }
+
+const OPERATIONS_ROLES = new Set([
+  'admin',
+  'support_operator',
+  'kyc_operator',
+  'finance_operator',
+  'data_operator',
+  'deployment_operator',
+  'risk_operator',
+])
 
 export function authorizeSession(
   session: AuthSession | null,
@@ -20,11 +31,19 @@ export function authorizeSession(
   if (new Date(session.expiresAt).getTime() <= now.getTime()) {
     return { allowed: false, reason: 'expired' }
   }
-  if (policy === 'authenticated') return { allowed: true }
+  if (session.accountDeletionPending) {
+    return policy === 'account-recovery' ? { allowed: true } : { allowed: false, reason: 'deletion-pending' }
+  }
+  if (policy === 'account-recovery' || policy === 'authenticated') return { allowed: true }
   if (!session.emailVerified || !session.phoneVerified) {
     return { allowed: false, reason: 'unverified' }
   }
   if (policy === 'verified') return { allowed: true }
+  if (policy === 'operations') {
+    return session.roles.some((role) => OPERATIONS_ROLES.has(role))
+      ? { allowed: true }
+      : { allowed: false, reason: 'forbidden' }
+  }
   if (session.kycStatus !== 'verified') return { allowed: false, reason: 'kyc-required' }
   if (policy === 'kyc') return { allowed: true }
   return session.roles.includes('admin') ? { allowed: true } : { allowed: false, reason: 'forbidden' }

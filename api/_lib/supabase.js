@@ -1,4 +1,6 @@
 import { HttpError } from './http.js'
+import { fetchWithTimeout } from './security.js'
+import { telemetryEvent } from './telemetry.js'
 
 function config() {
   const url = String(process.env.SUPABASE_URL || process.env.SUPABASE_PUBLIC_URL || '').replace(/\/$/, '')
@@ -15,6 +17,16 @@ function providerMessage(data, fallback) {
   return data.msg || data.error_description || data.message || data.error || fallback
 }
 
+function isTimeout(error) {
+  return (
+    error?.name === 'TimeoutError' ||
+    (error?.name === 'AbortError' &&
+      String(error?.message || '')
+        .toLowerCase()
+        .includes('timeout'))
+  )
+}
+
 export async function supabaseRequest(path, options = {}) {
   const cfg = config()
   const key = options.key === 'secret' ? cfg.secretKey : cfg.publishableKey
@@ -25,8 +37,9 @@ export async function supabaseRequest(path, options = {}) {
   if (options.body !== undefined && !headers.has('content-type')) headers.set('content-type', 'application/json')
 
   let response
+  const startedAt = Date.now()
   try {
-    response = await fetch(`${cfg.url}${path}`, {
+    response = await fetchWithTimeout(`${cfg.url}${path}`, {
       method: options.method || 'GET',
       headers,
       body:
@@ -38,8 +51,18 @@ export async function supabaseRequest(path, options = {}) {
       redirect: options.redirect || 'manual',
     })
   } catch (error) {
-    console.error('Supabase transport error', error)
-    throw new HttpError(502, 'Authoritative service is unreachable.', 'upstream-unreachable')
+    const timeout = isTimeout(error)
+    telemetryEvent('error', timeout ? 'upstream.timeout' : 'upstream.unreachable', {
+      service: 'supabase',
+      routeFamily: String(path).split('?')[0].slice(0, 160),
+      durationMs: Date.now() - startedAt,
+      error,
+    })
+    throw new HttpError(
+      timeout ? 504 : 502,
+      timeout ? 'Authoritative service timed out.' : 'Authoritative service is unreachable.',
+      timeout ? 'upstream-timeout' : 'upstream-unreachable',
+    )
   }
 
   const text = response.status === 204 ? '' : await response.text()
@@ -53,6 +76,12 @@ export async function supabaseRequest(path, options = {}) {
   }
 
   if (!response.ok) {
+    telemetryEvent('warn', 'upstream.rejected', {
+      service: 'supabase',
+      routeFamily: String(path).split('?')[0].slice(0, 160),
+      upstreamStatus: response.status,
+      durationMs: Date.now() - startedAt,
+    })
     const status = response.status >= 500 ? 502 : response.status
     const message = options.exposeError
       ? providerMessage(data, options.errorMessage || 'Authentication request failed.')

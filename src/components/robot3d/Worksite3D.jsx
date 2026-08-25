@@ -35,13 +35,7 @@ function prefersReducedMotion() {
  * @param config   the robot to put in the scene; defaults to the stock unit.
  * @param height   frame height in px. Width is always the container's.
  */
-export default function Worksite3D({
-  industry,
-  config = defaultRobotConfig,
-  height = 208,
-  className = '',
-  label,
-}) {
+export default function Worksite3D({ industry, config = defaultRobotConfig, height = 208, className = '', label }) {
   const host = useRef(null)
   const [onScreen, setOnScreen] = useState(true)
   const [pageVisible, setPageVisible] = useState(true)

@@ -144,7 +144,7 @@ export function Conveyor({
     const g = items.current
     if (!g) return
     g.children.forEach((child, i) => {
-      const t = ((state.clock.elapsedTime * speed + i / cargo) % 1)
+      const t = (state.clock.elapsedTime * speed + i / cargo) % 1
       child.position.x = -length / 2 + t * length
       child.visible = t > 0.02 && t < 0.98
     })
@@ -159,11 +159,7 @@ export function Conveyor({
       </mesh>
       {/* rollers */}
       {Array.from({ length: 9 }, (_, i) => (
-        <mesh
-          key={i}
-          position={[-length / 2 + (length / 8) * i, height + 0.07, 0]}
-          rotation={[Math.PI / 2, 0, 0]}
-        >
+        <mesh key={i} position={[-length / 2 + (length / 8) * i, height + 0.07, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[0.05, 0.05, width, 8]} />
           <meshStandardMaterial color="#3b4460" roughness={0.4} metalness={0.8} />
         </mesh>
@@ -183,7 +179,13 @@ export function Conveyor({
 
       <group ref={items}>
         {Array.from({ length: cargo }, (_, i) => (
-          <Crate key={i} size={[0.42, 0.36, 0.42]} color={cargoColor} accent={accent} position={[0, height + 0.25, 0]} />
+          <Crate
+            key={i}
+            size={[0.42, 0.36, 0.42]}
+            color={cargoColor}
+            accent={accent}
+            position={[0, height + 0.25, 0]}
+          />
         ))}
       </group>
     </group>

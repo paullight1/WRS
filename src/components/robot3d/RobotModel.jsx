@@ -117,13 +117,7 @@ export default function RobotModel({ config, highlight = null, still = false, wo
           <Head variant={config.parts.head} colors={colors} />
         </ModuleGroup>
         <ModuleGroup active={highlight === 'optics'} rate={motion.pulseRate}>
-          <Optics
-            variant={config.parts.optics}
-            colors={colors}
-            spin={still ? 0 : spin}
-            face={faceZ}
-            crown={crownY}
-          />
+          <Optics variant={config.parts.optics} colors={colors} spin={still ? 0 : spin} face={faceZ} crown={crownY} />
         </ModuleGroup>
       </group>
 

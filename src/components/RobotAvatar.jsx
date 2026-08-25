@@ -44,10 +44,7 @@ export default function RobotAvatar({ size = 120, className = '', glow = true, e
       </circle>
 
       {/* shoulders / torso */}
-      <path
-        d="M46 200c0-28 20-46 54-46s54 18 54 46z"
-        fill={`url(#${uid}-torso)`}
-      />
+      <path d="M46 200c0-28 20-46 54-46s54 18 54 46z" fill={`url(#${uid}-torso)`} />
       <rect x="86" y="140" width="28" height="18" rx="8" fill="#9aa4c1" />
       <circle cx="100" cy="176" r="10" fill="#0d1220" />
       <circle cx="100" cy="176" r="5" fill={eye} opacity="0.9">

@@ -1,3 +1,6 @@
+import { validateJsonEnvelope } from '../api/_lib/security.js'
+import { requestTelemetry } from '../api/_lib/telemetry.js'
+
 export class HttpError extends Error {
   constructor(status, message, code = 'request-failed') {
     super(message)
@@ -22,10 +25,19 @@ export function redirect(location, status = 303, headers = {}) {
 }
 
 export async function readJson(request, maxBytes = 1_000_000) {
-  const declared = Number(request.headers.get('content-length') || 0)
-  if (declared > maxBytes) throw new HttpError(413, 'Request body is too large.', 'body-too-large')
+  const envelope = validateJsonEnvelope(request, maxBytes)
+  if (!envelope.ok) throw new HttpError(envelope.status, envelope.message, envelope.code)
+  let text
   try {
-    return await request.json()
+    text = await request.text()
+  } catch {
+    throw new HttpError(400, 'Request body could not be read.', 'bad-body')
+  }
+  if (Buffer.byteLength(text, 'utf8') > maxBytes) {
+    throw new HttpError(413, 'Request body is too large.', 'body-too-large')
+  }
+  try {
+    return JSON.parse(text)
   } catch {
     throw new HttpError(400, 'Request body must be valid JSON.', 'bad-json')
   }
@@ -92,12 +104,37 @@ export function appendCookies(response, cookies = []) {
 export function functionHandler(handler) {
   return {
     async fetch(request) {
+      const telemetry = requestTelemetry(request)
+      telemetry.info('api.request.started', { method: request.method })
       try {
-        return await handler(request)
+        const response = await handler(request)
+        response.headers.set('x-request-id', telemetry.requestId)
+        telemetry.info('api.request.completed', {
+          method: request.method,
+          status: response.status,
+          durationMs: telemetry.durationMs(),
+        })
+        return response
       } catch (error) {
-        if (error instanceof HttpError) return json({ message: error.message, code: error.code }, error.status)
-        console.error('Unhandled WRS API error', error)
-        return json({ message: 'The service could not complete the request.' }, 500)
+        if (error instanceof HttpError) {
+          telemetry.warn('api.request.rejected', {
+            method: request.method,
+            status: error.status,
+            code: error.code,
+            durationMs: telemetry.durationMs(),
+          })
+          return json({ message: error.message, code: error.code }, error.status, {
+            'x-request-id': telemetry.requestId,
+          })
+        }
+        telemetry.error('api.request.failed', error, {
+          method: request.method,
+          status: 500,
+          durationMs: telemetry.durationMs(),
+        })
+        return json({ message: 'The service could not complete the request.' }, 500, {
+          'x-request-id': telemetry.requestId,
+        })
       }
     },
   }

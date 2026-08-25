@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute } from './components/auth/AuthProvider.jsx'
 import { NotifyProvider } from './components/notifications/Notify.jsx'
 import { RobotProvider } from './components/robot/RobotProvider.jsx'
+import { runtimeConfig } from './lib/runtimeConfig.js'
 import Landing from './screens/Landing.jsx'
 import Splash from './screens/Splash.jsx'
 import Login from './screens/Login.jsx'
@@ -26,6 +27,9 @@ import DataQuality from './screens/DataQuality.jsx'
 import Deploy from './screens/Deploy.jsx'
 import DeploymentDetails from './screens/DeploymentDetails.jsx'
 import ActiveDeployment from './screens/ActiveDeployment.jsx'
+import DeployProduction from './screens/DeployProduction.jsx'
+import DeploymentDetailsProduction from './screens/DeploymentDetailsProduction.jsx'
+import ActiveDeploymentProduction from './screens/ActiveDeploymentProduction.jsx'
 import Wallet from './screens/Wallet.jsx'
 import Transactions from './screens/Transactions.jsx'
 import DataRevenue from './screens/DataRevenue.jsx'
@@ -36,16 +40,44 @@ import Marketplace from './screens/Marketplace.jsx'
 import Academy from './screens/Academy.jsx'
 import Community from './screens/Community.jsx'
 import Referrals from './screens/Referrals.jsx'
+import RewardsProduction from './screens/RewardsProduction.jsx'
+import EventCodeProduction from './screens/EventCodeProduction.jsx'
+import BoostsProduction from './screens/BoostsProduction.jsx'
+import MarketplaceProduction from './screens/MarketplaceProduction.jsx'
+import AcademyProduction from './screens/AcademyProduction.jsx'
+import CommunityProduction from './screens/CommunityProduction.jsx'
+import ReferralsProduction from './screens/ReferralsProduction.jsx'
 import Notifications from './screens/Notifications.jsx'
 import More from './screens/More.jsx'
 import Profile from './screens/Profile.jsx'
+import ProfileProduction from './screens/ProfileProduction.jsx'
 import Settings from './screens/Settings.jsx'
+import SettingsProduction from './screens/SettingsProduction.jsx'
 import SecuritySettings from './screens/SecuritySettings.jsx'
 import Support from './screens/Support.jsx'
+import SupportProduction from './screens/SupportProduction.jsx'
+import AccountDeletionRecoveryProduction from './screens/AccountDeletionRecoveryProduction.jsx'
+import AdminOperationsProduction from './screens/AdminOperationsProduction.jsx'
 
 const authenticated = (element) => <ProtectedRoute policy="authenticated">{element}</ProtectedRoute>
 const verified = (element) => <ProtectedRoute requireVerified>{element}</ProtectedRoute>
 const kyc = (element) => <ProtectedRoute policy="kyc">{element}</ProtectedRoute>
+const operations = (element) => <ProtectedRoute policy="operations">{element}</ProtectedRoute>
+const accountRecovery = (element) => <ProtectedRoute policy="account-recovery">{element}</ProtectedRoute>
+
+const DeployScreen = runtimeConfig.isDemo ? Deploy : DeployProduction
+const DeploymentDetailsScreen = runtimeConfig.isDemo ? DeploymentDetails : DeploymentDetailsProduction
+const ActiveDeploymentScreen = runtimeConfig.isDemo ? ActiveDeployment : ActiveDeploymentProduction
+const RewardsScreen = runtimeConfig.isDemo ? Rewards : RewardsProduction
+const EventCodeScreen = runtimeConfig.isDemo ? EventCode : EventCodeProduction
+const BoostsScreen = runtimeConfig.isDemo ? Boosts : BoostsProduction
+const MarketplaceScreen = runtimeConfig.isDemo ? Marketplace : MarketplaceProduction
+const AcademyScreen = runtimeConfig.isDemo ? Academy : AcademyProduction
+const CommunityScreen = runtimeConfig.isDemo ? Community : CommunityProduction
+const ReferralsScreen = runtimeConfig.isDemo ? Referrals : ReferralsProduction
+const ProfileScreen = runtimeConfig.isDemo ? Profile : ProfileProduction
+const SettingsScreen = runtimeConfig.isDemo ? Settings : SettingsProduction
+const SupportScreen = runtimeConfig.isDemo ? Support : SupportProduction
 
 export default function App() {
   return (
@@ -60,6 +92,8 @@ export default function App() {
             <Route path="/verify" element={<Verify />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+
+            <Route path="/account/deletion" element={accountRecovery(<AccountDeletionRecoveryProduction />)} />
 
             <Route path="/onboarding" element={verified(<Onboarding />)} />
             <Route path="/home" element={verified(<Home />)} />
@@ -78,29 +112,30 @@ export default function App() {
             <Route path="/data/quality" element={verified(<DataQuality />)} />
             <Route path="/data/:slug" element={verified(<DataTask />)} />
 
-            <Route path="/deploy" element={verified(<Deploy />)} />
-            <Route path="/deploy/active" element={verified(<ActiveDeployment />)} />
-            <Route path="/deploy/active/:id" element={verified(<ActiveDeployment />)} />
-            <Route path="/deploy/:name" element={verified(<DeploymentDetails />)} />
+            <Route path="/deploy" element={verified(<DeployScreen />)} />
+            <Route path="/deploy/active" element={verified(<ActiveDeploymentScreen />)} />
+            <Route path="/deploy/active/:id" element={verified(<ActiveDeploymentScreen />)} />
+            <Route path="/deploy/:name" element={verified(<DeploymentDetailsScreen />)} />
 
             <Route path="/wallet" element={kyc(<Wallet />)} />
             <Route path="/wallet/transactions" element={kyc(<Transactions />)} />
             <Route path="/wallet/data-revenue" element={kyc(<DataRevenue />)} />
 
-            <Route path="/rewards" element={verified(<Rewards />)} />
-            <Route path="/rewards/event-code" element={verified(<EventCode />)} />
-            <Route path="/rewards/boosts" element={verified(<Boosts />)} />
-            <Route path="/marketplace" element={verified(<Marketplace />)} />
-            <Route path="/academy" element={verified(<Academy />)} />
-            <Route path="/community" element={verified(<Community />)} />
-            <Route path="/referrals" element={verified(<Referrals />)} />
+            <Route path="/rewards" element={verified(<RewardsScreen />)} />
+            <Route path="/rewards/event-code" element={verified(<EventCodeScreen />)} />
+            <Route path="/rewards/boosts" element={verified(<BoostsScreen />)} />
+            <Route path="/marketplace" element={verified(<MarketplaceScreen />)} />
+            <Route path="/academy" element={verified(<AcademyScreen />)} />
+            <Route path="/community" element={verified(<CommunityScreen />)} />
+            <Route path="/referrals" element={verified(<ReferralsScreen />)} />
             <Route path="/notifications" element={authenticated(<Notifications />)} />
 
             <Route path="/more" element={authenticated(<More />)} />
-            <Route path="/profile" element={authenticated(<Profile />)} />
-            <Route path="/settings" element={authenticated(<Settings />)} />
+            <Route path="/profile" element={authenticated(<ProfileScreen />)} />
+            <Route path="/settings" element={authenticated(<SettingsScreen />)} />
             <Route path="/settings/security" element={authenticated(<SecuritySettings />)} />
-            <Route path="/support" element={authenticated(<Support />)} />
+            <Route path="/support" element={authenticated(<SupportScreen />)} />
+            <Route path="/admin/operations" element={operations(<AdminOperationsProduction />)} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </NotifyProvider>

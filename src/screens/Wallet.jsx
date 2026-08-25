@@ -1,89 +1,262 @@
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
-import { Button, Card, DataRow, Disclosure, List, Progress, Row, SectionTitle, tone, IconTile } from '../components/ui.jsx'
 import StateView, { LoadingView } from '../components/states/StateView.jsx'
-import { useNotify } from '../components/notifications/Notify.jsx'
-import { useMockRequest, useOnline } from '../lib/appState.js'
-import { earningSources } from '../data/mock.js'
+import { Button, Card, DataRow, Disclosure, SectionTitle } from '../components/ui.jsx'
+import { browserFinanceClient } from '../infrastructure/finance/browserFinanceClient.ts'
 import { runtimeConfig } from '../lib/runtimeConfig.js'
 import { getSensitiveActionPolicy } from '../lib/sensitiveActions.js'
 
-export default function Wallet() {
-  const total = earningSources.reduce((s, e) => s + parseFloat(e.amount.replace('$', '')), 0)
-  const online = useOnline()
-  const notify = useNotify()
+function formatMoney(amountMinor, currency) {
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(amountMinor || 0) / 100)
+}
+
+function DemoWallet() {
   const depositPolicy = getSensitiveActionPolicy('wallet.deposit')
   const withdrawPolicy = getSensitiveActionPolicy('wallet.withdraw')
-  const [params] = useSearchParams()
-  const { data, loading, error, retry } = useMockRequest(earningSources, { shouldFail: params.get('state') === 'error' })
+  return (
+    <AppShell title="Wallet demo" back avatar={false}>
+      <Disclosure icon="science">
+        All values and actions in demo mode are illustrative. No deposit, withdrawal or ledger entry is created.
+      </Disclosure>
+      <Card className="p-card-padding text-center">
+        <p className="text-label-md text-outline">Illustrative available balance</p>
+        <p className="tnum mt-2 font-headline-lg text-headline-lg text-on-surface">$154.40</p>
+        <p className="mt-2 text-body-sm text-on-surface-variant">$32.00 demo pending · no live account</p>
+      </Card>
+      <div className="grid grid-cols-2 gap-3">
+        <Button disabled={!depositPolicy.enabled} icon="add">
+          Preview deposit
+        </Button>
+        <Button disabled={!withdrawPolicy.enabled} variant="tonal" icon="arrow_outward">
+          Preview withdrawal
+        </Button>
+      </div>
+    </AppShell>
+  )
+}
 
-  if (!runtimeConfig.isDemo) {
+function LiveWallet() {
+  const withdrawPolicy = getSensitiveActionPolicy('wallet.withdraw')
+  const depositPolicy = getSensitiveActionPolicy('wallet.deposit')
+  const [wallet, setWallet] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+  const [payoutMethodId, setPayoutMethodId] = useState('')
+  const [accountNumber, setAccountNumber] = useState('')
+  const [bankCode, setBankCode] = useState('')
+  const [accountName, setAccountName] = useState('')
+  const [amount, setAmount] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const currency = 'USD'
+
+  const refresh = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const result = await browserFinanceClient.wallet(currency)
+      setWallet(result.wallet)
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Wallet could not be loaded.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    let active = true
+    browserFinanceClient
+      .wallet(currency)
+      .then((result) => {
+        if (!active) return
+        setWallet(result.wallet)
+        setError('')
+      })
+      .catch((reason) => {
+        if (!active) return
+        setError(reason instanceof Error ? reason.message : 'Wallet could not be loaded.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const createPayout = async () => {
+    setSubmitting(true)
+    setError('')
+    setMessage('')
+    try {
+      const result = await browserFinanceClient.createPayoutMethod({
+        accountNumber,
+        bankCode,
+        accountName,
+        currency,
+      })
+      const method = result.payoutMethod
+      if (!method || typeof method !== 'object' || typeof method.id !== 'string') {
+        throw new Error('Payout method could not be confirmed.')
+      }
+      setPayoutMethodId(method.id)
+      setMessage(`Verified payout method saved: ${method.maskedAccount || 'bank account'}`)
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Payout method could not be created.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const withdraw = async () => {
+    const amountMinor = Math.round(Number(amount) * 100)
+    if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0) {
+      setError('Enter a valid withdrawal amount.')
+      return
+    }
+    setSubmitting(true)
+    setError('')
+    setMessage('')
+    try {
+      const key = `withdraw:${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`
+      const result = await browserFinanceClient.withdraw({ payoutMethodId, amountMinor, currency, idempotencyKey: key })
+      setMessage(`Withdrawal ${result.reference} is pending provider settlement.`)
+      setAmount('')
+      await refresh()
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Withdrawal could not be created.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (loading) {
     return (
-      <AppShell title="Wallet unavailable" back avatar={false}>
+      <AppShell title="Wallet" back avatar={false}>
+        <LoadingView
+          title="Loading wallet ledger"
+          desc="Calculating available and pending amounts from posted entries."
+        />
+      </AppShell>
+    )
+  }
+  if (error && !wallet) {
+    return (
+      <AppShell title="Wallet" back avatar={false}>
         <StateView
-          kind="locked"
-          title="Live wallet ledger is not connected"
-          desc="WRS hides all mock balances, payout history and payment details outside demo mode. Deposits and withdrawals remain closed until an authoritative ledger and payout service pass their production gates."
-          action={<Button to="/home">Back to dashboard</Button>}
+          kind="error"
+          title="Wallet unavailable"
+          desc={error}
+          action={<Button onClick={refresh}>Try again</Button>}
         />
       </AppShell>
     )
   }
 
-  const previewDeposit = () => notify({ kind: 'info', title: 'Demo only', body: 'No funds were added and no ledger entry was created.' })
-  const previewWithdraw = () => {
-    if (!online) {
-      notify({ kind: 'error', title: "Can't preview withdrawal offline", body: 'Reconnect and try again. No balance is affected.' })
-      return
-    }
-    notify({ kind: 'info', title: 'Demo withdrawal preview', body: 'No withdrawal was created and no balance was changed.' })
-  }
-
-  if (!online) {
-    return (
-      <AppShell title="Wallet demo" back avatar={false}>
-        <StateView live kind="offline" title="You're offline" desc="Demo balances are hidden while offline." action={<Button variant="ghost" icon="refresh" onClick={retry}>Try again</Button>} />
-      </AppShell>
-    )
-  }
-  if (loading) return <AppShell title="Wallet demo" back avatar={false}><LoadingView title="Loading demo wallet" desc="Loading illustrative values." /></AppShell>
-  if (error) return <AppShell title="Wallet demo" back avatar={false}><StateView live kind="error" title="We couldn't load the demo wallet" desc="No live account data is involved." action={<Button icon="refresh" onClick={retry}>Try again</Button>} /></AppShell>
-
   return (
-    <AppShell title="Wallet demo" back avatar={false}>
-      <section>
-        <p className="text-label-md text-on-surface-variant">Illustrative available balance</p>
-        <p className="tnum mt-1 font-headline-lg text-headline-lg font-bold leading-none text-on-surface">$154.40</p>
-        <p className="mt-2 text-body-sm text-on-surface-variant"><span className="text-tertiary">$32.00 demo pending</span> · $186.40 illustrative total</p>
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <Button size="lg" icon="add" full disabled={!depositPolicy.enabled} onClick={previewDeposit}>Preview deposit</Button>
-          <Button variant="tonal" size="lg" icon="arrow_outward" full disabled={!withdrawPolicy.enabled && !runtimeConfig.isDemo} onClick={previewWithdraw}>Preview withdrawal</Button>
-        </div>
-      </section>
+    <AppShell title="Wallet" subtitle="Ledger-derived balances" back avatar={false}>
+      <Disclosure icon="verified_user">
+        The wallet has no mutable balance field. Available and pending amounts are recalculated from immutable
+        double-entry ledger records on every request.
+      </Disclosure>
+
+      <Card className="p-card-padding">
+        <p className="text-label-md text-on-surface-variant">Available</p>
+        <p className="tnum mt-1 font-headline-lg text-headline-lg text-on-surface">
+          {formatMoney(wallet?.availableMinor, wallet?.currency || currency)}
+        </p>
+        <p className="mt-2 text-body-sm text-on-surface-variant">
+          Pending withdrawals: {formatMoney(wallet?.pendingWithdrawalMinor, wallet?.currency || currency)}
+        </p>
+      </Card>
 
       <section>
-        <SectionTitle action="Demo period">Illustrative sources</SectionTitle>
-        <List>
-          {data.map((s) => {
-            const c = tone(s.tone)
-            const pct = Math.round((parseFloat(s.amount.replace('$', '')) / total) * 100)
-            return <Row key={s.label} iconNode={<IconTile icon={s.icon} accent={c.accent} size={36} radius={12} iconSize={18} />} title={s.label} value={s.amount} meta={`Demo · ${s.state}`}><span className="mt-1.5 flex items-center gap-2"><Progress value={pct} height="h-1" className="max-w-[120px]" label={`${s.label} demo share`} /><span className="text-label-sm text-on-surface-variant">{pct}%</span></span></Row>
-          })}
-        </List>
-      </section>
-
-      <section>
-        <SectionTitle>Illustrative account</SectionTitle>
-        <Card className="divide-hairline">
-          <DataRow label="Demo total earned" value="$642.80" />
-          <DataRow label="Demo total withdrawn" value="$456.40" />
-          <DataRow label="Payment method" value="Not connected" />
-          <DataRow label="Display currency" value="USD" />
+        <SectionTitle>Payout method</SectionTitle>
+        <Card className="space-y-3 p-card-padding">
+          <input
+            value={accountName}
+            onChange={(event) => setAccountName(event.target.value)}
+            placeholder="Account name"
+            aria-label="Payout account name"
+            className="w-full rounded-xl border border-outline-variant bg-black/20 px-4 py-3 text-on-surface outline-none"
+          />
+          <input
+            value={accountNumber}
+            onChange={(event) => setAccountNumber(event.target.value.replace(/\D/g, ''))}
+            placeholder="Account number"
+            inputMode="numeric"
+            aria-label="Payout account number"
+            className="w-full rounded-xl border border-outline-variant bg-black/20 px-4 py-3 text-on-surface outline-none"
+          />
+          <input
+            value={bankCode}
+            onChange={(event) => setBankCode(event.target.value)}
+            placeholder="Provider bank code"
+            aria-label="Payout bank code"
+            className="w-full rounded-xl border border-outline-variant bg-black/20 px-4 py-3 text-on-surface outline-none"
+          />
+          <Button
+            onClick={createPayout}
+            loading={submitting}
+            disabled={!withdrawPolicy.authoritative || !accountName || !accountNumber || !bankCode}
+          >
+            Verify payout method
+          </Button>
         </Card>
       </section>
 
-      <section><List><Row icon="history" t="outline" title="Demo transaction history" to="/wallet/transactions" /><Row icon="database" t="tertiary" title="Demo AI data revenue" to="/wallet/data-revenue" /></List></section>
-      <Disclosure icon="gavel">All figures on this screen are illustrative. No live balance, payout, deposit or withdrawal exists in demo mode.</Disclosure>
+      <section>
+        <SectionTitle>Withdraw</SectionTitle>
+        <Card className="space-y-3 p-card-padding">
+          <input
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
+            placeholder="0.00"
+            inputMode="decimal"
+            aria-label="Withdrawal amount in USD"
+            className="w-full rounded-xl border border-outline-variant bg-black/20 px-4 py-3 text-on-surface outline-none"
+          />
+          <Button
+            variant="tonal"
+            onClick={withdraw}
+            loading={submitting}
+            disabled={!withdrawPolicy.authoritative || !payoutMethodId || !amount}
+          >
+            Request withdrawal
+          </Button>
+          <p className="text-label-sm text-outline">
+            KYC, payout-method ownership and available balance are rechecked server-side under a serialized ledger
+            reservation.
+          </p>
+        </Card>
+      </section>
+
+      {error && (
+        <p role="alert" className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error">
+          {error}
+        </p>
+      )}
+      {message && (
+        <p
+          role="status"
+          className="rounded-xl border border-tertiary/30 bg-tertiary/10 p-3 text-label-sm text-on-surface"
+        >
+          {message}
+        </p>
+      )}
+
+      <section>
+        <SectionTitle>Controls</SectionTitle>
+        <Card className="divide-y divide-white/8">
+          <DataRow label="Ledger currency" value={wallet?.currency || currency} />
+          <DataRow label="Deposits" value={depositPolicy.authoritative ? 'Available' : 'Not enabled'} />
+          <DataRow label="Withdrawal settlement" value="Provider verified" />
+        </Card>
+      </section>
     </AppShell>
   )
+}
+
+export default function Wallet() {
+  return runtimeConfig.isDemo ? <DemoWallet /> : <LiveWallet />
 }

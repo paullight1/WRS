@@ -69,6 +69,13 @@ async function hasVerifiedMfa(userId) {
   return Array.isArray(data) && data.length > 0
 }
 
+async function hasPendingAccountDeletion(userId) {
+  const { data } = await serviceRest(
+    `/rest/v1/account_deletion_requests?user_id=eq.${encodeURIComponent(userId)}&status=in.(requested,processing,failed)&select=id&limit=1`,
+  )
+  return Array.isArray(data) && data.length > 0
+}
+
 function authSessionId(accessToken) {
   const sessionId = String(decodeAccessClaims(accessToken).session_id || '')
   return UUID.test(sessionId) ? sessionId : null
@@ -133,11 +140,12 @@ export async function revokeAllUserSessionMetadata(userId) {
 
 export async function buildAppSession(user, accessToken) {
   if (!user?.id) return null
-  const [profile, roles, mfaEnabled, metadata] = await Promise.all([
+  const [profile, roles, mfaEnabled, metadata, accountDeletionPending] = await Promise.all([
     loadProfile(user.id),
     loadRoles(user.id),
     hasVerifiedMfa(user.id),
     sessionMetadata(accessToken),
+    hasPendingAccountDeletion(user.id),
   ])
   if (!profile || !metadataIsActive(metadata, user.id)) return null
   const claims = decodeAccessClaims(accessToken)
@@ -156,6 +164,7 @@ export async function buildAppSession(user, accessToken) {
         : metadata.mfa_satisfied_at,
     kycStatus: profile.kyc_status || 'unverified',
     roles,
+    accountDeletionPending,
     expiresAt: expiresAt ? new Date(expiresAt * 1000).toISOString() : metadata.expires_at,
   }
 }
@@ -232,6 +241,13 @@ export async function requireSession(request, options = {}) {
   if (!resolved.user || !resolved.session) throw new HttpError(401, 'Authentication is required.', 'unauthenticated')
   if (resolved.session.status === 'suspended' || resolved.session.status === 'deleted') {
     throw new HttpError(403, 'This account is not active.', 'account-blocked')
+  }
+  if (resolved.session.accountDeletionPending && !options.allowDeletionPending) {
+    throw new HttpError(
+      423,
+      'Account deletion is pending. Cancel the request before resuming account activity.',
+      'account-deletion-pending',
+    )
   }
   if (options.verified && (!resolved.session.emailVerified || !resolved.session.phoneVerified)) {
     throw new HttpError(403, 'Email and phone verification are required.', 'verification-required')

@@ -21,14 +21,62 @@ export const ACCENTS = {
 // Tailwind needs literal class names, so tones resolve through a static map.
 // `chip` is the bright solid tile; `bg`/`border` remain the quiet tint.
 export const tones = {
-  primary: { text: 'text-primary', bg: 'bg-primary/20', border: 'border-primary/40', solid: 'bg-primary-container', accent: ACCENTS.blue },
-  secondary: { text: 'text-secondary', bg: 'bg-secondary/20', border: 'border-secondary/40', solid: 'bg-secondary-container', accent: ACCENTS.violet },
-  tertiary: { text: 'text-tertiary', bg: 'bg-tertiary/20', border: 'border-tertiary/40', solid: 'bg-tertiary-container', accent: ACCENTS.teal },
-  error: { text: 'text-error', bg: 'bg-error/20', border: 'border-error/40', solid: 'bg-error-container', accent: ACCENTS.red },
-  success: { text: 'text-success', bg: 'bg-success/20', border: 'border-success/40', solid: 'bg-success/60', accent: ACCENTS.green },
-  gold: { text: 'text-[#f7c948]', bg: 'bg-[#f7c948]/20', border: 'border-[#f7c948]/30', solid: 'bg-[#f7c948]', accent: ACCENTS.amber },
-  outline: { text: 'text-on-surface-variant', bg: 'bg-white/[.06]', border: 'border-white/12', solid: 'bg-surface-variant', accent: ACCENTS.slate },
-  'on-surface': { text: 'text-on-surface', bg: 'bg-white/[.06]', border: 'border-white/12', solid: 'bg-surface-variant', accent: ACCENTS.slate },
+  primary: {
+    text: 'text-primary',
+    bg: 'bg-primary/20',
+    border: 'border-primary/40',
+    solid: 'bg-primary-container',
+    accent: ACCENTS.blue,
+  },
+  secondary: {
+    text: 'text-secondary',
+    bg: 'bg-secondary/20',
+    border: 'border-secondary/40',
+    solid: 'bg-secondary-container',
+    accent: ACCENTS.violet,
+  },
+  tertiary: {
+    text: 'text-tertiary',
+    bg: 'bg-tertiary/20',
+    border: 'border-tertiary/40',
+    solid: 'bg-tertiary-container',
+    accent: ACCENTS.teal,
+  },
+  error: {
+    text: 'text-error',
+    bg: 'bg-error/20',
+    border: 'border-error/40',
+    solid: 'bg-error-container',
+    accent: ACCENTS.red,
+  },
+  success: {
+    text: 'text-success',
+    bg: 'bg-success/20',
+    border: 'border-success/40',
+    solid: 'bg-success/60',
+    accent: ACCENTS.green,
+  },
+  gold: {
+    text: 'text-[#f7c948]',
+    bg: 'bg-[#f7c948]/20',
+    border: 'border-[#f7c948]/30',
+    solid: 'bg-[#f7c948]',
+    accent: ACCENTS.amber,
+  },
+  outline: {
+    text: 'text-on-surface-variant',
+    bg: 'bg-white/[.06]',
+    border: 'border-white/12',
+    solid: 'bg-surface-variant',
+    accent: ACCENTS.slate,
+  },
+  'on-surface': {
+    text: 'text-on-surface',
+    bg: 'bg-white/[.06]',
+    border: 'border-white/12',
+    solid: 'bg-surface-variant',
+    accent: ACCENTS.slate,
+  },
 }
 export const tone = (t) => tones[t] || tones.primary
 export const accentOf = (t) => tone(t).accent
@@ -66,7 +114,13 @@ export function GradIcon({ icon, from, to, size = 44, radius = 12, className = '
   return (
     <span
       className={`grid shrink-0 place-items-center ${className}`}
-      style={{ width: size, height: size, borderRadius: radius, backgroundColor: from, border: `1px solid ${to || from}` }}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: radius,
+        backgroundColor: from,
+        border: `1px solid ${to || from}`,
+      }}
     >
       <Icon name={icon} fill={fill} className="text-white" size={size * 0.46} />
     </span>
@@ -114,7 +168,7 @@ export function Ring({ value = 0, size = 78, stroke = 6, color = '#00dbe7', labe
  * Pass `accent` (hex or tone name) to wash the card in that colour.
  */
 export function Card({ className = '', children, as: As = 'div', accent, ...rest }) {
-  const hex = accent ? (ACCENTS[accent] || tones[accent]?.accent || accent) : null
+  const hex = accent ? ACCENTS[accent] || tones[accent]?.accent || accent : null
   return (
     <As
       className={`${hex ? 'rounded-2xl border' : 'surface rounded-2xl'} ${className}`}
@@ -138,7 +192,21 @@ export function List({ children, className = '', inset = true }) {
 }
 
 /* ------------------------------------------------------------------- row */
-export function Row({ icon, iconNode, t = 'primary', accent, title, subtitle, value, meta, right, to, onClick, className = '', children }) {
+export function Row({
+  icon,
+  iconNode,
+  t = 'primary',
+  accent,
+  title,
+  subtitle,
+  value,
+  meta,
+  right,
+  to,
+  onClick,
+  className = '',
+  children,
+}) {
   const interactive = Boolean(to || onClick)
 
   const body = (
@@ -165,8 +233,18 @@ export function Row({ icon, iconNode, t = 'primary', accent, title, subtitle, va
     interactive ? 'hover:bg-white/[.04] active:bg-white/[.07]' : ''
   } ${className}`
 
-  if (to) return <Link to={to} className={cls}>{body}</Link>
-  if (onClick) return <button type="button" onClick={onClick} className={cls}>{body}</button>
+  if (to)
+    return (
+      <Link to={to} className={cls}>
+        {body}
+      </Link>
+    )
+  if (onClick)
+    return (
+      <button type="button" onClick={onClick} className={cls}>
+        {body}
+      </button>
+    )
   return <div className={cls}>{body}</div>
 }
 
@@ -237,7 +315,12 @@ export function Button({
     </>
   )
 
-  if (to && !disabled) return <Link to={to} className={cls} {...rest}>{inner}</Link>
+  if (to && !disabled)
+    return (
+      <Link to={to} className={cls} {...rest}>
+        {inner}
+      </Link>
+    )
   return (
     <button className={cls} disabled={disabled || loading} aria-busy={loading || undefined} {...rest}>
       {inner}
@@ -353,7 +436,10 @@ export function Progress({ value, className = '', height = 'h-1.5', color = 'bg-
       aria-valuemax={100}
       aria-label={label}
     >
-      <div className={`h-full rounded-full ${color} transition-[width] duration-slow ease-out`} style={{ width: `${pct}%` }} />
+      <div
+        className={`h-full rounded-full ${color} transition-[width] duration-slow ease-out`}
+        style={{ width: `${pct}%` }}
+      />
     </div>
   )
 }
@@ -403,7 +489,9 @@ export function Tabs({ items, value, onChange, className = '' }) {
           aria-selected={value === it}
           onClick={() => onChange(it)}
           className={`min-h-[40px] flex-1 whitespace-nowrap rounded-lg px-3 text-label-md transition-colors duration-fast ${
-            value === it ? 'bg-surface-container-highest text-on-surface' : 'text-on-surface-variant hover:text-on-surface'
+            value === it
+              ? 'bg-surface-container-highest text-on-surface'
+              : 'text-on-surface-variant hover:text-on-surface'
           }`}
         >
           {it}

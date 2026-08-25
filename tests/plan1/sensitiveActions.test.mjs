@@ -40,13 +40,26 @@ test('production defaults closed when a required authoritative service is unavai
 })
 
 test('service flags alone cannot activate an unfinished production action', () => {
-  const policy = getSensitiveActionPolicy('payment.checkout', {
+  const policy = getSensitiveActionPolicy('reward.eventCode', {
     mode: 'production',
-    services: { payments: true },
+    services: { rewards: true },
   })
   assert.equal(policy.enabled, false)
   assert.equal(policy.authoritative, false)
   assert.match(policy.reason, /not completed|implementation gate/i)
+})
+
+test('a completed action still requires its authoritative service', () => {
+  const disabled = getSensitiveActionPolicy('payment.checkout', {
+    mode: 'production',
+    services: { payments: false },
+  })
+  const enabled = getSensitiveActionPolicy('payment.checkout', {
+    mode: 'production',
+    services: { payments: true },
+  })
+  assert.equal(disabled.authoritative, false)
+  assert.equal(enabled.authoritative, true)
 })
 
 test('demo actions are explicitly simulation-only and never authoritative', () => {

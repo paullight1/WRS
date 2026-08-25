@@ -9,8 +9,7 @@ import { useEffect, useRef, useState } from 'react'
  */
 export default function Reveal({ children, delay = 0, as: As = 'div', className = '' }) {
   const host = useRef(null)
-  const reduced =
-    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
   const [shown, setShown] = useState(reduced)
 
   useEffect(() => {

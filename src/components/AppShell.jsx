@@ -161,14 +161,29 @@ const drawerGroups = [
   },
 ]
 
+function desktopViewport() {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(min-width: 1024px)').matches
+    : false
+}
+
 export function Drawer({ open, onClose }) {
   const location = useLocation()
   const navigate = useNavigate()
   const auth = useAuth()
+  const [desktop, setDesktop] = useState(desktopViewport)
 
   useEffect(() => {
     queueMicrotask(() => onClose?.())
   }, [location.pathname, onClose])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
+    const query = window.matchMedia('(min-width: 1024px)')
+    const onChange = (event) => setDesktop(event.matches)
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+  }, [])
 
   useEffect(() => {
     if (!open) return undefined
@@ -189,12 +204,15 @@ export function Drawer({ open, onClose }) {
 
   const accountTitle = auth.isDemo ? 'Demo account' : 'WRS account'
   const accountId = auth.session?.userId || 'No verified session'
+  const mobileHidden = !desktop && !open
 
   return (
     <>
       <button
         type="button"
         onClick={onClose}
+        disabled={!open}
+        aria-hidden={!open || undefined}
         aria-label="Close menu"
         className={`fixed inset-0 z-scrim bg-black/60 transition-opacity duration-slow lg:hidden ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
@@ -202,7 +220,8 @@ export function Drawer({ open, onClose }) {
       />
       <aside
         aria-label="Sections"
-        aria-hidden={!open || undefined}
+        aria-hidden={mobileHidden || undefined}
+        inert={mobileHidden ? '' : undefined}
         className={`fixed inset-y-0 left-0 z-drawer flex w-[288px] flex-col border-r border-white/8 bg-surface-container-lowest transition-transform duration-slow ease-out lg:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}

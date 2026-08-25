@@ -47,7 +47,8 @@ export function validateRobotInput(input, options = {}) {
   if (!input.parts || typeof input.parts !== 'object' || Array.isArray(input.parts)) {
     throw new HttpError(400, 'Robot parts must be an object.', 'invalid-configuration')
   }
-  if (!personalities.has(input.personality)) throw new HttpError(400, 'Personality is invalid.', 'invalid-configuration')
+  if (!personalities.has(input.personality))
+    throw new HttpError(400, 'Personality is invalid.', 'invalid-configuration')
   const tuning = input.tuning || {}
   for (const key of ['speed', 'battery', 'sensor']) {
     const value = Number(tuning[key])

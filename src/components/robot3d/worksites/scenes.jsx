@@ -92,7 +92,11 @@ function Planter({ accent, ...props }) {
         <meshStandardMaterial color="#232a3f" roughness={0.7} metalness={0.2} />
       </mesh>
       {[0, 2.1, 4.2].map((a, i) => (
-        <mesh key={a} position={[Math.sin(a) * 0.1, 0.62 + i * 0.06, Math.cos(a) * 0.1]} rotation={[0, 0, Math.sin(a) * 0.5]}>
+        <mesh
+          key={a}
+          position={[Math.sin(a) * 0.1, 0.62 + i * 0.06, Math.cos(a) * 0.1]}
+          rotation={[0, 0, Math.sin(a) * 0.5]}
+        >
           <coneGeometry args={[0.14, 0.42, 5]} />
           <meshStandardMaterial color={accent} roughness={0.8} />
         </mesh>
@@ -212,7 +216,14 @@ function Agriculture({ config, site, still }) {
 
       {/* tilled beds receding from the camera */}
       {[0.4, -1.1, -2.6, -4.1].map((z, i) => (
-        <CropRow key={z} position={[0, 0, z]} count={9 - i} spacing={0.86 + i * 0.05} accent={site.glow} phase={i * 1.3} />
+        <CropRow
+          key={z}
+          position={[0, 0, z]}
+          count={9 - i}
+          spacing={0.86 + i * 0.05}
+          accent={site.glow}
+          phase={i * 1.3}
+        />
       ))}
 
       <Worker groupRef={w} config={config} still={still} work={{ mode: 'tend', rate: 0.8 }} position={[0, 0, 1.3]}>
@@ -241,12 +252,12 @@ function Healthcare({ config, site, still }) {
       {/* corridor walls with doorways */}
       {[-1, 1].map((s) => (
         <group key={s} position={[s * 3.5, 0, -2.2]}>
-          <mesh position={[0, 1.5, 0]} rotation={[0, s * -Math.PI / 2, 0]}>
+          <mesh position={[0, 1.5, 0]} rotation={[0, (s * -Math.PI) / 2, 0]}>
             <planeGeometry args={[6, 3]} />
             <meshStandardMaterial color="#141a2c" roughness={0.9} />
           </mesh>
           {[-1.4, 1.4].map((z) => (
-            <mesh key={z} position={[s * -0.02, 1, z]} rotation={[0, s * -Math.PI / 2, 0]}>
+            <mesh key={z} position={[s * -0.02, 1, z]} rotation={[0, (s * -Math.PI) / 2, 0]}>
               <planeGeometry args={[0.9, 1.9]} />
               <meshBasicMaterial color={site.accent} transparent opacity={0.18} />
             </mesh>
@@ -266,7 +277,12 @@ function Healthcare({ config, site, still }) {
           <RoundedBox args={[0.72, 0.05, 0.5]} radius={0.02} position={[0, 0.36, 0]}>
             <meshStandardMaterial color="#2b3350" roughness={0.4} metalness={0.6} />
           </RoundedBox>
-          {[[-0.3, -0.2], [0.3, -0.2], [-0.3, 0.2], [0.3, 0.2]].map(([x, z]) => (
+          {[
+            [-0.3, -0.2],
+            [0.3, -0.2],
+            [-0.3, 0.2],
+            [0.3, 0.2],
+          ].map(([x, z]) => (
             <mesh key={`${x}${z}`} position={[x, 0.06, z]}>
               <sphereGeometry args={[0.06, 8, 6]} />
               <meshStandardMaterial color="#11172a" roughness={0.6} />
@@ -322,7 +338,13 @@ function Hospitality({ config, site, still }) {
         </mesh>
       </group>
 
-      <Worker groupRef={w} config={config} still={still} work={{ mode: 'greet', rate: 0.9 }} position={[-0.9, 0, 0.2]} />
+      <Worker
+        groupRef={w}
+        config={config}
+        still={still}
+        work={{ mode: 'greet', rate: 0.9 }}
+        position={[-0.9, 0, 0.2]}
+      />
     </>
   )
 }
@@ -544,13 +566,7 @@ function Education({ config, site, still }) {
 
       <Planter accent="#2f7a45" position={[2.9, 0, 0.4]} />
 
-      <Worker
-        groupRef={w}
-        config={config}
-        still={still}
-        work={{ mode: 'point', rate: 0.8 }}
-        position={[2, 0, -1.5]}
-      />
+      <Worker groupRef={w} config={config} still={still} work={{ mode: 'point', rate: 0.8 }} position={[2, 0, -1.5]} />
     </>
   )
 }
