@@ -1,6 +1,7 @@
 # RBC Mining Suite Design
 
-**Date:** 2026-08-11  
+**Date:** 2026-08-11
+
 **Status:** Approved for implementation
 
 ## Goal

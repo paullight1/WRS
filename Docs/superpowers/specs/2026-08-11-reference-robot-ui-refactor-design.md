@@ -1,7 +1,9 @@
 # Reference Robot UI Refactor Design
 
-**Date:** 2026-08-11  
-**Status:** Approved for implementation planning  
+**Date:** 2026-08-11
+
+**Status:** Approved for implementation planning
+
 **Scope:** Investment packages, package detail, authenticated home, My Robot, and the shared procedural 3D robot
 
 ## Goal
