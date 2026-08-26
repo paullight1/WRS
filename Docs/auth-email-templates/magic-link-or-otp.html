@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <body
+    style="margin: 0; padding: 0; background: #111417; color: #e1e2e7; font-family: Arial, 'Helvetica Neue', sans-serif"
+  >
+    <div style="display: none; max-height: 0; overflow: hidden; opacity: 0">
+      Use your secure WRS sign-in link or verification code.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background: #111417">
+      <tr>
+        <td align="center" style="padding: 32px 16px">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 560px">
+            <tr>
+              <td style="padding: 0 0 18px; color: #e1e2e7; font-size: 18px; font-weight: 700">
+                <span
+                  style="
+                    display: inline-block;
+                    margin-right: 10px;
+                    padding: 8px 10px;
+                    border: 1px solid #434656;
+                    border-radius: 10px;
+                    background: #1d2023;
+                    color: #00dbe7;
+                    font-family: monospace;
+                    font-size: 14px;
+                    letter-spacing: 1px;
+                  "
+                  >WRS</span
+                >
+                World Robotic <span style="color: #b8c3ff">System</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 32px; border: 1px solid #434656; border-radius: 16px; background: #1d2023">
+                <p
+                  style="
+                    margin: 0 0 10px;
+                    color: #00dbe7;
+                    font-size: 12px;
+                    font-weight: 700;
+                    letter-spacing: 1.4px;
+                    text-transform: uppercase;
+                  "
+                >
+                  Secure sign in
+                </p>
+                <h1 style="margin: 0 0 14px; color: #e1e2e7; font-size: 26px; line-height: 34px">Continue to WRS</h1>
+                <p style="margin: 0 0 24px; color: #c4c5d9; font-size: 16px; line-height: 25px">
+                  Use the secure button below, or enter the six-digit code on the WRS sign-in screen.
+                </p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td style="border-radius: 10px; background: #2d5bff">
+                      <a
+                        href="{{ .ConfirmationURL }}"
+                        style="
+                          display: inline-block;
+                          padding: 14px 22px;
+                          color: #ffffff;
+                          font-size: 15px;
+                          font-weight: 700;
+                          text-decoration: none;
+                        "
+                        >Sign in securely</a
+                      >
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin: 24px 0 10px; color: #8e90a2; font-size: 13px; line-height: 20px">
+                  Or use this one-time code:
+                </p>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td
+                      align="center"
+                      style="
+                        padding: 20px;
+                        border: 1px solid #434656;
+                        border-radius: 12px;
+                        background: #0c0e12;
+                        color: #dde1ff;
+                        font-family: 'Courier New', monospace;
+                        font-size: 32px;
+                        font-weight: 700;
+                        letter-spacing: 9px;
+                      "
+                    >
+                      {{ .Token }}
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin: 20px 0 8px; color: #8e90a2; font-size: 13px; line-height: 20px">
+                  Button not working? Copy and paste this address into your browser:
+                </p>
+                <p style="margin: 0; word-break: break-all; color: #b8c3ff; font-size: 12px; line-height: 19px">
+                  {{ .ConfirmationURL }}
+                </p>
+                <p
+                  style="
+                    margin: 24px 0 0;
+                    padding-top: 20px;
+                    border-top: 1px solid #323539;
+                    color: #8e90a2;
+                    font-size: 13px;
+                    line-height: 20px;
+                  "
+                >
+                  If you did not request this sign-in, ignore this email and do not share the code.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding: 18px 10px 0; color: #8e90a2; font-size: 12px; line-height: 18px">
+                World Robotic System · Secure account message
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

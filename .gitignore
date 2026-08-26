@@ -4,3 +4,10 @@ dist
 .DS_Store
 *.local
 .vite
+.env
+.env.*
+!.env.example
+!.env.live.example
+.playwright-cli/
+.worktrees/
+.wrs-data.json
