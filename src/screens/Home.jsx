@@ -6,12 +6,13 @@ import WelcomeModal, { consumeWelcome } from '../components/WelcomeModal.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
 import StateView from '../components/states/StateView.jsx'
 import { ACCENTS, Badge, Button, Card, Icon, IconTile, SectionTitle } from '../components/ui.jsx'
+import { isActivityLocked } from '../lib/activityAvailability.js'
 import { packageDefinition } from '../domain/robot/packages.ts'
 
 const CATALOGUE = [
   { id: 'training', to: '/training', icon: 'model_training', label: 'Train', c: ACCENTS.indigo },
   { id: 'data', to: '/data', icon: 'dataset', label: 'Add data', c: ACCENTS.teal },
-  { id: 'deploy', to: '/deploy', icon: 'rocket_launch', label: 'Deploy', c: ACCENTS.violet },
+  { id: 'deploy', to: '/deploy', icon: 'rocket_launch', label: 'Mining', c: ACCENTS.violet },
   { id: 'market', to: '/marketplace', icon: 'storefront', label: 'Market', c: ACCENTS.blue },
   { id: 'wallet', to: '/wallet', icon: 'account_balance_wallet', label: 'Wallet', c: ACCENTS.green },
   { id: 'rewards', to: '/rewards', icon: 'workspace_premium', label: 'Rewards', c: ACCENTS.amber },
@@ -23,7 +24,7 @@ const CATALOGUE = [
   { id: 'support', to: '/support', icon: 'help_outline', label: 'Support', c: ACCENTS.slate },
 ]
 
-const DEFAULT_IDS = ['training', 'data', 'deploy', 'market', 'wallet', 'rewards', 'passport', 'customize']
+const DEFAULT_IDS = ['deploy', 'wallet', 'passport', 'customize']
 const MAX_SHORTCUTS = 12
 const STORE_KEY = 'wrs.shortcuts'
 
@@ -60,12 +61,15 @@ export default function Home() {
     }
   }
 
-  const chosen = ids.map((id) => CATALOGUE.find((item) => item.id === id)).filter(Boolean)
-  const available = CATALOGUE.filter((item) => !ids.includes(item.id))
+  const chosen = ids
+    .filter((id) => !isActivityLocked(CATALOGUE.find((item) => item.id === id)?.to || ''))
+    .map((id) => CATALOGUE.find((item) => item.id === id))
+    .filter(Boolean)
+  const available = CATALOGUE.filter((item) => !ids.includes(item.id) && !isActivityLocked(item.to))
   const full = ids.length >= MAX_SHORTCUTS
 
   return (
-    <AppShell title="Home" subtitle={robotState.isDemo ? 'Demo workspace' : 'Verified WRS workspace'}>
+    <AppShell title="Home" subtitle="Your workspace">
       <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
 
       {robotState.loading ? (
@@ -73,7 +77,7 @@ export default function Home() {
       ) : !robotState.robot ? (
         <StateView
           kind="locked"
-          title={robotState.isDemo ? 'Create your demo robot' : 'Robot provisioning is not complete'}
+          title={robotState.isDemo ? 'Create your robot' : 'Robot provisioning is not complete'}
           desc={robotState.error || 'Complete onboarding before robot identity and configuration can appear here.'}
           action={<Button to="/onboarding">Open onboarding</Button>}
         />
@@ -85,7 +89,7 @@ export default function Home() {
                 size={96}
                 config={robotState.configuration || undefined}
                 className="shrink-0"
-                label={`${robotState.robot.name}, ${robotState.isDemo ? 'demo robot' : 'your robot'}`}
+                label={`${robotState.robot.name}, ${robotState.isDemo ? 'robot' : 'your robot'}`}
               />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -97,9 +101,7 @@ export default function Home() {
                       {packageDefinition(robotState.robot.packageSlug).robotClass} · {robotState.robot.packageSlug}
                     </p>
                   </div>
-                  <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>
-                    {robotState.isDemo ? 'Demo state' : robotState.robot.lifecycle}
-                  </Badge>
+                  <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>{robotState.robot.lifecycle}</Badge>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Button to="/robot" size="sm">
@@ -111,11 +113,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <p className="mt-4 text-label-sm text-outline">
-              {robotState.isDemo
-                ? 'Robot state is stored locally for demonstration only.'
-                : 'Robot identity and configuration shown here come from the authoritative robot service. Training, wallet, deployment and reward metrics remain owned by their respective services.'}
-            </p>
           </Card>
         </section>
       )}
@@ -184,19 +181,34 @@ export default function Home() {
         )}
       </section>
 
-      <section>
-        <Card className="p-4">
-          <div className="flex items-start gap-3">
-            <Icon name="verified_user" className="mt-0.5 text-tertiary" />
-            <div>
-              <p className="text-title text-on-surface">Authoritative boundaries</p>
-              <p className="mt-1 text-body-sm text-on-surface-variant">
-                WRS no longer mixes demo wallet balances, fabricated XP, deployment performance or training progress
-                into the production home screen. Open each service area to see only the state that service can verify.
+      <section aria-labelledby="mining-title">
+        <div className="overflow-hidden rounded-2xl border border-primary/20 bg-surface-container-low shadow-[0_16px_40px_rgba(65,40,120,.12)]">
+          <div className="grid sm:grid-cols-[1.1fr_.9fr]">
+            <div className="p-5 sm:p-6">
+              <p className="text-label-sm font-semibold uppercase tracking-[0.16em] text-primary">WRS Mining</p>
+              <h2 id="mining-title" className="mt-2 font-headline-md text-headline-md text-on-surface">
+                Put your robot to work.
+              </h2>
+              <p className="mt-2 max-w-[30ch] text-body-sm text-on-surface-variant">
+                Explore approved digital work and track what your robot completes.
               </p>
+              <Link
+                to="/deploy"
+                className="mt-5 inline-flex min-h-12 items-center justify-center gap-3 rounded-xl bg-primary-container px-5 py-3 text-label-md font-semibold text-white transition-colors hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+              >
+                Start mining
+                <Icon name="arrow_forward" className="text-[18px]" />
+              </Link>
+            </div>
+            <div className="min-h-44 bg-surface-container-lowest sm:min-h-full">
+              <img
+                src="/robot-deployment-city.png"
+                alt="White and graphite robot working in an automated facility"
+                className="h-full w-full object-cover object-[58%]"
+              />
             </div>
           </div>
-        </Card>
+        </div>
       </section>
     </AppShell>
   )
