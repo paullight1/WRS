@@ -1,6 +1,8 @@
 // Static mock data for the WRS interface prototype.
 // Nothing here talks to a backend — every figure is illustrative only.
 
+import { assignedRobotName } from './robotNames.js'
+
 export const user = {
   name: 'David Johnson',
   firstName: 'David',
@@ -13,7 +15,7 @@ export const user = {
 }
 
 export const robot = {
-  name: 'Atlas',
+  name: assignedRobotName(),
   unit: 'WR-1007',
   id: 'WRS-785432',
   package: 'Professional Package',
