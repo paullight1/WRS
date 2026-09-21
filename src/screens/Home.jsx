@@ -8,6 +8,7 @@ import StateView from '../components/states/StateView.jsx'
 import { ACCENTS, Badge, Button, Card, Icon, IconTile, SectionTitle } from '../components/ui.jsx'
 import { isActivityLocked } from '../lib/activityAvailability.js'
 import { packageDefinition } from '../domain/robot/packages.ts'
+import { leaderboard } from '../data/mock.js'
 
 const CATALOGUE = [
   { id: 'training', to: '/training', icon: 'model_training', label: 'Train', c: ACCENTS.indigo },
@@ -209,6 +210,45 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section aria-labelledby="leaderboard-title">
+        <div className="mb-3 flex items-baseline justify-between gap-4">
+          <div>
+            <h2 id="leaderboard-title" className="font-headline-md text-headline-md text-on-surface">
+              Leaderboard
+            </h2>
+            <p className="mt-1 text-body-sm text-on-surface-variant">Top owners by approved task XP.</p>
+          </div>
+          <Icon name="emoji_events" className="text-[24px] text-primary" fill />
+        </div>
+        <Card className="divide-y divide-outline-variant/20 overflow-hidden">
+          {leaderboard.slice(0, 5).map((member) => (
+            <div
+              key={member.rank}
+              className={`flex items-center gap-3 px-4 py-3.5 ${member.you ? 'bg-primary/10' : ''}`}
+            >
+              <span
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-label-sm font-semibold ${
+                  member.rank === 1
+                    ? 'bg-[#f2bc42]/20 text-[#8b5e00]'
+                    : member.rank === 2
+                      ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-100'
+                      : member.rank === 3
+                        ? 'bg-[#c9855b]/20 text-[#8b4e2c]'
+                        : 'bg-surface-container-high text-on-surface-variant'
+                }`}
+              >
+                {member.rank}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-body-md text-on-surface">
+                {member.name}
+                {member.you && <span className="ml-1 text-label-sm text-primary">(you)</span>}
+              </span>
+              <span className="shrink-0 text-label-md text-tertiary">{member.xp.toLocaleString()} XP</span>
+            </div>
+          ))}
+        </Card>
       </section>
     </AppShell>
   )
