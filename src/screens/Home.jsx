@@ -28,6 +28,14 @@ const CATALOGUE = [
 const DEFAULT_IDS = ['deploy', 'wallet', 'passport', 'customize']
 const MAX_SHORTCUTS = 12
 const STORE_KEY = 'wrs.shortcuts'
+const TASK_WINDOW_SECONDS = 4 * 60 * 60 + 32 * 60 + 18
+
+function formatCountdown(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  return [hours, minutes, seconds].map((value) => String(value).padStart(2, '0')).join(':')
+}
 
 const loadShortcuts = () => {
   try {
@@ -46,11 +54,19 @@ export default function Home() {
   const [welcome, setWelcome] = useState(false)
   const [ids, setIds] = useState(loadShortcuts)
   const [editing, setEditing] = useState(false)
+  const [countdown, setCountdown] = useState(TASK_WINDOW_SECONDS)
 
   useEffect(() => {
     queueMicrotask(() => {
       if (consumeWelcome()) setWelcome(true)
     })
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCountdown((value) => (value > 0 ? value - 1 : TASK_WINDOW_SECONDS))
+    }, 1000)
+    return () => window.clearInterval(timer)
   }, [])
 
   const persist = (next) => {
@@ -111,6 +127,19 @@ export default function Home() {
                   <Button to="/robot/passport" variant="ghost" size="sm">
                     Passport
                   </Button>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-surface-container-low px-3.5 py-2.5">
+                  <span className="flex items-center gap-2 text-label-sm text-on-surface-variant">
+                    <Icon name="schedule" className="text-[18px] text-primary" />
+                    Next task window
+                  </span>
+                  <time
+                    dateTime={`PT${countdown}S`}
+                    aria-label={`Next task window in ${formatCountdown(countdown)}`}
+                    className="font-data text-data-sm text-primary"
+                  >
+                    {formatCountdown(countdown)}
+                  </time>
                 </div>
               </div>
             </div>
