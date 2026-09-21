@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider.jsx'
+import { isActivityLocked } from '../lib/activityAvailability.js'
 import { Icon } from './ui.jsx'
-import { runtimeConfig } from '../lib/runtimeConfig.js'
-import { demoDataLabel } from '../lib/mockDataPolicy.js'
 
 /** Retired: the page background is a flat surface now. */
 export function Atmosphere() {
@@ -11,8 +10,7 @@ export function Atmosphere() {
 }
 
 export function UserAvatar({ size = 40, className = '' }) {
-  const auth = useAuth()
-  const label = auth.isDemo ? 'DE' : 'WR'
+  const label = 'WR'
   return (
     <span
       className={`grid shrink-0 place-items-center rounded-full bg-primary-container/35 text-label-md text-white ${className}`}
@@ -89,7 +87,7 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
 const bottomNav = [
   { to: '/home', icon: 'home', label: 'Home' },
   { to: '/robot', icon: 'smart_toy', label: 'Robot' },
-  { to: '/deploy', icon: 'rocket_launch', label: 'Deploy' },
+  { to: '/deploy', icon: 'coin', label: 'Mining' },
   { to: '/marketplace', icon: 'storefront', label: 'Market' },
   { to: '/more', icon: 'more_horiz', label: 'More' },
 ]
@@ -118,7 +116,27 @@ export function BottomNav() {
                       isActive ? 'bg-primary-container/30' : ''
                     }`}
                   >
-                    <Icon name={item.icon} fill={isActive} className="text-[22px]" />
+                    {item.icon === 'coin' ? (
+                      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                        <circle cx="16" cy="17" r="13" fill="#95600c" />
+                        <circle cx="16" cy="15" r="13" fill="#f2bc42" />
+                        <circle cx="16" cy="15" r="10" fill="#d99b24" stroke="#ffe7a0" strokeWidth="1.5" />
+                        <path d="M8 9a10 10 0 0 1 15-2" stroke="#fff0bc" strokeWidth="2" strokeLinecap="round" />
+                        <path
+                          d="m10 12 2 8 4-6 4 6 2-8"
+                          stroke="#704609"
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    ) : (
+                      <Icon
+                        name={isActivityLocked(item.to) ? 'lock' : item.icon}
+                        fill={isActive}
+                        className="text-[22px]"
+                      />
+                    )}
                   </span>
                   <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : ''}`}>{item.label}</span>
                 </>
@@ -139,7 +157,7 @@ const drawerGroups = [
       { to: '/robot', icon: 'smart_toy', label: 'My Robot' },
       { to: '/training', icon: 'model_training', label: 'Train Robot' },
       { to: '/data', icon: 'dataset', label: 'Add Data' },
-      { to: '/deploy', icon: 'rocket_launch', label: 'Deployment' },
+      { to: '/deploy', icon: 'paid', label: 'Mining' },
     ],
   },
   {
@@ -202,8 +220,8 @@ export function Drawer({ open, onClose }) {
     navigate('/login', { replace: true })
   }
 
-  const accountTitle = auth.isDemo ? 'Demo account' : 'WRS account'
-  const accountId = auth.session?.userId || 'No verified session'
+  const accountTitle = 'WRS account'
+  const accountId = auth.isDemo ? '' : auth.session?.userId || 'No verified session'
   const mobileHidden = !desktop && !open
 
   return (
@@ -227,6 +245,9 @@ export function Drawer({ open, onClose }) {
         }`}
       >
         <div className="px-4 pb-4 pt-[max(20px,env(safe-area-inset-top))]">
+          <Link to="/home" aria-label="World Robotic System home" className="mb-5 block rounded-xl px-2">
+            <img src="/wrs-logo-footer.png" alt="World Robotic System" className="h-auto w-[158px] max-w-full" />
+          </Link>
           <Link
             to="/profile"
             className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors duration-fast hover:bg-white/[.06]"
@@ -257,7 +278,11 @@ export function Drawer({ open, onClose }) {
                 >
                   {({ isActive }) => (
                     <>
-                      <Icon name={item.icon} fill={isActive} className="text-[21px]" />
+                      <Icon
+                        name={isActivityLocked(item.to) ? 'lock' : item.icon}
+                        fill={isActive}
+                        className="text-[21px]"
+                      />
                       <span>{item.label}</span>
                     </>
                   )}
@@ -287,26 +312,6 @@ export function Drawer({ open, onClose }) {
   )
 }
 
-function DemoDataBanner() {
-  if (!runtimeConfig.isDemo) return null
-  return (
-    <div
-      role="status"
-      aria-label="Demo data"
-      className="mb-4 flex items-start gap-3 rounded-xl border border-[#f7c948]/35 bg-[#f7c948]/10 px-4 py-3 text-left"
-    >
-      <Icon name="science" className="mt-0.5 shrink-0 text-[19px] text-[#f7c948]" />
-      <div>
-        <p className="text-label-md text-on-surface">{demoDataLabel}</p>
-        <p className="mt-0.5 text-body-sm text-on-surface-variant">
-          Balances, payouts, deployments, rewards and any demo-only records are illustrative and are not live account
-          data.
-        </p>
-      </div>
-    </div>
-  )
-}
-
 export default function AppShell({ title, subtitle, back, right, avatar = true, children, wide = false }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
@@ -331,7 +336,6 @@ export default function AppShell({ title, subtitle, back, right, avatar = true, 
         <main
           className={`mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`}
         >
-          <DemoDataBanner />
           <div className="space-y-7">{children}</div>
         </main>
       </div>

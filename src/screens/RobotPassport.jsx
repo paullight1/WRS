@@ -81,7 +81,7 @@ export default function RobotPassport() {
   }
 
   const rows = [
-    ['Robot ID', passport.robotId],
+    ...(passport.authoritative ? [['Robot ID', passport.robotId]] : []),
     ['Robot Name', passport.name],
     ['Robot Class', passport.robotClass],
     ['Package', passport.packageSlug],
@@ -89,37 +89,32 @@ export default function RobotPassport() {
     ['Activation Date', new Date(passport.activationDate).toLocaleDateString()],
     ['Level', String(passport.level)],
     ['Total XP', passport.totalXp.toLocaleString()],
-    ['Public Verification ID', passport.publicVerificationId],
+    ...(passport.authoritative ? [['Public Verification ID', passport.publicVerificationId]] : []),
   ]
 
   return (
-    <AppShell title={passport.authoritative ? 'Robot Passport' : 'Demo Robot Passport'} back avatar={false}>
+    <AppShell title="Robot Passport" back avatar={false}>
       <section>
         <Card className="relative overflow-hidden p-card-padding">
           <div className="flex items-center gap-4">
             <Robot3D
               size={84}
               config={robotState.configuration || undefined}
-              label={`${passport.name}, ${passport.authoritative ? 'verified robot' : 'demo robot'}`}
+              label={`${passport.name}, ${passport.authoritative ? 'verified robot' : 'robot'}`}
             />
             <div className="min-w-0 flex-1">
-              <p className="text-label-sm text-outline">World Robotic System</p>
+              <img src="/wrs-logo-footer.png" alt="World Robotic System" className="mb-2 h-auto w-[112px] max-w-full" />
               <h2 className="truncate font-headline-md text-headline-md text-on-surface">{passport.name}</h2>
-              <p className="truncate font-data text-data-sm text-tertiary">{passport.publicVerificationId}</p>
+              {passport.authoritative && (
+                <p className="truncate font-data text-data-sm text-tertiary">{passport.publicVerificationId}</p>
+              )}
             </div>
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Badge t={passport.authoritative ? 'tertiary' : 'outline'}>
-              {passport.authoritative ? 'Authoritative passport' : 'Demo only'}
-            </Badge>
+            {passport.authoritative && <Badge t="tertiary">Verified passport</Badge>}
             <Badge t="primary">{passport.robotClass}</Badge>
             <Badge t="secondary">Level {passport.level}</Badge>
           </div>
-          <p className="mt-4 text-label-sm leading-relaxed text-outline">
-            {passport.authoritative
-              ? 'This privacy-safe passport is generated from server-owned robot, skill, certification and history records. Owner PII and financial data are intentionally excluded.'
-              : 'This is a local demo projection. It is not a credential, certification, proof of ownership or production passport.'}
-          </p>
         </Card>
       </section>
 
@@ -207,7 +202,7 @@ export default function RobotPassport() {
         disabled={!passport.authoritative}
         onClick={exportPdf}
       >
-        {passport.authoritative ? 'Download Verified Passport PDF' : 'PDF unavailable for demo passport'}
+        {passport.authoritative ? 'Download Verified Passport PDF' : 'PDF unavailable for passport'}
       </Button>
     </AppShell>
   )

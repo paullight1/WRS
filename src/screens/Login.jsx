@@ -58,12 +58,7 @@ export default function Login() {
       <Atmosphere />
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <span className="mb-5 grid h-14 w-14 place-items-center rounded-2xl border border-white/10 bg-white/5">
-            <Icon name="language" className="text-[30px] text-primary" fill />
-          </span>
-          <h1 className="font-headline-lg text-[26px] font-extrabold uppercase tracking-tight text-on-surface">
-            World Robotic <span className="text-primary">System</span>
-          </h1>
+          <img src="/wrs-logo-footer.png" alt="World Robotic System" className="mb-5 h-auto w-[230px] max-w-full" />
           <p className="mt-3 text-body-md text-on-surface-variant">Login to your account</p>
         </div>
 
