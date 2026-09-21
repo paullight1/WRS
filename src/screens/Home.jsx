@@ -8,7 +8,7 @@ import StateView from '../components/states/StateView.jsx'
 import { ACCENTS, Badge, Button, Card, Icon, IconTile, SectionTitle } from '../components/ui.jsx'
 import { isActivityLocked } from '../lib/activityAvailability.js'
 import { packageDefinition } from '../domain/robot/packages.ts'
-import { leaderboard } from '../data/mock.js'
+import { leaderboard, user } from '../data/mock.js'
 
 const CATALOGUE = [
   { id: 'training', to: '/training', icon: 'model_training', label: 'Train', c: ACCENTS.indigo },
@@ -86,7 +86,7 @@ export default function Home() {
   const full = ids.length >= MAX_SHORTCUTS
 
   return (
-    <AppShell title="Home" subtitle="Your workspace">
+    <AppShell title={`Hi, ${user.firstName}`}>
       <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
 
       {robotState.loading ? (
