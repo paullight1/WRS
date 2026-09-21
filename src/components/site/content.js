@@ -13,30 +13,47 @@ import { ACCENTS } from '../ui.jsx'
    without a `c` inherits the heading colour. */
 export const hero = {
   title: [
-    { t: 'Own', c: 'text-primary' },
-    { t: ' a robot. ' },
-    { t: 'Train', c: 'text-tertiary' },
-    { t: ' it, ' },
-    { t: 'deploy', c: 'text-secondary' },
-    { t: ' it, and see what it produces.' },
+    { t: 'Own intelligence. ', c: 'text-on-surface' },
+    { t: 'Build the future.', c: 'text-primary' },
   ],
-  lead: 'A personal AI robot you create, teach and put to work. No technical knowledge needed.',
+  lead: 'Create an AI robot you can train, deploy, and grow through approved digital work.',
 }
+
+export const valuePillars = [
+  { icon: 'psychology', title: 'Build your AI', body: 'Start with a robot you can shape around the work you care about.' },
+  { icon: 'lock', title: 'Own your intelligence', body: 'Keep your robot, data, and learned capabilities connected to your account.' },
+  { icon: 'rocket_launch', title: 'Deploy anywhere', body: 'Put trained capability into digital tasks across a growing set of sectors.' },
+  { icon: 'workspace_premium', title: 'Earn from approved work', body: 'Track eligible tasks and rewards with clear status at every step.' },
+  { icon: 'hub', title: 'Join a global network', body: 'Build alongside people, teams, and robots making AI more useful.' },
+]
+
+export const audienceGroups = [
+  { icon: 'person', title: 'Individuals', body: 'Build an AI that grows with you.' },
+  { icon: 'business', title: 'Businesses', body: 'Automate repeatable work with adaptable intelligence.' },
+  { icon: 'code', title: 'Developers', body: 'Create capabilities and deploy them globally.' },
+  { icon: 'groups', title: 'The ecosystem', body: 'Help shape a more open AI ownership economy.' },
+]
+
+export const insights = [
+  { category: 'Ownership', title: 'What does it mean to own an AI?', excerpt: 'A practical look at the difference between using a tool and building intelligence that stays with you.', time: '4 min read' },
+  { category: 'Training', title: 'From training data to useful robot skills', excerpt: 'How voice, language, movement, and task knowledge become capability you can put to work.', time: '5 min read' },
+  { category: 'Deployment', title: 'How robot deployment work is reviewed', excerpt: 'Why clear task status, approval, and traceable outcomes matter when intelligence goes to work.', time: '4 min read' },
+]
 
 /* The product loop from PRODUCT.md — one line each, one drawing each.
    `art` keys into src/components/site/CardArt.jsx. */
 export const steps = [
-  { title: 'Own', art: 'own', accent: ACCENTS.blue, body: 'Pick a package. Build your robot.' },
-  { title: 'Train', art: 'train', accent: ACCENTS.indigo, body: 'Voice, language, movement, skills.' },
+  { title: 'Create', art: 'own', accent: ACCENTS.blue, body: 'Start with a robot you can make your own.' },
+  { title: 'Train', art: 'train', accent: ACCENTS.indigo, body: 'Build voice, language, movement, and task skills.' },
   {
-    title: 'Contribute',
+    title: 'Learn',
     art: 'contribute',
     accent: ACCENTS.teal,
-    body: 'Record, annotate, translate. Quality scored.',
+    body: 'Contribute responsibly and keep progress visible.',
   },
   { title: 'Deploy', art: 'deploy', accent: ACCENTS.violet, body: 'Send it to work in a sector.' },
   { title: 'Monitor', art: 'monitor', accent: ACCENTS.orange, body: 'Uptime, tasks and performance, live.' },
-  { title: 'Earn', art: 'earn', accent: ACCENTS.green, body: 'Payouts and rewards, every figure labelled.' },
+  { title: 'Earn', art: 'earn', accent: ACCENTS.green, body: 'Track approved work and eligible rewards.' },
 ]
 
 export const faq = [
@@ -73,12 +90,13 @@ export const faq = [
 export const footerLinks = [
   { label: 'Get started', to: '/register' },
   { label: 'Sign in', to: '/login' },
-  { label: 'All packages', to: '/packages' },
+  { label: 'Start for free', to: '/register' },
 ]
 
 export const navLinks = [
   { label: 'How it works', href: '#how' },
   { label: 'Features', href: '#features' },
-  { label: 'Packages', href: '#packages' },
+  { label: 'Insights', href: '#insights' },
+  { label: 'Start for free', href: '#packages' },
   { label: 'Questions', href: '#faq' },
 ]
