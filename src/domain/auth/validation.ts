@@ -29,12 +29,12 @@ export function validateRegistration(input: RegistrationInput): {
   const issues: ValidationIssue[] = []
   const fullName = input.fullName.trim().replace(/\s+/g, ' ')
   const normalizedEmail = normalizeEmail(input.email)
-  const normalizedPhone = normalizePhone(input.phone)
+  const normalizedPhone = input.phone ? normalizePhone(input.phone) : undefined
 
   if (fullName.length < 2) issues.push({ field: 'fullName', code: 'required', message: 'Enter your full name.' })
   if (!EMAIL.test(normalizedEmail))
     issues.push({ field: 'email', code: 'invalid', message: 'Enter a valid email address.' })
-  if (!E164.test(normalizedPhone))
+  if (normalizedPhone && !E164.test(normalizedPhone))
     issues.push({ field: 'phone', code: 'invalid', message: 'Use international phone format, for example +234…' })
   const passwordProblems = passwordIssues(input.password)
   if (passwordProblems.length)

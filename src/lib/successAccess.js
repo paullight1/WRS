@@ -3,12 +3,12 @@ export function evaluatePaymentSuccessAccess({ mode, search = '', authority = nu
 
   if (mode === 'demo') {
     if (params.get('demo') !== '1') {
-      return { allowed: false, authoritative: false, reason: 'Demo purchase preview requires an explicit demo marker.' }
+      return { allowed: false, authoritative: false, reason: 'Purchase preview is unavailable.' }
     }
     return {
       allowed: true,
       authoritative: false,
-      title: 'Demo purchase preview',
+      title: 'Purchase preview',
       reason: 'No payment was processed and no entitlement was provisioned.',
     }
   }

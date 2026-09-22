@@ -49,7 +49,11 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
             <Icon name="arrow_back" className="text-on-surface" />
           </button>
         ) : avatar ? (
-          <Link to="/home" className="tap -ml-1 grid shrink-0 place-items-center rounded-lg" aria-label="World Robotic System home">
+          <Link
+            to="/home"
+            className="tap -ml-1 grid shrink-0 place-items-center rounded-lg"
+            aria-label="World Robotic System home"
+          >
             <img src="/wrs-logo-footer.png" alt="World Robotic System" className="block w-[76px] sm:w-[92px]" />
           </Link>
         ) : null}
@@ -86,9 +90,7 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
 
 const bottomNav = [
   { to: '/home', icon: 'home', label: 'Home' },
-  { to: '/robot', icon: 'smart_toy', label: 'Robot' },
   { to: '/deploy', icon: 'coin', label: 'Mining' },
-  { to: '/marketplace', icon: 'storefront', label: 'Market' },
   { to: '/more', icon: 'more_horiz', label: 'More' },
 ]
 
@@ -248,7 +250,10 @@ export function Drawer({ open, onClose }) {
           <Link to="/home" aria-label="World Robotic System home" className="mb-5 block rounded-xl px-2">
             <img src="/wrs-logo-footer.png" alt="World Robotic System" className="h-auto w-[158px] max-w-full" />
           </Link>
-          <Link to="/profile" className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors duration-fast hover:bg-white/[.06]">
+          <Link
+            to="/profile"
+            className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors duration-fast hover:bg-white/[.06]"
+          >
             <UserAvatar size={40} />
             <span className="min-w-0">
               <span className="block truncate text-title text-on-surface">{accountTitle}</span>

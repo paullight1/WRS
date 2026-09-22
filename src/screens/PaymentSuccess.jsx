@@ -18,23 +18,17 @@ function DemoSuccess({ packageInfo, search }) {
         <StateView
           kind="locked"
           title="No verified payment found"
-          desc="A URL cannot activate a WRS package. This demo page requires its explicit preview token."
+          desc="A URL cannot activate a WRS package. This page requires its explicit preview token."
           action={<Button to={`/packages/${packageInfo.slug}`}>Back to package</Button>}
         />
       </AppShell>
     )
   }
   return (
-    <AppShell title="Demo purchase preview" back={false} avatar={false}>
-      <Disclosure icon="science">
-        No payment was processed. No package entitlement, receipt, wallet entry or robot provisioning record was
-        created.
-      </Disclosure>
+    <AppShell title="purchase preview" back={false} avatar={false}>
       <Card className="p-card-padding text-center">
         <Icon name="visibility" className="text-[42px] text-tertiary" />
-        <Badge t="outline" className="mt-4">
-          Demo only
-        </Badge>
+
         <h2 className="mt-4 font-headline-md text-headline-md text-on-surface">Preview: {packageInfo.name} package</h2>
         <RobotFace tier={packageInfo.slug} size={92} animate className="mx-auto mt-5" />
       </Card>

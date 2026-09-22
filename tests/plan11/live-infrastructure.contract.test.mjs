@@ -51,9 +51,9 @@ test('Phase 11.1 preflight fails closed for incomplete production infrastructure
 test('Phase 11.1 includes the complete ordered Supabase SQL pack', async () => {
   const migrationsUrl = new URL('../../supabase/migrations/', import.meta.url)
   const migrations = (await readdir(migrationsUrl)).filter((name) => name.endsWith('.sql')).sort()
-  assert.equal(migrations.length, 25, 'expected 25 ordered WRS migrations')
+  assert.equal(migrations.length, 26, 'expected 26 ordered WRS migrations')
   assert.equal(migrations[0], '20260821030000_plan3_identity.sql')
-  assert.equal(migrations.at(-1), '20260825010000_plan11_storage_activation.sql')
+  assert.equal(migrations.at(-1), '20260908185654_free_robot_tier.sql')
 
   const guide = await text('supabase/MIGRATION_GUIDE.md')
   for (const migration of migrations) assert.match(guide, new RegExp(migration.replaceAll('.', '\\.')))

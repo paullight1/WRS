@@ -41,16 +41,16 @@ export default function SiteBackdrop() {
 
       {/* Brand glows — the only colour in the page's background. */}
       <div
-        className="absolute -left-[10%] -top-[20%] h-[70vh] w-[70vw] rounded-full opacity-[.18] blur-[120px]"
-        style={{ background: 'radial-gradient(circle, #2d5bff 0%, transparent 68%)' }}
+        className="absolute -left-[10%] -top-[20%] h-[70vh] w-[70vw] rounded-full opacity-[.16] blur-[120px]"
+        style={{ background: 'radial-gradient(circle, var(--brand-primary) 0%, transparent 68%)' }}
       />
       <div
-        className="absolute -right-[15%] top-[38%] h-[60vh] w-[55vw] rounded-full opacity-[.13] blur-[130px]"
-        style={{ background: 'radial-gradient(circle, #00dbe7 0%, transparent 70%)' }}
+        className="absolute -right-[15%] top-[38%] h-[60vh] w-[55vw] rounded-full opacity-[.10] blur-[130px]"
+        style={{ background: 'radial-gradient(circle, var(--brand-tertiary) 0%, transparent 70%)' }}
       />
       <div
         className="absolute -bottom-[25%] left-[20%] h-[55vh] w-[55vw] rounded-full opacity-[.10] blur-[140px]"
-        style={{ background: 'radial-gradient(circle, #6f00be 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, var(--brand-secondary) 0%, transparent 70%)' }}
       />
 
       {/* Engineering mesh, faded out toward the edges so it never draws a hard box. */}
@@ -58,7 +58,7 @@ export default function SiteBackdrop() {
         className="absolute inset-0 opacity-[.5]"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px)',
+            'linear-gradient(color-mix(in srgb, var(--text-primary) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--text-primary) 5%, transparent) 1px, transparent 1px)',
           backgroundSize: '72px 72px',
           maskImage: 'radial-gradient(ellipse 90% 70% at 50% 30%, #000 30%, transparent 100%)',
           WebkitMaskImage: 'radial-gradient(ellipse 90% 70% at 50% 30%, #000 30%, transparent 100%)',
@@ -68,7 +68,7 @@ export default function SiteBackdrop() {
       {/* Vignette — settles the whole thing back to the app's surface colour. */}
       <div
         className="absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse 120% 80% at 50% 0%, transparent 30%, #111417 100%)' }}
+        style={{ background: 'radial-gradient(ellipse 120% 80% at 50% 0%, transparent 30%, var(--surface-0) 100%)' }}
       />
     </div>
   )

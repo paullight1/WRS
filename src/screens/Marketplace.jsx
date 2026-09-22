@@ -32,7 +32,7 @@ export default function Marketplace() {
         <StateView
           kind="locked"
           title="Live marketplace is not connected"
-          desc="WRS hides mock prices, ratings and installation state outside demo mode until catalogue, payment, entitlement and version services are authoritative."
+          desc="WRS hides mock prices, ratings and installation state outside this workspace until catalogue, payment, entitlement and version services are authoritative."
           action={<Button to="/home">Back to dashboard</Button>}
         />
       </AppShell>
@@ -40,30 +40,25 @@ export default function Marketplace() {
   }
 
   return (
-    <AppShell title="Marketplace demo" subtitle="Illustrative catalogue — no purchases or installs">
+    <AppShell title="Marketplace" subtitle="catalogue — no purchases or installs">
       <Card className="flex items-start gap-3.5 p-4">
         <IconTile icon="storefront" accent="#b07d00" size={42} radius={12} />
         <div className="min-w-0 flex-1">
           <p className="text-title text-on-surface">Read-only commerce preview</p>
-          <p className="text-body-sm text-on-surface-variant">
-            Prices, ratings, compatibility and installed state are demo data. No wallet charge or robot entitlement can
-            be created here.
-          </p>
         </div>
-        <Badge t="outline">Demo</Badge>
       </Card>
 
       <Field
-        placeholder="Search demo skills, packs and modules"
+        placeholder="Search skills, packs and modules"
         icon="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        aria-label="Search demo marketplace"
+        aria-label="Search marketplace"
       />
       <ChipBar items={marketplaceCategories} value={cat} onChange={setCat} visible={3} />
 
       <section>
-        <SectionTitle action={`${list.length} demo items`}>Catalogue preview</SectionTitle>
+        <SectionTitle action={`${list.length} items`}>Catalogue preview</SectionTitle>
         {list.length ? (
           <List>
             {list.map((item) => {
@@ -74,7 +69,7 @@ export default function Marketplace() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-title text-on-surface">{item.name}</p>
                     <p className="mt-0.5 text-label-sm text-on-surface-variant">
-                      {item.dev} · demo rating {item.rating}
+                      {item.dev} · rating {item.rating}
                     </p>
                     {!ok && (
                       <p className="mt-1 inline-flex items-center gap-1 text-label-sm text-[#f7c948]">
@@ -84,7 +79,7 @@ export default function Marketplace() {
                     )}
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-label-md text-on-surface">{price(item.price)} demo</p>
+                    <p className="text-label-md text-on-surface">{price(item.price)}</p>
                     <Button size="sm" variant="ghost" disabled={!purchasePolicy.authoritative}>
                       Unavailable
                     </Button>
@@ -96,7 +91,7 @@ export default function Marketplace() {
         ) : (
           <StateView
             kind="noResults"
-            title="No demo items match"
+            title="No items match"
             desc="Try another search or category."
             action={
               <Button

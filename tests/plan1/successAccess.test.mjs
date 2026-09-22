@@ -12,7 +12,7 @@ test('demo preview requires an explicit demo token and is labeled non-authoritat
   const result = evaluatePaymentSuccessAccess({ mode: 'demo', search: '?demo=1' })
   assert.equal(result.allowed, true)
   assert.equal(result.authoritative, false)
-  assert.match(result.title, /demo/i)
+  assert.match(result.title, /preview/i)
 })
 
 test('production rejects missing or pending transaction evidence', () => {

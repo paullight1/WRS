@@ -8,9 +8,16 @@ export const SITE_WIDTH = 'mx-auto w-full max-w-[1120px] px-5 sm:px-8'
  * hairline that separates it from the band above. That hairline is the only
  * ornament on this page — no cards, no gradients, no glass.
  */
-export default function Section({ id, eyebrow, title, lead, children, divide = true, className = '' }) {
+export default function Section({ id, eyebrow, title, lead, children, divide = true, tone = 'plain', className = '' }) {
+  const tones = {
+    plain: '',
+    soft: 'bg-[var(--section-soft)]',
+    lavender: 'bg-[var(--section-lavender)]',
+    accent: 'bg-[var(--section-accent)]',
+  }
+
   return (
-    <section id={id} className={`${divide ? 'border-t border-white/[.07]' : ''} py-24 lg:py-40 ${className}`}>
+    <section id={id} className={`${divide ? 'border-t border-outline-variant/20' : ''} ${tones[tone]} py-24 lg:py-40 ${className}`}>
       <div className={SITE_WIDTH}>
         {(eyebrow || title || lead) && (
           <Reveal>

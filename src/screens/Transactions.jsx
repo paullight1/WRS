@@ -12,18 +12,18 @@ function DemoTransactions() {
   const [filter, setFilter] = useState('All')
   const list = transactions.filter((item) => filter === 'All' || item.state === filter)
   return (
-    <AppShell title="Transactions demo" back avatar={false}>
+    <AppShell title="Transactions" back avatar={false}>
       <ChipBar items={demoFilters} value={filter} onChange={setFilter} visible={3} />
       {list.length ? (
         <section>
-          <SectionTitle action={`${list.length} illustrative entries`}>Sample statement</SectionTitle>
+          <SectionTitle action={`${list.length} entries`}>Sample statement</SectionTitle>
           <List>
             {list.map((item, index) => (
               <div key={index} className="flex items-center gap-3.5 px-4 py-3">
                 <Icon name={item.positive ? 'south_west' : 'north_east'} className="text-on-surface-variant" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-title text-on-surface">{item.label}</p>
-                  <p className="text-label-sm text-outline">Demo · {item.state}</p>
+                  <p className="text-label-sm text-outline">· {item.state}</p>
                 </div>
                 <span className="tnum text-title text-on-surface">{item.amount}</span>
               </div>
@@ -33,8 +33,8 @@ function DemoTransactions() {
       ) : (
         <StateView
           kind="noResults"
-          title={`No ${filter.toLowerCase()} demo transactions`}
-          desc="These filters operate on illustrative data only."
+          title={`No ${filter.toLowerCase()} transactions`}
+          desc="These filters operate on data only."
           action={<Button onClick={() => setFilter('All')}>Show all</Button>}
         />
       )}

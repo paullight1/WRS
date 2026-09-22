@@ -45,13 +45,13 @@ export default function Support() {
     setSending(true)
     setTimeout(() => {
       setSending(false)
-      setToast('Demo ticket preview — nothing was submitted and no reference was issued')
+      setToast('Ticket preview — nothing was submitted and no reference was issued')
       setTimeout(() => setToast(''), 2600)
     }, 350)
   }
 
   return (
-    <AppShell title="Support demo" back avatar={false}>
+    <AppShell title="Support" back avatar={false}>
       <section>
         <Card className="flex items-center gap-3.5 p-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-tertiary/10">
@@ -59,7 +59,7 @@ export default function Support() {
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-title text-on-surface">Live chat preview</p>
-            <p className="text-body-sm text-on-surface-variant">Not connected in demo mode</p>
+            <p className="text-body-sm text-on-surface-variant">Not connected in this workspace</p>
           </div>
           <Button size="sm" disabled>
             Unavailable
@@ -85,7 +85,7 @@ export default function Support() {
       <section>
         <SectionTitle>Ticket form preview</SectionTitle>
         <Card className="space-y-4 p-4">
-          <Field label="Subject" placeholder="Demo subject" />
+          <Field label="Subject" placeholder="Subject" />
           <div>
             <label htmlFor="msg" className="mb-1.5 block text-label-md text-on-surface-variant">
               Message
@@ -93,7 +93,7 @@ export default function Support() {
             <textarea
               id="msg"
               rows={4}
-              placeholder="Demo message — nothing will be sent"
+              placeholder="Message — nothing will be sent"
               className="w-full rounded-xl border border-white/12 bg-surface-container px-3.5 py-3 text-body-md text-on-surface outline-none placeholder:text-outline focus:border-primary"
             />
           </div>

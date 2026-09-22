@@ -162,8 +162,7 @@ export default function Packages() {
               </div>
             </Card>
             <p className="mt-3 text-label-sm leading-relaxed text-outline">
-              Figures are illustrative. Packages are platform access tiers and do not guarantee profits, fixed returns,
-              or income.
+              Figures are. Packages are platform access tiers and do not guarantee profits, fixed returns, or income.
             </p>
           </section>
         </>

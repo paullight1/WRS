@@ -70,5 +70,5 @@ test('demo actions are explicitly simulation-only and never authoritative', () =
   assert.equal(policy.enabled, true)
   assert.equal(policy.authoritative, false)
   assert.equal(policy.demo, true)
-  assert.match(policy.label, /demo/i)
+  assert.match(policy.label, /preview/i)
 })

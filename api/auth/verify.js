@@ -26,7 +26,7 @@ export default functionHandler(async (request) => {
   await enforceRateLimit(request, `verify:${kind}`, userId, 10, 10 * 60)
   const tokenResponse = await verifyChallenge(userId, kind, challengeId, code)
   const profile = await loadProfile(userId)
-  if (profile?.email_verified_at && profile?.phone_verified_at) {
+  if (profile?.email_verified_at) {
     await revokeAllUserSessionMetadata(userId)
   }
   await recordSessionMetadata(userId, tokenResponse.access_token, false)

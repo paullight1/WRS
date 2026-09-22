@@ -1,13 +1,4 @@
-const lockedRoots = [
-  '/training',
-  '/data',
-  '/wallet/data-revenue',
-  '/rewards',
-  '/academy',
-  '/community',
-  '/referrals',
-  '/packages',
-]
+const lockedRoots = ['/training', '/data', '/wallet/data-revenue', '/rewards', '/academy', '/community', '/packages']
 
 const comingSoonRoots = ['/marketplace']
 

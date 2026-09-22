@@ -34,10 +34,9 @@ test('payment success route uses verified access evaluation rather than route pr
   assert.match(source, /location\.search|useLocation/)
 })
 
-test('app shell visibly identifies demo application data', () => {
+test('app shell omits demo labels from the workspace', () => {
   const source = read('src/components/AppShell.jsx')
-  assert.match(source, /runtimeConfig/)
-  assert.match(source, /Demo data|illustrative/i)
+  assert.doesNotMatch(source, /DemoDataBanner|demoDataLabel/)
 })
 
 test('active-looking operational screens no longer ship stale 2025 dates', () => {

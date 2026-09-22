@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
 import { useRobot } from '../components/robot/RobotProvider.jsx'
-import { Icon, List, Row, SectionTitle } from '../components/ui.jsx'
+import { Icon, List, Row, SectionTitle, Toast } from '../components/ui.jsx'
+import { isActivityLocked } from '../lib/activityAvailability.js'
 import { packageDefinition } from '../domain/robot/packages.ts'
+import { user } from '../data/mock.js'
 
 const operatorRoles = new Set([
   'admin',
@@ -19,7 +22,9 @@ export default function More() {
   const auth = useAuth()
   const robotState = useRobot()
   const navigate = useNavigate()
-  const accountLabel = auth.isDemo ? 'Demo account' : `Account ${auth.session?.userId?.slice(0, 8) || ''}`
+  const [lockedNotice, setLockedNotice] = useState('')
+  const accountLabel = auth.isDemo ? user.name : `Account ${auth.session?.userId?.slice(0, 8) || ''}`
+  const accountIdentifier = auth.isDemo ? user.wrsId : auth.session?.userId || 'No verified session'
   const packageLabel = robotState.robot ? packageDefinition(robotState.robot.packageSlug).name : 'No active robot'
   const canOperate = !auth.isDemo && (auth.session?.roles || []).some((role) => operatorRoles.has(role))
 
@@ -111,9 +116,7 @@ export default function More() {
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-title text-on-surface">{accountLabel}</p>
-          <p className="truncate font-data text-data-sm text-on-surface-variant">
-            {auth.session?.userId || 'No verified session'}
-          </p>
+          <p className="truncate font-data text-data-sm text-on-surface-variant">{accountIdentifier}</p>
         </div>
         <Icon name="chevron_right" className="text-outline" />
       </Link>
@@ -122,9 +125,28 @@ export default function More() {
         <section key={group.title}>
           <SectionTitle>{group.title}</SectionTitle>
           <List>
-            {group.items.map((item) => (
-              <Row key={item.title} {...item} />
-            ))}
+            {group.items.map((item) =>
+              (() => {
+                const locked = isActivityLocked(item.to)
+                return (
+                  <Row
+                    key={item.title}
+                    {...item}
+                    to={locked ? undefined : item.to}
+                    onClick={
+                      locked
+                        ? () => {
+                            setLockedNotice(`${item.title} is coming soon — keep mining.`)
+                            window.setTimeout(() => setLockedNotice(''), 2600)
+                          }
+                        : undefined
+                    }
+                    icon={locked ? 'lock' : item.icon}
+                    subtitle={locked ? 'Coming soon' : item.subtitle}
+                  />
+                )
+              })(),
+            )}
           </List>
         </section>
       ))}
@@ -136,6 +158,7 @@ export default function More() {
       >
         <Icon name="logout" className="text-[18px]" /> Log out
       </button>
+      <Toast show={!!lockedNotice} message={lockedNotice} icon="lock" />
     </AppShell>
   )
 }

@@ -22,7 +22,7 @@ export default function DeploymentDetails() {
         <StateView
           kind="locked"
           title="Live deployment service is not connected"
-          desc="Mock contracts, rates and assignment records are hidden outside demo mode. WRS will not create a deployment until eligibility, customer demand, contract and audit services are authoritative."
+          desc="Mock contracts, rates and assignment records are hidden outside this workspace. WRS will not create a deployment until eligibility, customer demand, contract and audit services are authoritative."
           action={<Button to="/deploy">Back to deployments</Button>}
         />
       </AppShell>
@@ -39,7 +39,7 @@ export default function DeploymentDetails() {
 
   if (!open) {
     return (
-      <AppShell title={`${sector.name} demo`} back avatar={false}>
+      <AppShell title={`${sector.name}`} back avatar={false}>
         <section>
           <Card className="relative overflow-hidden p-0">
             <Worksite3D industry={sector.name} height={196} className="opacity-80" />
@@ -54,7 +54,7 @@ export default function DeploymentDetails() {
         <StateView
           kind="locked"
           title={`${sector.name} needs the ${sector.requires} package`}
-          desc={`Demo eligibility: ${ownerTier} does not meet the ${sector.requires} requirement.`}
+          desc={`eligibility: ${ownerTier} does not meet the ${sector.requires} requirement.`}
           action={<Button to="/packages">Compare packages</Button>}
         />
       </AppShell>
@@ -62,7 +62,7 @@ export default function DeploymentDetails() {
   }
 
   return (
-    <AppShell title={`${sector.name} deployment demo`} back avatar={false}>
+    <AppShell title={`${sector.name} deployment`} back avatar={false}>
       <section>
         <Card className="relative overflow-hidden p-0">
           <Worksite3D industry={sector.name} height={224} />
@@ -75,24 +75,23 @@ export default function DeploymentDetails() {
           </div>
         </Card>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Badge t="outline">Demo opportunity</Badge>
-          <Badge t="primary">Illustrative demand {sector.demand}</Badge>
+          <Badge t="primary">demand {sector.demand}</Badge>
           <Badge t="outline">{sector.desc}</Badge>
         </div>
       </section>
 
       <section>
-        <SectionTitle>Illustrative assignment</SectionTitle>
+        <SectionTitle>assignment</SectionTitle>
         <Card className="divide-y divide-white/8">
           {[
             ['Robot role', 'Operations Assistant'],
-            ['Demo unit', robot.name],
+            ['unit', robot.name],
             ['Location', 'Sample worksite'],
-            ['Start date', 'Not scheduled — demo'],
-            ['Working hours', 'Illustrative 6 hours / day'],
-            ['Contract duration', 'Illustrative 90 days'],
+            ['Start date', 'Not scheduled —'],
+            ['Working hours', '6 hours / day'],
+            ['Contract duration', '90 days'],
             ['Required robot class', sector.requires],
-            ['Potential rate', `${sector.rate} illustrative`],
+            ['Potential rate', `${sector.rate}`],
           ].map(([k, v]) => (
             <div key={k} className="flex items-center justify-between gap-4 px-5 py-3.5">
               <span className="text-body-md text-on-surface-variant">{k}</span>
@@ -103,7 +102,7 @@ export default function DeploymentDetails() {
       </section>
 
       <section>
-        <SectionTitle>Illustrative revenue only</SectionTitle>
+        <SectionTitle>revenue only</SectionTitle>
         <Card className="p-card-padding">
           <p className="text-body-md text-on-surface-variant">
             No gross revenue, deductions, owner earnings or settlement is created by this preview.
@@ -116,7 +115,7 @@ export default function DeploymentDetails() {
           full
           className="sm:col-span-2"
           disabled={!policy.enabled}
-          onClick={() => fire('Demo deployment preview — no request or contract was created')}
+          onClick={() => fire('Deployment preview — no request or contract was created')}
         >
           Preview deployment
         </Button>
@@ -124,7 +123,7 @@ export default function DeploymentDetails() {
           variant="ghost"
           full
           icon="description"
-          onClick={() => fire('Demo contract preview — no legal contract exists')}
+          onClick={() => fire('Contract preview — no legal contract exists')}
         >
           Preview contract
         </Button>
@@ -132,13 +131,13 @@ export default function DeploymentDetails() {
           variant="ghost"
           full
           icon="swap_horiz"
-          onClick={() => fire('Demo reassignment preview — no request was created')}
+          onClick={() => fire('Reassignment preview — no request was created')}
         >
           Preview reassignment
         </Button>
       </div>
       <Disclosure icon="info">
-        Demo only. Live deployment requires authoritative eligibility, contract state, telemetry and settlement.
+        Live deployment requires authoritative eligibility, contract state, telemetry and settlement.
       </Disclosure>
       <Toast show={!!toast} message={toast} />
     </AppShell>

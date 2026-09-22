@@ -12,6 +12,8 @@ export const user = {
   verified: true,
   package: 'Professional',
   referralCode: 'WRS-DAVID-8842',
+  roboCoinBalance: 12,
+  referrals: 14,
 }
 
 export const robot = {
@@ -24,6 +26,7 @@ export const robot = {
   battery: 85,
   lastActive: '2 min ago',
   currentDeployment: 'Warehouse Assistant',
+  currentLocation: 'Lagos Hub 4',
   level: 28,
   levelTitle: 'Professional',
   xp: 12580,
@@ -931,11 +934,11 @@ export const communityEvents = [
 ]
 
 export const leaderboard = [
-  { rank: 1, name: 'Amaka O.', xp: 41250, tone: 'tertiary' },
-  { rank: 2, name: 'Kwame B.', xp: 38700, tone: 'secondary' },
-  { rank: 3, name: 'Leila R.', xp: 33120, tone: 'primary' },
-  { rank: 4, name: 'David Johnson', xp: 12450, tone: 'primary', you: true },
-  { rank: 5, name: 'Tunde A.', xp: 11980, tone: 'outline' },
+  { rank: 1, name: 'Amaka O.', roboCoin: 41250, tone: 'tertiary' },
+  { rank: 2, name: 'Kwame B.', roboCoin: 38700, tone: 'secondary' },
+  { rank: 3, name: 'Leila R.', roboCoin: 33120, tone: 'primary' },
+  { rank: 4, name: 'David Johnson', roboCoin: 12450, tone: 'primary', you: true },
+  { rank: 5, name: 'Tunde A.', roboCoin: 11980, tone: 'outline' },
 ]
 
 export const notifications = [

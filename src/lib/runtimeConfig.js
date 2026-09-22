@@ -18,21 +18,24 @@ const enabled = (value) =>
   )
 
 export function parseRuntimeConfig(env = {}) {
-  const mode = String(env.VITE_WRS_MODE || 'demo')
+  const hasPublicSupabase = Boolean(env.VITE_PUBLIC_SUPABASE_URL && env.VITE_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+  const mode = String(env.VITE_WRS_MODE || (hasPublicSupabase ? 'staging' : 'demo'))
     .trim()
     .toLowerCase()
   if (!MODES.has(mode)) {
     throw new Error(`Invalid VITE_WRS_MODE "${env.VITE_WRS_MODE}". Expected demo, staging, or production.`)
   }
 
-  const services = Object.fromEntries(Object.entries(SERVICE_ENV).map(([name, key]) => [name, enabled(env[key])]))
+  const services = Object.fromEntries(
+    Object.entries(SERVICE_ENV).map(([name, key]) => [name, enabled(env[key]) || hasPublicSupabase]),
+  )
 
   return Object.freeze({
     mode,
     isDemo: mode === 'demo',
     isStaging: mode === 'staging',
     isProduction: mode === 'production',
-    authorityUrl: String(env.VITE_WRS_AUTHORITY_URL || '').trim(),
+    authorityUrl: String(env.VITE_WRS_AUTHORITY_URL || env.VITE_PUBLIC_SUPABASE_URL || '').trim(),
     oauthEnabled: enabled(env.VITE_WRS_OAUTH_ENABLED),
     services: Object.freeze(services),
   })

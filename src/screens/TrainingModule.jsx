@@ -20,7 +20,7 @@ function DemoModule({ mod, policy, isBiometric, isUpload }) {
     setTimeout(() => setToast(''), 2800)
   }
   return (
-    <AppShell title={`${mod.title} demo`} back avatar={false}>
+    <AppShell title={`${mod.title}`} back avatar={false}>
       <section>
         <Card className="flex items-center gap-4 p-card-padding">
           <GradIcon icon={mod.icon} from={mod.from || '#2d5bff'} to={mod.to || '#6f00be'} size={56} radius={18} />
@@ -28,7 +28,7 @@ function DemoModule({ mod, policy, isBiometric, isUpload }) {
             <p className="text-body-md text-on-surface">{mod.desc}</p>
             <div className="mt-2 flex items-center gap-3">
               <Progress value={mod.progress} height="h-1.5" />
-              <span className="shrink-0 text-label-sm text-tertiary">{mod.progress}% demo progress</span>
+              <span className="shrink-0 text-label-sm text-tertiary">{mod.progress}% progress</span>
             </div>
           </div>
         </Card>
@@ -36,7 +36,7 @@ function DemoModule({ mod, policy, isBiometric, isUpload }) {
 
       {isBiometric && (
         <section>
-          <SectionTitle>Sensitive capture demo</SectionTitle>
+          <SectionTitle>Sensitive capture</SectionTitle>
           <Card className="space-y-4 p-card-padding">
             <Badge t="outline">No live capture</Badge>
             <Toggle
@@ -46,7 +46,7 @@ function DemoModule({ mod, policy, isBiometric, isUpload }) {
               desc="Local UI preview only; no consent record or media stream is created."
             />
             <Button full disabled onClick={explain}>
-              Recording unavailable in demo
+              Recording unavailable in{' '}
             </Button>
           </Card>
         </section>
@@ -54,11 +54,11 @@ function DemoModule({ mod, policy, isBiometric, isUpload }) {
 
       {isUpload && (
         <section>
-          <SectionTitle>File upload demo</SectionTitle>
+          <SectionTitle>File upload</SectionTitle>
           <Card className="space-y-4 p-card-padding">
             <Badge t="outline">No live upload</Badge>
             <Button full disabled onClick={explain}>
-              Private upload unavailable in demo
+              Private upload unavailable in{' '}
             </Button>
           </Card>
         </section>
@@ -75,7 +75,7 @@ function DemoModule({ mod, policy, isBiometric, isUpload }) {
           </Card>
         </section>
       )}
-      <Disclosure icon="shield">Demo only. No media, files, consent evidence or rewards are persisted.</Disclosure>
+      <Disclosure icon="shield">No media, files, consent evidence or rewards are persisted.</Disclosure>
       <Toast show={!!toast} message={toast} />
     </AppShell>
   )

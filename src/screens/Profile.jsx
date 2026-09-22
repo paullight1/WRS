@@ -19,11 +19,13 @@ export default function Profile() {
               <Icon name="person" className="text-[36px] text-on-surface" />
             </span>
             <h2 className="mt-3 font-headline-md text-headline-md text-on-surface">
-              {auth.isDemo ? 'Demo account' : 'Verified WRS account'}
+              {auth.isDemo ? 'WRS account' : 'Verified WRS account'}
             </h2>
-            <p className="max-w-full break-all font-data text-data-sm text-outline">
-              User ID: {session?.userId || 'Unavailable'}
-            </p>
+            {!auth.isDemo && (
+              <p className="max-w-full break-all font-data text-data-sm text-outline">
+                User ID: {session?.userId || 'Unavailable'}
+              </p>
+            )}
             <div className="mt-3 flex flex-wrap justify-center gap-2">
               <Badge t={session?.emailVerified ? 'tertiary' : 'outline'}>
                 <Icon

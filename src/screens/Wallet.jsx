@@ -14,14 +14,11 @@ function DemoWallet() {
   const depositPolicy = getSensitiveActionPolicy('wallet.deposit')
   const withdrawPolicy = getSensitiveActionPolicy('wallet.withdraw')
   return (
-    <AppShell title="Wallet demo" back avatar={false}>
-      <Disclosure icon="science">
-        All values and actions in demo mode are illustrative. No deposit, withdrawal or ledger entry is created.
-      </Disclosure>
+    <AppShell title="Wallet" back avatar={false}>
       <Card className="p-card-padding text-center">
-        <p className="text-label-md text-outline">Illustrative available balance</p>
-        <p className="tnum mt-2 font-headline-lg text-headline-lg text-on-surface">$154.40</p>
-        <p className="mt-2 text-body-sm text-on-surface-variant">$32.00 demo pending · no live account</p>
+        <p className="text-label-md text-outline">RoboCoin balance</p>
+        <p className="tnum mt-2 font-headline-lg text-headline-lg text-on-surface">12 RoboCoin</p>
+        <p className="mt-2 text-body-sm text-on-surface-variant">0 pending · demo wallet</p>
       </Card>
       <div className="grid grid-cols-2 gap-3">
         <Button disabled={!depositPolicy.enabled} icon="add">

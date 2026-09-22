@@ -17,7 +17,7 @@ The SQL assumes Supabase-provided schemas/roles exist, including `auth`, `storag
 
 ## Required migration order
 
-Run **all 25 files** below in order. Do not skip hardening/fix migrations; later files intentionally correct or strengthen earlier definitions.
+Run **all 26 files** below in order. Do not skip hardening/fix migrations; later files intentionally correct or strengthen earlier definitions.
 
 | # | Migration | Purpose |
 |---:|---|---|
@@ -46,6 +46,7 @@ Run **all 25 files** below in order. Do not skip hardening/fix migrations; later
 | 23 | `20260822082000_plan8_referral_code_portability.sql` | Portable bounded referral-code generation under hardened search paths. |
 | 24 | `20260822090000_plan9_account_operations.sql` | Persistent settings, account deletion, support/KB, operator RBAC and operations audit. |
 | 25 | `20260825010000_plan11_storage_activation.sql` | Creates/locks down the private WRS Storage bucket used by data and support uploads. |
+| 26 | `20260908185654_free_robot_tier.sql` | Free robot provisioning without payment; preserves paid-tier entitlement and capability checks. |
 
 ## Recommended application methods
 

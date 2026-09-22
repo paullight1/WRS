@@ -30,28 +30,28 @@ export default function Boosts() {
 
   const activate = () => {
     if (!policy.enabled) return
-    setToast('Demo boost preview — no points were spent and your robot was not changed')
+    setToast('Boost preview — no points were spent and your robot was not changed')
     setSel(null)
     setTimeout(() => setToast(''), 2500)
   }
 
   return (
-    <AppShell title="Robot Boosts demo" back avatar={false}>
+    <AppShell title="Robot Boosts" back avatar={false}>
       <section>
         <Card className="flex items-center justify-between gap-4 p-card-padding">
           <div>
-            <p className="text-label-sm text-outline">Illustrative points</p>
+            <p className="text-label-sm text-outline">points</p>
             <p className="font-headline-lg text-headline-lg font-bold text-tertiary">4,820</p>
           </div>
           <Icon name="stars" className="text-[40px] text-tertiary/60" fill />
         </Card>
         <p className="mt-3 text-label-sm leading-relaxed text-outline">
-          Demo catalogue only. Selecting a boost does not alter points, entitlements or robot performance.
+          catalogue only. Selecting a boost does not alter points, entitlements or robot performance.
         </p>
       </section>
       <ChipBar items={types} value={f} onChange={setF} visible={4} />
       <section>
-        <SectionTitle action={`${list.length} demo boosts`}>Boost catalogue</SectionTitle>
+        <SectionTitle action={`${list.length} boosts`}>Boost catalogue</SectionTitle>
         <div className="space-y-2">
           {list.map((b) => {
             const c = tone(b.tone)
@@ -68,7 +68,7 @@ export default function Boosts() {
                   <span className="block truncate text-label-sm text-outline">{b.desc}</span>
                 </span>
                 <span className="shrink-0 text-right">
-                  <span className="block text-label-md text-tertiary">{b.cost} demo pts</span>
+                  <span className="block text-label-md text-tertiary">{b.cost} pts</span>
                   <Badge t="outline">{b.type}</Badge>
                 </span>
               </button>

@@ -34,7 +34,7 @@ export default function Login() {
     setError('')
     try {
       const result = await auth.login(identifier, password, remember)
-      if (!result.session.emailVerified || !result.session.phoneVerified) {
+      if (!result.session.emailVerified) {
         nav('/verify', {
           replace: true,
           state: {

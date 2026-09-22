@@ -73,25 +73,14 @@ function LiveCheckout({ packageInfo }) {
 
 function DemoCheckout({ packageInfo }) {
   return (
-    <AppShell
-      title="Checkout demo"
-      subtitle={`${packageInfo.name} Package · no payment will be taken`}
-      back
-      avatar={false}
-    >
-      <Disclosure icon="science">
-        This is a checkout preview. Do not enter payment credentials or send funds. No package entitlement, receipt or
-        ledger transaction is created in demo mode.
-      </Disclosure>
+    <AppShell title="Checkout" subtitle={`${packageInfo.name} Package · no payment will be taken`} back avatar={false}>
       <Card className="p-card-padding text-center">
         <RobotFace tier={packageInfo.slug} size={92} animate className="mx-auto" />
-        <Badge t="outline" className="mt-4">
-          Demo only
-        </Badge>
+
         <h2 className="mt-4 font-headline-md text-headline-md text-on-surface">{packageInfo.name} Package</h2>
         <p className="mt-2 text-body-md text-on-surface-variant">
-          Illustrative catalogue price: ${packageInfo.price.toLocaleString()}. Live checkout uses the server-owned
-          price, not this browser value.
+          Catalogue price: ${packageInfo.price.toLocaleString()}. Live checkout uses the server-owned price, not this
+          browser value.
         </p>
       </Card>
       <Button to={`/packages/${packageInfo.slug}/success?demo=1`} full size="lg" icon="visibility">

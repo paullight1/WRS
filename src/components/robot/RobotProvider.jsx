@@ -9,7 +9,7 @@ const DEMO_KEY = 'wrs.demo.robot-state.v1'
 
 const defaultDemoDraft = {
   step: 0,
-  requestedPackageSlug: 'professional',
+  requestedPackageSlug: 'free',
   name: 'WRS-Pro-001',
   palette: 'Oceania Flow',
   parts: {

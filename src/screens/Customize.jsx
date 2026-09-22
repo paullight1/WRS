@@ -66,7 +66,7 @@ export default function Customize() {
       <AppShell title="Customize Robot" back avatar={false}>
         <StateView
           kind="locked"
-          title={robotState.isDemo ? 'Create the demo robot first' : 'Authoritative robot state is unavailable'}
+          title={robotState.isDemo ? 'Create the robot first' : 'Authoritative robot state is unavailable'}
           desc={robotState.error || 'Complete onboarding before changing robot configuration.'}
           action={<Button to="/onboarding">Open onboarding</Button>}
         />
@@ -92,9 +92,7 @@ export default function Customize() {
       const result = await robotState.saveRobotConfiguration(draft)
       if (result.status === 'saved') {
         setDraft(initialConfiguration(result.configuration))
-        setToast(
-          robotState.isDemo ? 'Demo configuration stored on this device' : 'Configuration confirmed by robot service',
-        )
+        setToast(robotState.isDemo ? 'Configuration saved' : 'Configuration confirmed by robot service')
         setTimeout(() => setToast(''), 2400)
         return
       }
@@ -122,12 +120,7 @@ export default function Customize() {
   }
 
   return (
-    <AppShell
-      title="Customize Robot"
-      subtitle={`${robotName}${robotState.isDemo ? ' · demo state' : ' · authoritative state'}`}
-      back
-      avatar={false}
-    >
+    <AppShell title="Customize Robot" subtitle={robotName} back avatar={false}>
       <section>
         <Card className="relative overflow-hidden p-card-padding">
           <Robot3D

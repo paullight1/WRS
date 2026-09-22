@@ -102,7 +102,7 @@ export default function Landing() {
 
       <main id="main">
         {/* ------------------------------------------------------------ hero */}
-        <section id="top" className="relative overflow-hidden pb-16 pt-[124px] lg:pb-24 lg:pt-[152px]">
+        <section id="top" className="relative overflow-hidden pb-16 pt-[156px] lg:pb-24 lg:pt-[152px]">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-cover bg-[center_top] bg-no-repeat opacity-[.15] mix-blend-multiply dark:opacity-[.2] dark:mix-blend-screen md:hidden"

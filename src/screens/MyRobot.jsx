@@ -4,6 +4,7 @@ import { useRobot } from '../components/robot/RobotProvider.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
 import StateView from '../components/states/StateView.jsx'
 import { Badge, Button, Card, Icon, SectionTitle } from '../components/ui.jsx'
+import { isActivityLocked } from '../lib/activityAvailability.js'
 import { hasCapability, packageDefinition } from '../domain/robot/packages.ts'
 
 export default function MyRobot() {
@@ -23,7 +24,7 @@ export default function MyRobot() {
       <AppShell title="My Robot">
         <StateView
           kind="locked"
-          title={robotState.isDemo ? 'No demo robot yet' : 'Authoritative robot state is unavailable'}
+          title={robotState.isDemo ? 'No robot yet' : 'Authoritative robot state is unavailable'}
           desc={robotState.error || 'Provision your robot before opening this workspace.'}
           action={<Button to="/onboarding">Open onboarding</Button>}
         />
@@ -52,18 +53,16 @@ export default function MyRobot() {
               size={190}
               interactive
               config={configuration || undefined}
-              label={`${robot.name}, ${robotState.isDemo ? 'demo state' : 'authoritative state'}`}
+              label={`${robot.name}, ${robotState.isDemo ? 'state' : 'authoritative state'}`}
             />
           </div>
           <div className="mt-3 text-center">
             <h2 className="font-headline-lg text-headline-lg font-bold text-on-surface">{robot.name}</h2>
             <p className="mt-1 text-label-md text-on-surface-variant">{definition.robotClass}</p>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>
-                {robotState.isDemo ? 'Demo robot' : robot.lifecycle}
-              </Badge>
+              <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>{robot.lifecycle}</Badge>
               <Badge t="primary">{definition.name}</Badge>
-              <Badge t="outline">ID {robot.id}</Badge>
+              {!robotState.isDemo && <Badge t="outline">ID {robot.id}</Badge>}
             </div>
           </div>
         </Card>
@@ -85,15 +84,15 @@ export default function MyRobot() {
       {tab === 'Overview' && (
         <>
           <section>
-            <SectionTitle>Authoritative identity</SectionTitle>
+            <SectionTitle>Robot details</SectionTitle>
             <Card className="divide-y divide-white/8">
               {[
-                ['Owner user ID', robot.ownerUserId],
+                ...(!robotState.isDemo ? [['Owner user ID', robot.ownerUserId]] : []),
                 ['Lifecycle', robot.lifecycle],
                 ['Active package', definition.name],
                 ['Requested package', robot.requestedPackageSlug],
                 ['Activation', new Date(robot.activationDate).toLocaleDateString()],
-                ['Public verification ID', robot.publicVerificationId],
+                ...(!robotState.isDemo ? [['Public verification ID', robot.publicVerificationId]] : []),
               ].map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between gap-4 px-5 py-3.5">
                   <span className="text-body-md text-on-surface-variant">{key}</span>
@@ -170,7 +169,7 @@ export default function MyRobot() {
             {[
               ['Training', '/training', 'Training progress belongs to the training service.'],
               ['Data contribution', '/data', 'Quality and contribution records belong to the data service.'],
-              ['Deployment', '/deploy', 'Contracts and telemetry belong to the deployment service.'],
+              ['Mining', '/deploy', 'Contracts and telemetry belong to the deployment service.'],
               ['Wallet', '/wallet', 'Balances and settlement belong to the financial ledger.'],
             ].map(([label, to, description]) => (
               <div key={label} className="flex items-center gap-3 px-5 py-3.5">
@@ -178,8 +177,8 @@ export default function MyRobot() {
                   <p className="text-body-md text-on-surface">{label}</p>
                   <p className="text-label-sm text-outline">{description}</p>
                 </div>
-                <Button to={to} size="sm" variant="ghost">
-                  Open
+                <Button to={to} size="sm" variant="ghost" disabled={isActivityLocked(to)}>
+                  {isActivityLocked(to) ? 'Locked' : 'Open'}
                 </Button>
               </div>
             ))}
