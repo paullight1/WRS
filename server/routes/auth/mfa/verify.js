@@ -1,0 +1,12 @@
+import { verifyMfa } from '../../../mfa.js'
+import { appendCookies, assertSameOrigin, functionHandler, json, readJson, requireMethod } from '../../../http.js'
+import { requireSession } from '../../../session.js'
+
+export default functionHandler(async (request) => {
+  requireMethod(request, 'POST')
+  assertSameOrigin(request)
+  const resolved = await requireSession(request, { verified: true })
+  const body = await readJson(request)
+  const result = await verifyMfa(resolved, String(body.enrollmentId || ''), String(body.code || ''))
+  return appendCookies(json({ session: result.session }), result.cookies)
+})

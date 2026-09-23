@@ -13,16 +13,16 @@ const required = [
   'src/services/account/AccountService.ts',
   'src/infrastructure/account/browserAccountClient.ts',
   'api/_lib/account.js',
-  'api/account.js',
-  'api/account/profile.js',
-  'api/account/settings.js',
-  'api/account/delete.js',
-  'api/support.js',
-  'api/support/ticket.js',
-  'api/support/attachment.js',
-  'api/knowledge-base.js',
-  'api/admin/operations.js',
-  'api/admin/action.js',
+  'server/routes/account.js',
+  'server/routes/account/profile.js',
+  'server/routes/account/settings.js',
+  'server/routes/account/delete.js',
+  'server/routes/support.js',
+  'server/routes/support/ticket.js',
+  'server/routes/support/attachment.js',
+  'server/routes/knowledge-base.js',
+  'server/routes/admin/operations.js',
+  'server/routes/admin/action.js',
   'src/screens/ProfileProduction.jsx',
   'src/screens/SettingsProduction.jsx',
   'src/screens/SupportProduction.jsx',
@@ -43,7 +43,7 @@ test('profile and settings are persisted server-side and sensitive identity chan
   assert.match(sql, /wrs_update_user_settings/)
   assert.match(sql, /mfa_satisfied_at/)
   assert.match(sql, /interval '10 minutes'/)
-  const profile = read('api/account/profile.js')
+  const profile = read('server/routes/account/profile.js')
   assert.match(profile, /requireSession/)
   assert.doesNotMatch(profile, /body\.(?:kycStatus|status|roles)/)
 })
@@ -59,20 +59,20 @@ test('account deletion is a durable queue that revokes sessions and preserves re
   assert.match(sql, /anonym/)
   assert.doesNotMatch(sql, /delete from public\.ledger_entries/)
   assert.doesNotMatch(sql, /delete from public\.security_events/)
-  assert.match(read('api/account/delete.js'), /assertSameOrigin/)
+  assert.match(read('server/routes/account/delete.js'), /assertSameOrigin/)
 })
 
 test('pending account deletion blocks ordinary APIs but permits explicit recovery and MFA step-up', () => {
   const session = read('api/_lib/session.js')
-  const stepUp = read('api/auth/mfa/step-up.js')
+  const stepUp = read('server/routes/auth/mfa/step-up.js')
   assert.match(session, /accountDeletionPending/)
   assert.match(session, /allowDeletionPending/)
-  assert.match(read('api/account.js'), /allowDeletionPending/)
-  assert.match(read('api/account/delete.js'), /allowDeletionPending/)
+  assert.match(read('server/routes/account.js'), /allowDeletionPending/)
+  assert.match(read('server/routes/account/delete.js'), /allowDeletionPending/)
   assert.match(stepUp, /allowDeletionPending/)
   assert.match(stepUp, /verifyMfa/)
   assert.match(stepUp, /user_mfa_factors/)
-  assert.doesNotMatch(read('api/wallet.js'), /allowDeletionPending/)
+  assert.doesNotMatch(read('server/routes/wallet.js'), /allowDeletionPending/)
   const app = read('src/App.jsx')
   assert.match(app, /account-recovery/)
   assert.match(app, /\/account\/deletion/)
@@ -86,8 +86,8 @@ test('support tickets, replies and private attachments are durable and abuse-lim
   assert.match(sql, /wrs_create_support_ticket/)
   assert.match(sql, /wrs_add_support_message/)
   assert.match(sql, /wrs_staff_update_support_ticket/)
-  const ticket = read('api/support/ticket.js')
-  const attachment = read('api/support/attachment.js')
+  const ticket = read('server/routes/support/ticket.js')
+  const attachment = read('server/routes/support/attachment.js')
   assert.match(ticket, /requireSession/)
   assert.match(ticket, /enforceRateLimit/)
   assert.doesNotMatch(ticket, /fake|48213|setTimeout/i)
@@ -102,7 +102,7 @@ test('knowledge base is server-published searchable content, not decorative rows
   const sql = read('supabase/migrations/20260822090000_plan9_account_operations.sql').toLowerCase()
   assert.match(sql, /knowledge_base_articles/)
   assert.match(sql, /status.*published/s)
-  assert.match(read('api/knowledge-base.js'), /knowledgeBaseSearch/)
+  assert.match(read('server/routes/knowledge-base.js'), /knowledgeBaseSearch/)
 })
 
 test('least-privilege operations routes require operator roles, server permissions and a discoverable console', () => {
@@ -110,7 +110,7 @@ test('least-privilege operations routes require operator roles, server permissio
   assert.match(sql, /operations_audit_events/)
   assert.match(sql, /append-only/)
   assert.match(sql, /wrs_record_operations_action/)
-  for (const path of ['api/admin/operations.js', 'api/admin/action.js']) {
+  for (const path of ['server/routes/admin/operations.js', 'server/routes/admin/action.js']) {
     const source = read(path)
     assert.match(source, /requireAdminSession/, path)
   }

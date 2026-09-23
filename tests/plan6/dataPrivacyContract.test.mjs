@@ -12,14 +12,14 @@ const required = [
   'src/services/data/DataService.ts',
   'api/_lib/data.js',
   'api/_lib/storage.js',
-  'api/data/consent.js',
-  'api/data/upload-grant.js',
-  'api/data/submissions.js',
-  'api/data/delete.js',
-  'api/data/delete/process.js',
-  'api/data/export.js',
-  'api/data/revenue.js',
-  'api/data/licenses/distribute.js',
+  'server/routes/data/consent.js',
+  'server/routes/data/upload-grant.js',
+  'server/routes/data/submissions.js',
+  'server/routes/data/delete.js',
+  'server/routes/data/delete/process.js',
+  'server/routes/data/export.js',
+  'server/routes/data/revenue.js',
+  'server/routes/data/licenses/distribute.js',
   'supabase/migrations/20260822060000_plan6_data_privacy.sql',
   'supabase/migrations/20260822063000_plan6_deletion_queue.sql',
 ]
@@ -41,7 +41,7 @@ test('consent is versioned, purpose-scoped and append-only', () => {
 })
 
 test('sensitive upload grants require active consent and server-owned object paths', () => {
-  const upload = read('api/data/upload-grant.js')
+  const upload = read('server/routes/data/upload-grant.js')
   const storage = read('api/_lib/storage.js')
   assert.match(upload, /requireSession/)
   assert.match(upload, /hasActiveConsent/)
@@ -67,7 +67,7 @@ test('data lifecycle is explicit and unscanned files cannot become approved/lice
 
 test('quality scoring is deterministic and cannot be client-authoritative', () => {
   const quality = read('src/domain/data/quality.ts')
-  const submissions = read('api/data/submissions.js')
+  const submissions = read('server/routes/data/submissions.js')
   const data = read('api/_lib/data.js')
   assert.match(quality, /completeness/i)
   assert.match(quality, /accuracy/i)
@@ -81,8 +81,8 @@ test('quality scoring is deterministic and cannot be client-authoritative', () =
 
 test('deletion is queued until signed upload grants expire and storage deletion succeeds', () => {
   const queue = read('supabase/migrations/20260822063000_plan6_deletion_queue.sql').toLowerCase()
-  const endpoint = read('api/data/delete.js')
-  const worker = read('api/data/delete/process.js')
+  const endpoint = read('server/routes/data/delete.js')
+  const worker = read('server/routes/data/delete/process.js')
   const data = read('api/_lib/data.js')
   assert.match(queue, /eligible_at/)
   assert.match(queue, /interval '2 hours'/)
@@ -104,8 +104,8 @@ test('deletion and export have durable request/audit state', () => {
   assert.match(sql, /data_export_requests/)
   assert.match(sql, /wrs_request_data_deletion/)
   assert.match(sql, /wrs_prepare_data_export/)
-  assert.match(read('api/data/delete.js'), /assertSameOrigin/)
-  assert.match(read('api/data/export.js'), /requireSession/)
+  assert.match(read('server/routes/data/delete.js'), /assertSameOrigin/)
+  assert.match(read('server/routes/data/export.js'), /requireSession/)
 })
 
 test('dataset licensing requires consent and approved clean items', () => {
@@ -120,7 +120,7 @@ test('dataset licensing requires consent and approved clean items', () => {
 
 test('commercial data distributions settle contributor value through the Plan 5 ledger', () => {
   const sql = read('supabase/migrations/20260822060000_plan6_data_privacy.sql').toLowerCase()
-  const distribute = read('api/data/licenses/distribute.js')
+  const distribute = read('server/routes/data/licenses/distribute.js')
   assert.match(sql, /wrs_distribute_dataset_license/)
   assert.match(sql, /wrs_post_ledger_transaction/)
   assert.match(sql, /liability:wallet:/)
