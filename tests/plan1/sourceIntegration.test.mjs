@@ -15,7 +15,6 @@ const guardedScreens = [
   ['src/screens/DataTask.jsx', 'data.taskSubmit'],
   ['src/screens/DeploymentDetails.jsx', 'deployment.request'],
   ['src/screens/ActiveDeployment.jsx', 'deployment.pause'],
-  ['src/screens/Marketplace.jsx', 'marketplace.purchase'],
   ['src/screens/Settings.jsx', 'account.deleteData'],
   ['src/screens/Support.jsx', 'support.ticket'],
 ]
@@ -34,10 +33,17 @@ test('payment success route uses verified access evaluation rather than route pr
   assert.match(source, /location\.search|useLocation/)
 })
 
-test('app shell visibly identifies demo application data', () => {
+test('marketplace member route is inert until catalogue commerce is available', () => {
+  const source = read('src/screens/MarketplaceProduction.jsx')
+  assert.match(source, /browserEcosystemClient\.marketplace/)
+  assert.match(source, /Available soon/)
+  assert.doesNotMatch(source, /browserEcosystemClient\.(?:acquire|install)/)
+})
+
+test('app shell does not present demo records as member account data', () => {
   const source = read('src/components/AppShell.jsx')
-  assert.match(source, /runtimeConfig/)
-  assert.match(source, /Demo data|illustrative/i)
+  assert.match(source, /browserAccountClient\s*\.snapshot/)
+  assert.doesNotMatch(source, /DemoDataBanner|Demo data|demo-user|illustrative only/i)
 })
 
 test('active-looking operational screens no longer ship stale 2025 dates', () => {

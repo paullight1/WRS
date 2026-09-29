@@ -17,7 +17,7 @@ The SQL assumes Supabase-provided schemas/roles exist, including `auth`, `storag
 
 ## Required migration order
 
-Run **all 25 files** below in order. Do not skip hardening/fix migrations; later files intentionally correct or strengthen earlier definitions.
+Run **all 28 files** below in order. Do not skip hardening/fix migrations; later files intentionally correct or strengthen earlier definitions.
 
 | # | Migration | Purpose |
 |---:|---|---|
@@ -46,6 +46,9 @@ Run **all 25 files** below in order. Do not skip hardening/fix migrations; later
 | 23 | `20260822082000_plan8_referral_code_portability.sql` | Portable bounded referral-code generation under hardened search paths. |
 | 24 | `20260822090000_plan9_account_operations.sql` | Persistent settings, account deletion, support/KB, operator RBAC and operations audit. |
 | 25 | `20260825010000_plan11_storage_activation.sql` | Creates/locks down the private WRS Storage bucket used by data and support uploads. |
+| 26 | `20260926092033_xp_rbc_mining_foundation.sql` | Adds authoritative XP and RoboCoin ledgers, mining rules, sessions and settlement foundations. |
+| 27 | `20260929120000_mining_robot_worksite_unlocks.sql` | Adds one-active-session robot/worksite selection, approved worksites and sequential robot unlocks. |
+| 28 | `20260929130000_mining_reporting.sql` | Adds server-derived mining metrics and privacy-safe weekly/all-time RoboCoin leaderboard projections. |
 
 ## Recommended application methods
 
@@ -59,7 +62,7 @@ If you apply manually in the dashboard, open each file in the order above and ex
 
 ## Post-migration verification
 
-After file 25, run:
+After file 28, run:
 
 `supabase/verification/plan11_post_migration_checks.sql`
 

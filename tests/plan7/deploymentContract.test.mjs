@@ -137,15 +137,16 @@ test('completion, work verification and settlement require internal authorizatio
 
 test('production deployment routes are isolated from demo mock screens', () => {
   for (const path of [
-    'src/screens/DeployProduction.jsx',
+    'src/screens/MiningProduction.jsx',
     'src/screens/DeploymentDetailsProduction.jsx',
     'src/screens/ActiveDeploymentProduction.jsx',
   ]) {
-    assert.match(read(path), /browserDeploymentClient/, path)
+    assert.match(read(path), path.endsWith('MiningProduction.jsx') ? /browserMiningClient/ : /browserDeploymentClient/, path)
     assert.doesNotMatch(read(path), /\.\.\/data\/mock\.js/, path)
   }
   const app = read('src/App.jsx')
-  assert.match(app, /runtimeConfig\.isDemo \? Deploy : DeployProduction/)
-  assert.match(app, /runtimeConfig\.isDemo \? DeploymentDetails : DeploymentDetailsProduction/)
-  assert.match(app, /runtimeConfig\.isDemo \? ActiveDeployment : ActiveDeploymentProduction/)
+  assert.match(app, /Route path="\/deploy" element=\{verified\(<MiningProduction \/>\)\}/)
+  assert.match(app, /const DeploymentDetailsScreen = DeploymentDetailsProduction/)
+  assert.match(app, /const ActiveDeploymentScreen = ActiveDeploymentProduction/)
+  assert.doesNotMatch(app, /runtimeConfig\.isDemo \? (?:Deploy|DeploymentDetails|ActiveDeployment)/)
 })
