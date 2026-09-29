@@ -48,7 +48,6 @@ import CommunityProduction from './screens/CommunityProduction.jsx'
 import ReferralsProduction from './screens/ReferralsProduction.jsx'
 import Notifications from './screens/Notifications.jsx'
 import More from './screens/More.jsx'
-import Profile from './screens/Profile.jsx'
 import ProfileProduction from './screens/ProfileProduction.jsx'
 import Settings from './screens/Settings.jsx'
 import SettingsProduction from './screens/SettingsProduction.jsx'
@@ -73,7 +72,7 @@ const MarketplaceScreen = runtimeConfig.isDemo ? Marketplace : MarketplaceProduc
 const AcademyScreen = runtimeConfig.isDemo ? Academy : AcademyProduction
 const CommunityScreen = runtimeConfig.isDemo ? Community : CommunityProduction
 const ReferralsScreen = runtimeConfig.isDemo ? Referrals : ReferralsProduction
-const ProfileScreen = runtimeConfig.isDemo ? Profile : ProfileProduction
+const ProfileScreen = ProfileProduction
 const SettingsScreen = runtimeConfig.isDemo ? Settings : SettingsProduction
 const SupportScreen = runtimeConfig.isDemo ? Support : SupportProduction
 

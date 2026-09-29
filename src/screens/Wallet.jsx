@@ -3,44 +3,20 @@ import AppShell from '../components/AppShell.jsx'
 import StateView, { LoadingView } from '../components/states/StateView.jsx'
 import { Button, Card, DataRow, Disclosure, SectionTitle } from '../components/ui.jsx'
 import { browserFinanceClient } from '../infrastructure/finance/browserFinanceClient.ts'
-import { runtimeConfig } from '../lib/runtimeConfig.js'
 import { getSensitiveActionPolicy } from '../lib/sensitiveActions.js'
 
 function formatMoney(amountMinor, currency) {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(amountMinor || 0) / 100)
 }
 
-function DemoWallet() {
-  const depositPolicy = getSensitiveActionPolicy('wallet.deposit')
-  const withdrawPolicy = getSensitiveActionPolicy('wallet.withdraw')
-  return (
-    <AppShell title="Wallet demo" back avatar={false}>
-      <Disclosure icon="science">
-        All values and actions in demo mode are illustrative. No deposit, withdrawal or ledger entry is created.
-      </Disclosure>
-      <Card className="p-card-padding text-center">
-        <p className="text-label-md text-outline">Illustrative available balance</p>
-        <p className="tnum mt-2 font-headline-lg text-headline-lg text-on-surface">$154.40</p>
-        <p className="mt-2 text-body-sm text-on-surface-variant">$32.00 demo pending · no live account</p>
-      </Card>
-      <div className="grid grid-cols-2 gap-3">
-        <Button disabled={!depositPolicy.enabled} icon="add">
-          Preview deposit
-        </Button>
-        <Button disabled={!withdrawPolicy.enabled} variant="tonal" icon="arrow_outward">
-          Preview withdrawal
-        </Button>
-      </div>
-    </AppShell>
-  )
-}
-
 function LiveWallet() {
   const withdrawPolicy = getSensitiveActionPolicy('wallet.withdraw')
   const depositPolicy = getSensitiveActionPolicy('wallet.deposit')
   const [wallet, setWallet] = useState(null)
+  const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [historyError, setHistoryError] = useState('')
   const [message, setMessage] = useState('')
   const [payoutMethodId, setPayoutMethodId] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
@@ -53,32 +29,51 @@ function LiveWallet() {
   const refresh = async () => {
     setLoading(true)
     setError('')
-    try {
-      const result = await browserFinanceClient.wallet(currency)
-      setWallet(result.wallet)
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Wallet could not be loaded.')
-    } finally {
-      setLoading(false)
+    const [walletResult, transactionResult] = await Promise.allSettled([
+      browserFinanceClient.wallet(currency),
+      browserFinanceClient.transactions(currency),
+    ])
+    if (walletResult.status === 'fulfilled' && walletResult.value?.wallet) {
+      setWallet(walletResult.value.wallet)
+    } else {
+      setError(walletResult.reason instanceof Error ? walletResult.reason.message : 'Wallet could not be loaded.')
     }
+    if (transactionResult.status === 'fulfilled' && Array.isArray(transactionResult.value?.transactions)) {
+      setTransactions(transactionResult.value.transactions)
+      setHistoryError('')
+    } else {
+      setHistoryError(
+        transactionResult.reason instanceof Error
+          ? transactionResult.reason.message
+          : 'Wallet activity could not be loaded.',
+      )
+    }
+    setLoading(false)
   }
 
   useEffect(() => {
     let active = true
-    browserFinanceClient
-      .wallet(currency)
-      .then((result) => {
+    Promise.allSettled([browserFinanceClient.wallet(currency), browserFinanceClient.transactions(currency)]).then(
+      ([walletResult, transactionResult]) => {
         if (!active) return
-        setWallet(result.wallet)
-        setError('')
-      })
-      .catch((reason) => {
-        if (!active) return
-        setError(reason instanceof Error ? reason.message : 'Wallet could not be loaded.')
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
+        if (walletResult.status === 'fulfilled' && walletResult.value?.wallet) {
+          setWallet(walletResult.value.wallet)
+          setError('')
+        } else {
+          setError(walletResult.reason instanceof Error ? walletResult.reason.message : 'Wallet could not be loaded.')
+        }
+        if (transactionResult.status === 'fulfilled' && Array.isArray(transactionResult.value?.transactions)) {
+          setTransactions(transactionResult.value.transactions)
+        } else {
+          setHistoryError(
+            transactionResult.reason instanceof Error
+              ? transactionResult.reason.message
+              : 'Wallet activity could not be loaded.',
+          )
+        }
+        setLoading(false)
+      },
+    )
     return () => {
       active = false
     }
@@ -206,6 +201,34 @@ function LiveWallet() {
       </section>
 
       <section>
+        <SectionTitle>Recent activity</SectionTitle>
+        {historyError ? (
+          <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+            Wallet activity unavailable: {historyError}
+          </p>
+        ) : transactions.length ? (
+          <Card className="divide-y divide-white/8">
+            {transactions.map((transaction) => (
+              <div key={transaction.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-body-md text-on-surface">{transaction.kind}</p>
+                  <p className="text-label-sm text-outline">
+                    {new Date(transaction.createdAt).toLocaleDateString()} · {transaction.status}
+                  </p>
+                </div>
+                <p className="shrink-0 font-data text-data-sm text-on-surface">
+                  {transaction.direction === 'credit' ? '+' : '−'}
+                  {formatMoney(Math.abs(transaction.amountMinor), transaction.currency)}
+                </p>
+              </div>
+            ))}
+          </Card>
+        ) : (
+          <p className="text-body-sm text-outline">No ledger activity yet.</p>
+        )}
+      </section>
+
+      <section>
         <SectionTitle>Withdraw</SectionTitle>
         <Card className="space-y-3 p-card-padding">
           <input
@@ -258,5 +281,5 @@ function LiveWallet() {
 }
 
 export default function Wallet() {
-  return runtimeConfig.isDemo ? <DemoWallet /> : <LiveWallet />
+  return <LiveWallet />
 }

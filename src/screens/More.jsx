@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
 import { useRobot } from '../components/robot/RobotProvider.jsx'
 import { Icon, List, Row, SectionTitle } from '../components/ui.jsx'
 import { packageDefinition } from '../domain/robot/packages.ts'
+import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
 
 const operatorRoles = new Set([
   'admin',
@@ -19,7 +21,31 @@ export default function More() {
   const auth = useAuth()
   const robotState = useRobot()
   const navigate = useNavigate()
-  const accountLabel = auth.isDemo ? 'Demo account' : `Account ${auth.session?.userId?.slice(0, 8) || ''}`
+  const [profile, setProfile] = useState(null)
+  const [profileState, setProfileState] = useState('loading')
+  useEffect(() => {
+    let active = true
+    browserAccountClient
+      .snapshot()
+      .then((snapshot) => {
+        if (!active) return
+        setProfile(snapshot?.profile || null)
+        setProfileState(snapshot?.profile ? 'ready' : 'unavailable')
+      })
+      .catch(() => {
+        if (active) setProfileState('unavailable')
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const accountLabel =
+    typeof profile?.fullName === 'string' && profile.fullName.trim()
+      ? profile.fullName.trim()
+      : profileState === 'loading'
+        ? 'Loading profile'
+        : 'Profile unavailable'
   const packageLabel = robotState.robot ? packageDefinition(robotState.robot.packageSlug).name : 'No active robot'
   const canOperate = !auth.isDemo && (auth.session?.roles || []).some((role) => operatorRoles.has(role))
 
@@ -112,7 +138,7 @@ export default function More() {
         <div className="min-w-0 flex-1">
           <p className="truncate text-title text-on-surface">{accountLabel}</p>
           <p className="truncate font-data text-data-sm text-on-surface-variant">
-            {auth.session?.userId || 'No verified session'}
+            {profile?.email || (!auth.isDemo && auth.session?.userId) || 'Account profile'}
           </p>
         </div>
         <Icon name="chevron_right" className="text-outline" />
