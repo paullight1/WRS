@@ -35,10 +35,13 @@ describe('Marketplace available soon', () => {
 
   it('renders approved server catalogue entries as inert Available soon items without commerce metadata', async () => {
     render(<MarketplaceProduction />)
+    expect(await screen.findByRole('heading', { name: 'Marketplace' })).toBeInTheDocument()
     expect(await screen.findByText('Yoruba Language Pack')).toBeInTheDocument()
     expect(screen.getByText('Available soon')).toBeInTheDocument()
     expect(screen.queryByText('$12.00')).not.toBeInTheDocument()
-    expect(screen.queryByText(/rating|12 approved|catalogue preview/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/rating|\d+ approved|catalogue preview|\d+ demo items/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/read-only commerce preview|illustrative catalogue|plan 8|purchase|install/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /more \d+/i })).not.toBeInTheDocument()
     const action = screen.getByRole('button', { name: 'Available soon' })
     expect(action).toBeDisabled()
     fireEvent.click(action)
@@ -50,6 +53,7 @@ describe('Marketplace available soon', () => {
     browserEcosystemClient.marketplace.mockResolvedValueOnce([])
     render(<MarketplaceProduction />)
     expect(await screen.findByText(/no items are available yet/i)).toBeInTheDocument()
+    expect(screen.queryByText(/marketplace demo|catalogue preview|illustrative/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/\d+ items?/i)).not.toBeInTheDocument()
     expect(screen.queryByText(catalogueItem.name)).not.toBeInTheDocument()
   })

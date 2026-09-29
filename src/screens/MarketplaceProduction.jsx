@@ -42,7 +42,7 @@ export default function MarketplaceProduction() {
   }, [])
 
   return (
-    <AppShell title="Marketplace" subtitle="Verified robot capabilities">
+    <AppShell title="Marketplace">
       {loading && <StateView kind="loading" title="Loading marketplace" desc="Reading approved catalogue versions." />}
       {!loading && error && (
         <StateView
