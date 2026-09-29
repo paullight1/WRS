@@ -18,6 +18,7 @@ Bring the recent server-authoritative XP and RoboCoin mining experience into the
 6. Remove the global demo-data banner, the demo-robot badge, the home authoritative-boundaries explainer, and other user-facing demo-only explanatory copy throughout the app.
 7. Make mining overview metrics functional and server-derived. Do not retain illustrative active-unit counts, hours, or performance percentages.
 8. Selecting another robot while one is mining must explain that it is locked and what progress unlocks it. Completing a full mining cycle unlocks the next eligible owned robot for a later cycle; an in-progress session cannot switch robots or locations.
+9. Replace the Mining page's History tab with a leaderboard of verified RoboCoin mining rewards.
 
 ## Member experience
 
@@ -34,6 +35,10 @@ The bottom navigation shows the RoboCoin mark and **Mining**. The Mining screen 
 Other owned robots appear as locked until the active full cycle settles. Their lock state comes from progression data, not browser state. Selecting a locked robot shows its unlock requirement. Completing a session makes the next robot eligible for a future session; it does not start mining automatically. If no robot, worksite, rule, or production service is available, the UI explains the unavailable state and offers the relevant recovery action without fake stats.
 
 The current session cannot change robot or location after it starts. The worksite shown in the session is the actual selected location, not a hard-coded warehouse scene.
+
+### Leaderboard
+
+Replace the deployment-history tab with a mining leaderboard. Rank members by settled RoboCoin earned in the selected period, with a weekly view as the default and an all-time view available. Show earned amounts for that period, not wallet balances. Use only server-confirmed ledger awards; exclude pending, reversed, and estimated mining amounts. Identify members by public display name, or a generated member handle when no public name is available. Return an explicit empty state when there are no qualifying entries; never fall back to illustrative deployment history.
 
 ### Functional overview metrics
 
@@ -57,6 +62,7 @@ The cleanup covers visible member and operator copy, labels, badges, alerts, and
 - Extend the session contract to bind the selected robot and worksite and return summary metrics from stored sessions.
 - Enforce one open mining session per user transactionally on the server/database. The client lock is presentation only.
 - Persist unlock progress from settled sessions, with server-side validation. A client cannot unlock a robot by editing local state or calling start directly.
+- Build leaderboard rankings from settled, non-reversed RoboCoin ledger awards grouped by member and selected period. Never use current wallet balance as the ranking source.
 - Keep earned XP, RoboCoin, fiat checkout balances, and promotional rewards distinct in storage and presentation.
 - Preserve all pre-existing uncommitted files on both the source checkout and the target worktree; selectively port required files rather than merging the source checkout wholesale.
 
@@ -68,7 +74,7 @@ Remove demo disclosure banners and demo-only badges from the user-facing experie
 
 - This stage targets the isolated Sep 21 preview branch; it does not change or merge `main`.
 - Use only the WRS logo asset from the newer checkout. Keep the Sep 21 app's existing typography, colors, layout, and navigation style except for requested Mining changes.
-- Preserve non-mining deployment history/details where they represent real existing features, but remove fake deployment units and route members to the mining flow from the primary navigation.
+- Preserve non-mining deployment details where they represent real existing features, but replace deployment history in the Mining tabs with the mining leaderboard, remove fake deployment units, and route members to mining from the primary navigation.
 - Do not change real fiat prices or payment behavior when standardizing reward currency labels.
 
 ## Acceptance criteria
@@ -78,10 +84,11 @@ Remove demo disclosure banners and demo-only badges from the user-facing experie
 3. A member can start one session for one unlocked owned robot and selected location; a second robot/location cannot start until the session settles.
 4. Concurrent starts, direct API calls, and client-side tampering cannot create multiple open sessions or bypass robot unlocks.
 5. Completing a full session unlocks the next eligible robot for a later session, and the UI states the requirement for locked robots.
-6. Mining overview metrics reflect stored server records and update after refresh/settlement; missing data is presented as unavailable.
-7. No member-facing route shows demo-data banners, demo-robot labels, fabricated balances, or sample deployment performance.
-8. Reward amounts consistently use RoboCoin/RBC while fiat checkout remains denominated in its actual fiat currency.
-9. The target preview branch retains its existing unrelated local document edits, and the source checkout remains unchanged.
+6. The Mining page has Available, Active, and Leaderboard views; the leaderboard ranks settled RoboCoin awards for the selected period and shows no wallet balances.
+7. Mining overview metrics reflect stored server records and update after refresh/settlement; missing data is presented as unavailable.
+8. No member-facing route shows demo-data banners, demo-robot labels, fabricated balances, or sample deployment performance.
+9. Reward amounts consistently use RoboCoin/RBC while fiat checkout remains denominated in its actual fiat currency.
+10. The target preview branch retains its existing unrelated local document edits, and the source checkout remains unchanged.
 
 ## Risks and decisions for review
 
