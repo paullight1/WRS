@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
+import { useAuth } from '../components/auth/AuthProvider.jsx'
 import { useRobot } from '../components/robot/RobotProvider.jsx'
 import WelcomeModal, { consumeWelcome } from '../components/WelcomeModal.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
 import StateView from '../components/states/StateView.jsx'
 import { ACCENTS, Badge, Button, Card, Icon, IconTile, SectionTitle } from '../components/ui.jsx'
+import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
+import { browserMiningClient } from '../infrastructure/mining/browserMiningClient.ts'
+import { browserRobotClient } from '../infrastructure/robot/browserRobotClient.ts'
+import { atomicUnitsToDecimal } from '../domain/mining/metrics.ts'
+import { runtimeConfig } from '../lib/runtimeConfig.js'
 import { packageDefinition } from '../domain/robot/packages.ts'
 
 const CATALOGUE = [
@@ -27,6 +33,43 @@ const DEFAULT_IDS = ['training', 'data', 'deploy', 'market', 'wallet', 'rewards'
 const MAX_SHORTCUTS = 12
 const STORE_KEY = 'wrs.shortcuts'
 
+function greeting(displayName, date = new Date()) {
+  const hour = date.getHours()
+  const timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
+  return `Good ${timeOfDay}, ${displayName || 'there'}`
+}
+
+function formatXp(value) {
+  return `${value.toLocaleString()} XP`
+}
+
+function formatRbc(balance) {
+  if (balance?.availableAtomic === null || balance?.atomicScale === null) return null
+  try {
+    const amount = atomicUnitsToDecimal(balance.availableAtomic, balance.atomicScale)
+    const [whole, fraction = ''] = amount.split('.')
+    const groupedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    const minimumFraction = fraction.padEnd(2, '0')
+    return `${groupedWhole}${minimumFraction ? `.${minimumFraction}` : ''} RBC`
+  } catch {
+    return null
+  }
+}
+
+function SummaryCard({ title, value, loading, error, empty, icon }) {
+  return (
+    <Card className="min-w-0 p-4">
+      <div className="flex items-center gap-2 text-on-surface-variant">
+        <Icon name={icon} className="text-tertiary" />
+        <h2 className="truncate text-label-md">{title}</h2>
+      </div>
+      <p className="mt-3 font-data text-headline-md text-on-surface" aria-live="polite">
+        {loading ? 'Loading…' : value ?? (empty ? 'No verified balance' : error ? 'Balance unavailable' : 'Balance unavailable')}
+      </p>
+    </Card>
+  )
+}
+
 const loadShortcuts = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY))
@@ -40,10 +83,57 @@ const loadShortcuts = () => {
 }
 
 export default function Home() {
+  const auth = useAuth()
   const robotState = useRobot()
   const [welcome, setWelcome] = useState(false)
   const [ids, setIds] = useState(loadShortcuts)
   const [editing, setEditing] = useState(false)
+  const [summary, setSummary] = useState({ loading: true, name: null, xp: null, rbc: null, xpEmpty: false, xpError: false, rbcError: false })
+
+  useEffect(() => {
+    let active = true
+    const unavailable = { loading: false, name: null, xp: null, rbc: null, xpEmpty: false, xpError: true, rbcError: true }
+    if (runtimeConfig.isDemo || !auth.session?.userId) {
+      setSummary(unavailable)
+      return () => {
+        active = false
+      }
+    }
+
+    const accountRequest = runtimeConfig.services.identity
+      ? browserAccountClient.snapshot()
+      : Promise.reject(new Error('Account service is unavailable.'))
+    const miningRequest = browserMiningClient.snapshot()
+    const passportRequest = robotState.robot?.id && runtimeConfig.services.robots
+      ? browserRobotClient.passport(robotState.robot.id)
+      : Promise.resolve(null)
+
+    Promise.allSettled([accountRequest, miningRequest, passportRequest]).then(([accountResult, miningResult, passportResult]) => {
+      if (!active) return
+      const profile = accountResult.status === 'fulfilled' ? accountResult.value?.profile : null
+      const name = typeof profile?.fullName === 'string' && profile.fullName.trim() ? profile.fullName.trim() : null
+      const mining = miningResult.status === 'fulfilled' && miningResult.value?.authoritative === true
+        ? miningResult.value
+        : null
+      const passport = passportResult.status === 'fulfilled' ? passportResult.value?.passport : null
+      const verifiedXp = passport?.authoritative === true && Number.isSafeInteger(passport.totalXp) && passport.totalXp >= 0
+        ? passport.totalXp
+        : null
+      setSummary({
+        loading: false,
+        name,
+        xp: verifiedXp,
+        rbc: mining ? formatRbc(mining.balance) : null,
+        xpEmpty: Boolean(passport?.authoritative === true && verifiedXp === null),
+        xpError: passportResult.status === 'rejected' || !passport,
+        rbcError: !mining,
+      })
+    })
+
+    return () => {
+      active = false
+    }
+  }, [auth.session?.userId, robotState.robot?.id])
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -65,7 +155,7 @@ export default function Home() {
   const full = ids.length >= MAX_SHORTCUTS
 
   return (
-    <AppShell title="Home" subtitle={robotState.isDemo ? 'Demo workspace' : 'Verified WRS workspace'}>
+    <AppShell title={greeting(summary.name)} brand>
       <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
 
       {robotState.loading ? (
@@ -119,6 +209,29 @@ export default function Home() {
           </Card>
         </section>
       )}
+
+      <section
+        aria-label="Member balances"
+        role={summary.loading ? 'status' : undefined}
+        aria-busy={summary.loading || undefined}
+        className="grid grid-cols-2 gap-3"
+      >
+        <SummaryCard
+          title="XP balance"
+          icon="stars"
+          loading={summary.loading}
+          value={summary.xp === null ? null : formatXp(summary.xp)}
+          empty={summary.xpEmpty}
+          error={summary.xpError}
+        />
+        <SummaryCard
+          title="RoboCoin balance"
+          icon="paid"
+          loading={summary.loading}
+          value={summary.rbc}
+          error={summary.rbcError}
+        />
+      </section>
 
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-4">

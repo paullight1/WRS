@@ -24,7 +24,7 @@ export function UserAvatar({ size = 40, className = '' }) {
   )
 }
 
-export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
+export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu }) {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(() => typeof window !== 'undefined' && window.scrollY > 4)
 
@@ -50,6 +50,10 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
           >
             <Icon name="arrow_back" className="text-on-surface" />
           </button>
+        ) : brand ? (
+          <Link to="/home" className="tap -ml-1 grid shrink-0 place-items-center" aria-label="World Robotic System home">
+            <img src="/wrs-logo-footer.png" alt="World Robotic System" className="h-9 w-[76px] object-contain" />
+          </Link>
         ) : avatar ? (
           <Link to="/profile" className="tap -ml-1 grid shrink-0 place-items-center" aria-label="Your profile">
             <UserAvatar size={36} />
@@ -307,7 +311,7 @@ function DemoDataBanner() {
   )
 }
 
-export default function AppShell({ title, subtitle, back, right, avatar = true, children, wide = false }) {
+export default function AppShell({ title, subtitle, back, right, avatar = true, brand = false, children, wide = false }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
@@ -326,6 +330,7 @@ export default function AppShell({ title, subtitle, back, right, avatar = true, 
           back={back}
           right={right}
           avatar={avatar}
+          brand={brand}
           onMenu={() => setDrawerOpen(true)}
         />
         <main
