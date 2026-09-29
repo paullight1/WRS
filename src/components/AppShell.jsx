@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider.jsx'
 import { Icon } from './ui.jsx'
-import { runtimeConfig } from '../lib/runtimeConfig.js'
-import { demoDataLabel } from '../lib/mockDataPolicy.js'
+import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
 
 /** Retired: the page background is a flat surface now. */
 export function Atmosphere() {
@@ -51,7 +50,11 @@ export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu }) 
             <Icon name="arrow_back" className="text-on-surface" />
           </button>
         ) : brand ? (
-          <Link to="/home" className="tap -ml-1 grid shrink-0 place-items-center" aria-label="World Robotic System home">
+          <Link
+            to="/home"
+            className="tap -ml-1 grid shrink-0 place-items-center"
+            aria-label="World Robotic System home"
+          >
             <img src="/wrs-logo-footer.png" alt="World Robotic System" className="h-9 w-[76px] object-contain" />
           </Link>
         ) : avatar ? (
@@ -176,6 +179,25 @@ export function Drawer({ open, onClose }) {
   const navigate = useNavigate()
   const auth = useAuth()
   const [desktop, setDesktop] = useState(desktopViewport)
+  const [profile, setProfile] = useState(null)
+  const [profileStatus, setProfileStatus] = useState('loading')
+
+  useEffect(() => {
+    let active = true
+    browserAccountClient
+      .snapshot()
+      .then((snapshot) => {
+        if (!active) return
+        setProfile(snapshot?.profile || null)
+        setProfileStatus(snapshot?.profile ? 'ready' : 'unavailable')
+      })
+      .catch(() => {
+        if (active) setProfileStatus('unavailable')
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     queueMicrotask(() => onClose?.())
@@ -206,8 +228,13 @@ export function Drawer({ open, onClose }) {
     navigate('/login', { replace: true })
   }
 
-  const accountTitle = auth.isDemo ? 'Demo account' : 'WRS account'
-  const accountId = auth.session?.userId || 'No verified session'
+  const accountTitle =
+    typeof profile?.fullName === 'string' && profile.fullName.trim()
+      ? profile.fullName.trim()
+      : profileStatus === 'loading'
+        ? 'Loading profile'
+        : 'Account profile unavailable'
+  const accountId = profile?.email || (!auth.isDemo && auth.session?.userId) || 'Open profile details'
   const mobileHidden = !desktop && !open
 
   return (
@@ -291,27 +318,16 @@ export function Drawer({ open, onClose }) {
   )
 }
 
-function DemoDataBanner() {
-  if (!runtimeConfig.isDemo) return null
-  return (
-    <div
-      role="status"
-      aria-label="Demo data"
-      className="mb-4 flex items-start gap-3 rounded-xl border border-[#f7c948]/35 bg-[#f7c948]/10 px-4 py-3 text-left"
-    >
-      <Icon name="science" className="mt-0.5 shrink-0 text-[19px] text-[#f7c948]" />
-      <div>
-        <p className="text-label-md text-on-surface">{demoDataLabel}</p>
-        <p className="mt-0.5 text-body-sm text-on-surface-variant">
-          Balances, payouts, deployments, rewards and any demo-only records are illustrative and are not live account
-          data.
-        </p>
-      </div>
-    </div>
-  )
-}
-
-export default function AppShell({ title, subtitle, back, right, avatar = true, brand = false, children, wide = false }) {
+export default function AppShell({
+  title,
+  subtitle,
+  back,
+  right,
+  avatar = true,
+  brand = false,
+  children,
+  wide = false,
+}) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
@@ -336,7 +352,6 @@ export default function AppShell({ title, subtitle, back, right, avatar = true, 
         <main
           className={`mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`}
         >
-          <DemoDataBanner />
           <div className="space-y-7">{children}</div>
         </main>
       </div>

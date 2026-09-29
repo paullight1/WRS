@@ -18,12 +18,12 @@ export default function MyRobot() {
     )
   }
 
-  if (!robotState.robot) {
+  if (robotState.isDemo || !robotState.robot) {
     return (
       <AppShell title="My Robot">
         <StateView
           kind="locked"
-          title={robotState.isDemo ? 'No demo robot yet' : 'Authoritative robot state is unavailable'}
+          title="Robot details unavailable"
           desc={robotState.error || 'Provision your robot before opening this workspace.'}
           action={<Button to="/onboarding">Open onboarding</Button>}
         />
@@ -52,16 +52,14 @@ export default function MyRobot() {
               size={190}
               interactive
               config={configuration || undefined}
-              label={`${robot.name}, ${robotState.isDemo ? 'demo state' : 'authoritative state'}`}
+              label={`${robot.name}, verified robot`}
             />
           </div>
           <div className="mt-3 text-center">
             <h2 className="font-headline-lg text-headline-lg font-bold text-on-surface">{robot.name}</h2>
             <p className="mt-1 text-label-md text-on-surface-variant">{definition.robotClass}</p>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>
-                {robotState.isDemo ? 'Demo robot' : robot.lifecycle}
-              </Badge>
+              <Badge t="tertiary">{robot.lifecycle}</Badge>
               <Badge t="primary">{definition.name}</Badge>
               <Badge t="outline">ID {robot.id}</Badge>
             </div>

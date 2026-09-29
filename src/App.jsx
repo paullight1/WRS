@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute } from './components/auth/AuthProvider.jsx'
 import { NotifyProvider } from './components/notifications/Notify.jsx'
 import { RobotProvider } from './components/robot/RobotProvider.jsx'
-import { runtimeConfig } from './lib/runtimeConfig.js'
 import Landing from './screens/Landing.jsx'
 import Splash from './screens/Splash.jsx'
 import Login from './screens/Login.jsx'
@@ -24,21 +23,12 @@ import TrainingModule from './screens/TrainingModule.jsx'
 import DataContribution from './screens/DataContribution.jsx'
 import DataTask from './screens/DataTask.jsx'
 import DataQuality from './screens/DataQuality.jsx'
-import DeploymentDetails from './screens/DeploymentDetails.jsx'
-import ActiveDeployment from './screens/ActiveDeployment.jsx'
 import DeploymentDetailsProduction from './screens/DeploymentDetailsProduction.jsx'
 import ActiveDeploymentProduction from './screens/ActiveDeploymentProduction.jsx'
 import MiningProduction from './screens/MiningProduction.jsx'
 import Wallet from './screens/Wallet.jsx'
 import Transactions from './screens/Transactions.jsx'
 import DataRevenue from './screens/DataRevenue.jsx'
-import Rewards from './screens/Rewards.jsx'
-import EventCode from './screens/EventCode.jsx'
-import Boosts from './screens/Boosts.jsx'
-import Marketplace from './screens/Marketplace.jsx'
-import Academy from './screens/Academy.jsx'
-import Community from './screens/Community.jsx'
-import Referrals from './screens/Referrals.jsx'
 import RewardsProduction from './screens/RewardsProduction.jsx'
 import EventCodeProduction from './screens/EventCodeProduction.jsx'
 import BoostsProduction from './screens/BoostsProduction.jsx'
@@ -49,10 +39,8 @@ import ReferralsProduction from './screens/ReferralsProduction.jsx'
 import Notifications from './screens/Notifications.jsx'
 import More from './screens/More.jsx'
 import ProfileProduction from './screens/ProfileProduction.jsx'
-import Settings from './screens/Settings.jsx'
 import SettingsProduction from './screens/SettingsProduction.jsx'
 import SecuritySettings from './screens/SecuritySettings.jsx'
-import Support from './screens/Support.jsx'
 import SupportProduction from './screens/SupportProduction.jsx'
 import AccountDeletionRecoveryProduction from './screens/AccountDeletionRecoveryProduction.jsx'
 import AdminOperationsProduction from './screens/AdminOperationsProduction.jsx'
@@ -63,18 +51,18 @@ const kyc = (element) => <ProtectedRoute policy="kyc">{element}</ProtectedRoute>
 const operations = (element) => <ProtectedRoute policy="operations">{element}</ProtectedRoute>
 const accountRecovery = (element) => <ProtectedRoute policy="account-recovery">{element}</ProtectedRoute>
 
-const DeploymentDetailsScreen = runtimeConfig.isDemo ? DeploymentDetails : DeploymentDetailsProduction
-const ActiveDeploymentScreen = runtimeConfig.isDemo ? ActiveDeployment : ActiveDeploymentProduction
-const RewardsScreen = runtimeConfig.isDemo ? Rewards : RewardsProduction
-const EventCodeScreen = runtimeConfig.isDemo ? EventCode : EventCodeProduction
-const BoostsScreen = runtimeConfig.isDemo ? Boosts : BoostsProduction
-const MarketplaceScreen = runtimeConfig.isDemo ? Marketplace : MarketplaceProduction
-const AcademyScreen = runtimeConfig.isDemo ? Academy : AcademyProduction
-const CommunityScreen = runtimeConfig.isDemo ? Community : CommunityProduction
-const ReferralsScreen = runtimeConfig.isDemo ? Referrals : ReferralsProduction
+const DeploymentDetailsScreen = DeploymentDetailsProduction
+const ActiveDeploymentScreen = ActiveDeploymentProduction
+const RewardsScreen = RewardsProduction
+const EventCodeScreen = EventCodeProduction
+const BoostsScreen = BoostsProduction
+const MarketplaceScreen = MarketplaceProduction
+const AcademyScreen = AcademyProduction
+const CommunityScreen = CommunityProduction
+const ReferralsScreen = ReferralsProduction
 const ProfileScreen = ProfileProduction
-const SettingsScreen = runtimeConfig.isDemo ? Settings : SettingsProduction
-const SupportScreen = runtimeConfig.isDemo ? Support : SupportProduction
+const SettingsScreen = SettingsProduction
+const SupportScreen = SupportProduction
 
 export default function App() {
   return (

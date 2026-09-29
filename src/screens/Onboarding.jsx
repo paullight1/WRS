@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { armWelcome } from '../components/WelcomeModal.jsx'
-import { Atmosphere } from '../components/AppShell.jsx'
+import AppShell, { Atmosphere } from '../components/AppShell.jsx'
 import { useRobot } from '../components/robot/RobotProvider.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
 import RobotFace from '../components/RobotFace.jsx'
 import { Button, Card, Icon, Progress } from '../components/ui.jsx'
+import StateView from '../components/states/StateView.jsx'
 import { defaultParts } from '../data/robotParts.js'
 import { personalities, packages } from '../data/mock.js'
 
@@ -56,6 +57,19 @@ export default function Onboarding() {
     }),
     [name, packageSlug, palette, personality],
   )
+
+  if (robotState.isDemo) {
+    return (
+      <AppShell title="Robot setup unavailable" avatar={false}>
+        <StateView
+          kind="locked"
+          title="Robot provisioning unavailable"
+          desc="Robot provisioning requires a verified account and a connected robot service."
+          action={<Button to="/home">Return home</Button>}
+        />
+      </AppShell>
+    )
+  }
 
   const persistStep = async (nextStep) => {
     await robotState.saveOnboardingDraft({
@@ -135,7 +149,7 @@ export default function Onboarding() {
               colors: { emissive: eye, accent: eye },
             }}
             interactive
-            label={robotState.isDemo ? 'Demo robot preview' : 'Your robot preview'}
+            label="Your robot preview"
           />
         </div>
 
@@ -143,9 +157,8 @@ export default function Onboarding() {
           <div className="text-center">
             <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Set up your robot</h1>
             <p className="mt-3 text-body-md leading-relaxed text-on-surface-variant">
-              {robotState.isDemo
-                ? 'This demo stores setup state on this device only. No paid entitlement or live robot is created.'
-                : 'Your setup is saved as you progress. Robot provisioning occurs only after the server verifies your active package entitlement.'}
+              Your setup is saved as you progress. Robot provisioning occurs only after the server verifies your active
+              package entitlement.
             </p>
           </div>
         )}
@@ -265,7 +278,7 @@ export default function Onboarding() {
         )}
 
         <Button full size="lg" className="mt-8" onClick={next} loading={saving} trailingIcon="arrow_forward">
-          {step === steps.length - 1 ? (robotState.isDemo ? 'Create Demo Robot' : 'Provision Robot') : 'Continue'}
+          {step === steps.length - 1 ? 'Provision Robot' : 'Continue'}
         </Button>
       </div>
     </div>

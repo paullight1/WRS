@@ -1,28 +1,11 @@
 import { useEffect, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
 import StateView, { LoadingView } from '../components/states/StateView.jsx'
-import { Badge, Card, DataRow, Disclosure, SectionTitle } from '../components/ui.jsx'
+import { Card, DataRow, Disclosure, SectionTitle } from '../components/ui.jsx'
 import { browserDataClient } from '../infrastructure/data/browserDataClient.ts'
-import { runtimeConfig } from '../lib/runtimeConfig.js'
 
 function money(amountMinor, currency) {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(amountMinor || 0) / 100)
-}
-
-function DemoDataRevenue() {
-  return (
-    <AppShell title="AI Data Revenue demo" back avatar={false}>
-      <Disclosure icon="science">
-        Demo only. No commercial dataset license, customer payment, contributor allocation or wallet credit is
-        represented by this screen.
-      </Disclosure>
-      <Card className="p-card-padding text-center">
-        <Badge t="outline">Illustrative</Badge>
-        <p className="mt-4 text-label-md text-outline">Sample contributor revenue</p>
-        <p className="tnum mt-2 font-headline-lg text-headline-lg text-on-surface">$29.70</p>
-      </Card>
-    </AppShell>
-  )
 }
 
 function LiveDataRevenue() {
@@ -124,5 +107,5 @@ function LiveDataRevenue() {
 }
 
 export default function DataRevenue() {
-  return runtimeConfig.isDemo ? <DemoDataRevenue /> : <LiveDataRevenue />
+  return <LiveDataRevenue />
 }

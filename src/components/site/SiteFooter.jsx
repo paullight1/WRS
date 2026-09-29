@@ -36,9 +36,7 @@ export default function SiteFooter() {
 
         <div className="mt-8 flex flex-col gap-1.5 border-t border-white/[.07] pt-5 sm:mt-12 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-7">
           <p className="text-label-sm text-outline">© {new Date().getFullYear()} World Robotic System.</p>
-          <p className="text-label-sm text-outline">
-            Prototype — figures are illustrative mock data, not performance claims.
-          </p>
+          <p className="text-label-sm text-outline">© World Robotic System</p>
         </div>
       </div>
     </footer>

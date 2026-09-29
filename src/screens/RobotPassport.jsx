@@ -46,6 +46,18 @@ export default function RobotPassport() {
     )
   }
 
+  if (robotState.isDemo) {
+    return (
+      <AppShell title="Robot Passport" back avatar={false}>
+        <StateView
+          kind="locked"
+          title="Robot passport unavailable"
+          desc="A verified robot account is required to view a passport."
+        />
+      </AppShell>
+    )
+  }
+
   if (!passport) {
     return (
       <AppShell title="Robot Passport" back avatar={false}>
@@ -93,14 +105,14 @@ export default function RobotPassport() {
   ]
 
   return (
-    <AppShell title={passport.authoritative ? 'Robot Passport' : 'Demo Robot Passport'} back avatar={false}>
+    <AppShell title="Robot Passport" back avatar={false}>
       <section>
         <Card className="relative overflow-hidden p-card-padding">
           <div className="flex items-center gap-4">
             <Robot3D
               size={84}
               config={robotState.configuration || undefined}
-              label={`${passport.name}, ${passport.authoritative ? 'verified robot' : 'demo robot'}`}
+              label={`${passport.name}, verified robot`}
             />
             <div className="min-w-0 flex-1">
               <p className="text-label-sm text-outline">World Robotic System</p>
@@ -110,7 +122,7 @@ export default function RobotPassport() {
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
             <Badge t={passport.authoritative ? 'tertiary' : 'outline'}>
-              {passport.authoritative ? 'Authoritative passport' : 'Demo only'}
+              {passport.authoritative ? 'Verified passport' : 'Passport unavailable'}
             </Badge>
             <Badge t="primary">{passport.robotClass}</Badge>
             <Badge t="secondary">Level {passport.level}</Badge>
@@ -118,7 +130,7 @@ export default function RobotPassport() {
           <p className="mt-4 text-label-sm leading-relaxed text-outline">
             {passport.authoritative
               ? 'This privacy-safe passport is generated from server-owned robot, skill, certification and history records. Owner PII and financial data are intentionally excluded.'
-              : 'This is a local demo projection. It is not a credential, certification, proof of ownership or production passport.'}
+              : 'A verified passport could not be issued for this robot.'}
           </p>
         </Card>
       </section>
@@ -207,7 +219,7 @@ export default function RobotPassport() {
         disabled={!passport.authoritative}
         onClick={exportPdf}
       >
-        {passport.authoritative ? 'Download Verified Passport PDF' : 'PDF unavailable for demo passport'}
+        {passport.authoritative ? 'Download Verified Passport PDF' : 'Passport PDF unavailable'}
       </Button>
     </AppShell>
   )

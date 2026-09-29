@@ -64,7 +64,9 @@ function SummaryCard({ title, value, loading, error, empty, icon }) {
         <h2 className="truncate text-label-md">{title}</h2>
       </div>
       <p className="mt-3 font-data text-headline-md text-on-surface" aria-live="polite">
-        {loading ? 'Loading…' : value ?? (empty ? 'No verified balance' : error ? 'Balance unavailable' : 'Balance unavailable')}
+        {loading
+          ? 'Loading…'
+          : (value ?? (empty ? 'No verified balance' : error ? 'Balance unavailable' : 'Balance unavailable'))}
       </p>
     </Card>
   )
@@ -88,13 +90,31 @@ export default function Home() {
   const [welcome, setWelcome] = useState(false)
   const [ids, setIds] = useState(loadShortcuts)
   const [editing, setEditing] = useState(false)
-  const [summary, setSummary] = useState({ loading: true, name: null, xp: null, rbc: null, xpEmpty: false, xpError: false, rbcError: false })
+  const [summary, setSummary] = useState({
+    loading: true,
+    name: null,
+    xp: null,
+    rbc: null,
+    xpEmpty: false,
+    xpError: false,
+    rbcError: false,
+  })
 
   useEffect(() => {
     let active = true
-    const unavailable = { loading: false, name: null, xp: null, rbc: null, xpEmpty: false, xpError: true, rbcError: true }
+    const unavailable = {
+      loading: false,
+      name: null,
+      xp: null,
+      rbc: null,
+      xpEmpty: false,
+      xpError: true,
+      rbcError: true,
+    }
     if (runtimeConfig.isDemo || !auth.session?.userId) {
-      setSummary(unavailable)
+      queueMicrotask(() => {
+        if (active) setSummary(unavailable)
+      })
       return () => {
         active = false
       }
@@ -104,31 +124,34 @@ export default function Home() {
       ? browserAccountClient.snapshot()
       : Promise.reject(new Error('Account service is unavailable.'))
     const miningRequest = browserMiningClient.snapshot()
-    const passportRequest = robotState.robot?.id && runtimeConfig.services.robots
-      ? browserRobotClient.passport(robotState.robot.id)
-      : Promise.resolve(null)
+    const passportRequest =
+      robotState.robot?.id && runtimeConfig.services.robots
+        ? browserRobotClient.passport(robotState.robot.id)
+        : Promise.resolve(null)
 
-    Promise.allSettled([accountRequest, miningRequest, passportRequest]).then(([accountResult, miningResult, passportResult]) => {
-      if (!active) return
-      const profile = accountResult.status === 'fulfilled' ? accountResult.value?.profile : null
-      const name = typeof profile?.fullName === 'string' && profile.fullName.trim() ? profile.fullName.trim() : null
-      const mining = miningResult.status === 'fulfilled' && miningResult.value?.authoritative === true
-        ? miningResult.value
-        : null
-      const passport = passportResult.status === 'fulfilled' ? passportResult.value?.passport : null
-      const verifiedXp = passport?.authoritative === true && Number.isSafeInteger(passport.totalXp) && passport.totalXp >= 0
-        ? passport.totalXp
-        : null
-      setSummary({
-        loading: false,
-        name,
-        xp: verifiedXp,
-        rbc: mining ? formatRbc(mining.balance) : null,
-        xpEmpty: Boolean(passport?.authoritative === true && verifiedXp === null),
-        xpError: passportResult.status === 'rejected' || !passport,
-        rbcError: !mining,
-      })
-    })
+    Promise.allSettled([accountRequest, miningRequest, passportRequest]).then(
+      ([accountResult, miningResult, passportResult]) => {
+        if (!active) return
+        const profile = accountResult.status === 'fulfilled' ? accountResult.value?.profile : null
+        const name = typeof profile?.fullName === 'string' && profile.fullName.trim() ? profile.fullName.trim() : null
+        const mining =
+          miningResult.status === 'fulfilled' && miningResult.value?.authoritative === true ? miningResult.value : null
+        const passport = passportResult.status === 'fulfilled' ? passportResult.value?.passport : null
+        const verifiedXp =
+          passport?.authoritative === true && Number.isSafeInteger(passport.totalXp) && passport.totalXp >= 0
+            ? passport.totalXp
+            : null
+        setSummary({
+          loading: false,
+          name,
+          xp: verifiedXp,
+          rbc: mining ? formatRbc(mining.balance) : null,
+          xpEmpty: Boolean(passport?.authoritative === true && verifiedXp === null),
+          xpError: passportResult.status === 'rejected' || !passport,
+          rbcError: !mining,
+        })
+      },
+    )
 
     return () => {
       active = false
@@ -160,11 +183,11 @@ export default function Home() {
 
       {robotState.loading ? (
         <StateView kind="loading" title="Loading your robot" desc="Reading the latest confirmed robot state." />
-      ) : !robotState.robot ? (
+      ) : robotState.isDemo || !robotState.robot ? (
         <StateView
           kind="locked"
-          title={robotState.isDemo ? 'Create your demo robot' : 'Robot provisioning is not complete'}
-          desc={robotState.error || 'Complete onboarding before robot identity and configuration can appear here.'}
+          title="Robot is not connected"
+          desc={robotState.error || 'Connect a verified robot account before viewing robot identity and configuration.'}
           action={<Button to="/onboarding">Open onboarding</Button>}
         />
       ) : (
@@ -175,7 +198,7 @@ export default function Home() {
                 size={96}
                 config={robotState.configuration || undefined}
                 className="shrink-0"
-                label={`${robotState.robot.name}, ${robotState.isDemo ? 'demo robot' : 'your robot'}`}
+                label={`${robotState.robot.name}, your robot`}
               />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -187,9 +210,7 @@ export default function Home() {
                       {packageDefinition(robotState.robot.packageSlug).robotClass} · {robotState.robot.packageSlug}
                     </p>
                   </div>
-                  <Badge t={robotState.isDemo ? 'outline' : 'tertiary'}>
-                    {robotState.isDemo ? 'Demo state' : robotState.robot.lifecycle}
-                  </Badge>
+                  <Badge t="tertiary">{robotState.robot.lifecycle}</Badge>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Button to="/robot" size="sm">
@@ -202,9 +223,7 @@ export default function Home() {
               </div>
             </div>
             <p className="mt-4 text-label-sm text-outline">
-              {robotState.isDemo
-                ? 'Robot state is stored locally for demonstration only.'
-                : 'Robot identity and configuration shown here come from the authoritative robot service. Training, wallet, deployment and reward metrics remain owned by their respective services.'}
+              Robot identity and configuration come from your verified robot account.
             </p>
           </Card>
         </section>
@@ -295,21 +314,6 @@ export default function Home() {
             </div>
           </Card>
         )}
-      </section>
-
-      <section>
-        <Card className="p-4">
-          <div className="flex items-start gap-3">
-            <Icon name="verified_user" className="mt-0.5 text-tertiary" />
-            <div>
-              <p className="text-title text-on-surface">Authoritative boundaries</p>
-              <p className="mt-1 text-body-sm text-on-surface-variant">
-                WRS no longer mixes demo wallet balances, fabricated XP, deployment performance or training progress
-                into the production home screen. Open each service area to see only the state that service can verify.
-              </p>
-            </div>
-          </div>
-        </Card>
       </section>
     </AppShell>
   )

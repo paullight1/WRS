@@ -1,46 +1,8 @@
 import { useEffect, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
 import StateView, { LoadingView } from '../components/states/StateView.jsx'
-import { Button, ChipBar, Icon, List, SectionTitle } from '../components/ui.jsx'
-import { transactions } from '../data/mock.js'
+import { Icon, List, SectionTitle } from '../components/ui.jsx'
 import { browserFinanceClient } from '../infrastructure/finance/browserFinanceClient.ts'
-import { runtimeConfig } from '../lib/runtimeConfig.js'
-
-const demoFilters = ['All', 'Confirmed', 'Pending', 'Completed', 'Promotional']
-
-function DemoTransactions() {
-  const [filter, setFilter] = useState('All')
-  const list = transactions.filter((item) => filter === 'All' || item.state === filter)
-  return (
-    <AppShell title="Transactions demo" back avatar={false}>
-      <ChipBar items={demoFilters} value={filter} onChange={setFilter} visible={3} />
-      {list.length ? (
-        <section>
-          <SectionTitle action={`${list.length} illustrative entries`}>Sample statement</SectionTitle>
-          <List>
-            {list.map((item, index) => (
-              <div key={index} className="flex items-center gap-3.5 px-4 py-3">
-                <Icon name={item.positive ? 'south_west' : 'north_east'} className="text-on-surface-variant" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-title text-on-surface">{item.label}</p>
-                  <p className="text-label-sm text-outline">Demo · {item.state}</p>
-                </div>
-                <span className="tnum text-title text-on-surface">{item.amount}</span>
-              </div>
-            ))}
-          </List>
-        </section>
-      ) : (
-        <StateView
-          kind="noResults"
-          title={`No ${filter.toLowerCase()} demo transactions`}
-          desc="These filters operate on illustrative data only."
-          action={<Button onClick={() => setFilter('All')}>Show all</Button>}
-        />
-      )}
-    </AppShell>
-  )
-}
 
 function LiveTransactions() {
   const [items, setItems] = useState([])
@@ -124,5 +86,5 @@ function LiveTransactions() {
 }
 
 export default function Transactions() {
-  return runtimeConfig.isDemo ? <DemoTransactions /> : <LiveTransactions />
+  return <LiveTransactions />
 }
