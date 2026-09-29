@@ -19,6 +19,8 @@ Bring the recent server-authoritative XP and RoboCoin mining experience into the
 7. Make mining overview metrics functional and server-derived. Do not retain illustrative active-unit counts, hours, or performance percentages.
 8. Selecting another robot while one is mining must explain that it is locked and what progress unlocks it. Completing a full mining cycle unlocks the next eligible owned robot for a later cycle; an in-progress session cannot switch robots or locations.
 9. Replace the Mining page's History tab with a leaderboard of verified RoboCoin mining rewards.
+10. Remove Marketplace demo/preview notices, fake counts, filter expansion count, and all sample prices and ratings. Real catalogue entries remain non-purchasable and show **Available soon** without a price until commerce is ready.
+11. Make More/account and Wallet pages use the signed-in member's real profile and ledger-backed values. Remove demo account details and demo-only wallet disclosures.
 
 ## Member experience
 
@@ -39,6 +41,14 @@ The current session cannot change robot or location after it starts. The worksit
 ### Leaderboard
 
 Replace the deployment-history tab with a mining leaderboard. Rank members by settled RoboCoin earned in the selected period, with a weekly view as the default and an all-time view available. Show earned amounts for that period, not wallet balances. Use only server-confirmed ledger awards; exclude pending, reversed, and estimated mining amounts. Identify members by public display name, or a generated member handle when no public name is available. Return an explicit empty state when there are no qualifying entries; never fall back to illustrative deployment history.
+
+### Marketplace
+
+Remove the “Marketplace demo” title/subtitle, read-only commerce preview card, Plan 8 implementation warning, demo item count, demo ratings, sample prices, and the “More 4” filter expansion control. Render only entries returned by the real catalogue service. Each real entry remains unavailable for purchase or install until the server-backed commerce flow is ready; display **Available soon**, and omit price. Tapping an entry must not open a fake checkout or imply a purchase can be completed. If the real catalogue service has no entries or is unavailable, show a neutral empty/unavailable state rather than static sample products.
+
+### Member account and wallet
+
+The More/account panel displays the authenticated member's real profile name and account identity from the account service, with loading and unavailable states. It must never substitute `Demo account` or `demo-user`. The Wallet page removes demo-data and illustrative-action banners; balances and history come only from the authenticated ledger-backed wallet. A confirmed zero is shown as zero, while missing or failed data is shown as unavailable. Wallet actions only appear enabled when their real authorization and API flow are active.
 
 ### Functional overview metrics
 
@@ -63,6 +73,8 @@ The cleanup covers visible member and operator copy, labels, badges, alerts, and
 - Enforce one open mining session per user transactionally on the server/database. The client lock is presentation only.
 - Persist unlock progress from settled sessions, with server-side validation. A client cannot unlock a robot by editing local state or calling start directly.
 - Build leaderboard rankings from settled, non-reversed RoboCoin ledger awards grouped by member and selected period. Never use current wallet balance as the ranking source.
+- Read Marketplace entries from the server catalogue. Until purchase/install contracts are active, expose no price or purchasable action and return an **Available soon** state. Do not ship fixture products through a production member route.
+- Read the More/account identity from the authenticated account profile and Wallet values from the user's ledger. Do not use local mock profile or balance data as a production fallback.
 - Keep earned XP, RoboCoin, fiat checkout balances, and promotional rewards distinct in storage and presentation.
 - Preserve all pre-existing uncommitted files on both the source checkout and the target worktree; selectively port required files rather than merging the source checkout wholesale.
 
@@ -75,6 +87,7 @@ Remove demo disclosure banners and demo-only badges from the user-facing experie
 - This stage targets the isolated Sep 21 preview branch; it does not change or merge `main`.
 - Use only the WRS logo asset from the newer checkout. Keep the Sep 21 app's existing typography, colors, layout, and navigation style except for requested Mining changes.
 - Preserve non-mining deployment details where they represent real existing features, but replace deployment history in the Mining tabs with the mining leaderboard, remove fake deployment units, and route members to mining from the primary navigation.
+- Preserve the Marketplace route, but render only real catalogue results and disable purchase/install until the real server flow is available. No static demo catalog is relabeled as live.
 - Do not change real fiat prices or payment behavior when standardizing reward currency labels.
 
 ## Acceptance criteria
@@ -88,11 +101,14 @@ Remove demo disclosure banners and demo-only badges from the user-facing experie
 7. Mining overview metrics reflect stored server records and update after refresh/settlement; missing data is presented as unavailable.
 8. No member-facing route shows demo-data banners, demo-robot labels, fabricated balances, or sample deployment performance.
 9. Reward amounts consistently use RoboCoin/RBC while fiat checkout remains denominated in its actual fiat currency.
-10. The target preview branch retains its existing unrelated local document edits, and the source checkout remains unchanged.
+10. Marketplace contains no sample product names, demo ratings, demo item total, sample prices, or fake checkout; real entries show **Available soon** without a price.
+11. More/account and Wallet use authenticated profile and ledger-backed values, with truthful loading/empty/unavailable states.
+12. The target preview branch retains its existing unrelated local document edits, and the source checkout remains unchanged.
 
 ## Risks and decisions for review
 
 - The source checkout has substantial uncommitted mining changes. Porting them requires a reviewed, selective integration because they are not a clean commit to cherry-pick.
 - The current mining schema already serializes user session starts and prevents duplicate open sessions for a robot, but it selects a robot server-side and does not yet implement user-selected worksite binding or sequential robot unlocks. Those require backend/API and likely migration work.
+- Marketplace commerce is currently preview-only on this base. The real server catalogue and purchase/install readiness must be verified before listing products. If no genuine catalogue rows exist, an empty state is the truthful production behavior.
 - “Average performance” is defined here as time-weighted average RoboCoin mining rate, which is measurable from mining records. If a separate verified robot-performance signal is intended, it needs a source and contract.
 - The one-full-cycle unlock rule is the proposed default. Progression remains server-authoritative; changes to its threshold can be made through a reviewed rule if product policy later requires a different threshold.
