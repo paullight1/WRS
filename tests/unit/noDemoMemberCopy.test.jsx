@@ -6,7 +6,7 @@ const source = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
 describe('production member routes do not select mock experiences', () => {
   it('does not render a shared demo data notice or demo account identity', () => {
     const shell = source('../../src/components/AppShell.jsx')
-    expect(shell).not.toMatch(/DemoDataBanner|Demo account|demo-user|illustrative only/i)
+    expect(shell).not.toMatch(/DemoDataBanner|Demo account|demo-user|illustrative only|auth\.isDemo\s*\?\s*['"]DE/i)
   })
 
   it('does not select demo content for member reward, marketplace, profile, or settings routes', () => {

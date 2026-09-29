@@ -10,15 +10,13 @@ export function Atmosphere() {
 }
 
 export function UserAvatar({ size = 40, className = '' }) {
-  const auth = useAuth()
-  const label = auth.isDemo ? 'DE' : 'WR'
   return (
     <span
       className={`grid shrink-0 place-items-center rounded-full bg-primary-container/35 text-label-md text-white ${className}`}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.34) }}
       aria-hidden="true"
     >
-      {label}
+      WR
     </span>
   )
 }
