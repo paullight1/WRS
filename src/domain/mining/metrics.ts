@@ -6,7 +6,7 @@ export interface MiningMetricSession {
 }
 
 function decimal(value: string, scale: number) {
-  if (!/^-?\d+$/.test(value) || !Number.isInteger(scale) || scale < 0 || scale > 12) {
+  if (!/^-?\d+$/.test(value) || !Number.isInteger(scale) || scale < 0 || scale > 18) {
     throw new TypeError('Invalid atomic amount or scale.')
   }
   const negative = value.startsWith('-')
@@ -20,6 +20,15 @@ function decimal(value: string, scale: number) {
 
 export function atomicUnitsToDecimal(value: string, scale: number): string {
   return decimal(value, scale)
+}
+
+export function atomicRateToDecimal(value: string, scale: number): string {
+  const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(value)
+  if (!match || !Number.isInteger(scale) || scale < 0 || scale > 12) {
+    throw new TypeError('Invalid atomic rate or scale.')
+  }
+  const [, sign, whole, fraction = ''] = match
+  return atomicUnitsToDecimal(`${sign}${whole}${fraction}`, scale + fraction.length)
 }
 
 export function summarizeMiningSessions(sessions: MiningMetricSession[], now: number) {

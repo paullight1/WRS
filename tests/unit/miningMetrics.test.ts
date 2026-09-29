@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { atomicUnitsToDecimal, summarizeMiningSessions } from '../../src/domain/mining/metrics'
+import { atomicRateToDecimal, atomicUnitsToDecimal, summarizeMiningSessions } from '../../src/domain/mining/metrics'
 
 describe('mining metrics', () => {
   it('converts atomic units without floating point rounding', () => {
     expect(atomicUnitsToDecimal('900719925474099312345', 3)).toBe('900719925474099312.345')
     expect(atomicUnitsToDecimal('7', 0)).toBe('7')
     expect(atomicUnitsToDecimal('0', 2)).toBe('0.00')
+    expect(atomicRateToDecimal('250', 2)).toBe('2.50')
+    expect(atomicRateToDecimal('250.123456', 2)).toBe('2.50123456')
   })
 
   it('counts only an active cycle and weights the rate by persisted mining time', () => {

@@ -24,12 +24,11 @@ import TrainingModule from './screens/TrainingModule.jsx'
 import DataContribution from './screens/DataContribution.jsx'
 import DataTask from './screens/DataTask.jsx'
 import DataQuality from './screens/DataQuality.jsx'
-import Deploy from './screens/Deploy.jsx'
 import DeploymentDetails from './screens/DeploymentDetails.jsx'
 import ActiveDeployment from './screens/ActiveDeployment.jsx'
-import DeployProduction from './screens/DeployProduction.jsx'
 import DeploymentDetailsProduction from './screens/DeploymentDetailsProduction.jsx'
 import ActiveDeploymentProduction from './screens/ActiveDeploymentProduction.jsx'
+import MiningProduction from './screens/MiningProduction.jsx'
 import Wallet from './screens/Wallet.jsx'
 import Transactions from './screens/Transactions.jsx'
 import DataRevenue from './screens/DataRevenue.jsx'
@@ -65,7 +64,6 @@ const kyc = (element) => <ProtectedRoute policy="kyc">{element}</ProtectedRoute>
 const operations = (element) => <ProtectedRoute policy="operations">{element}</ProtectedRoute>
 const accountRecovery = (element) => <ProtectedRoute policy="account-recovery">{element}</ProtectedRoute>
 
-const DeployScreen = runtimeConfig.isDemo ? Deploy : DeployProduction
 const DeploymentDetailsScreen = runtimeConfig.isDemo ? DeploymentDetails : DeploymentDetailsProduction
 const ActiveDeploymentScreen = runtimeConfig.isDemo ? ActiveDeployment : ActiveDeploymentProduction
 const RewardsScreen = runtimeConfig.isDemo ? Rewards : RewardsProduction
@@ -112,7 +110,7 @@ export default function App() {
             <Route path="/data/quality" element={verified(<DataQuality />)} />
             <Route path="/data/:slug" element={verified(<DataTask />)} />
 
-            <Route path="/deploy" element={verified(<DeployScreen />)} />
+            <Route path="/deploy" element={verified(<MiningProduction />)} />
             <Route path="/deploy/active" element={verified(<ActiveDeploymentScreen />)} />
             <Route path="/deploy/active/:id" element={verified(<ActiveDeploymentScreen />)} />
             <Route path="/deploy/:name" element={verified(<DeploymentDetailsScreen />)} />

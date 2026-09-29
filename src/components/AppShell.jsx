@@ -89,7 +89,7 @@ export function TopBar({ title, back, subtitle, right, avatar, onMenu }) {
 const bottomNav = [
   { to: '/home', icon: 'home', label: 'Home' },
   { to: '/robot', icon: 'smart_toy', label: 'Robot' },
-  { to: '/deploy', icon: 'rocket_launch', label: 'Deploy' },
+  { to: '/deploy', icon: 'paid', label: 'Mining' },
   { to: '/marketplace', icon: 'storefront', label: 'Market' },
   { to: '/more', icon: 'more_horiz', label: 'More' },
 ]
@@ -139,7 +139,7 @@ const drawerGroups = [
       { to: '/robot', icon: 'smart_toy', label: 'My Robot' },
       { to: '/training', icon: 'model_training', label: 'Train Robot' },
       { to: '/data', icon: 'dataset', label: 'Add Data' },
-      { to: '/deploy', icon: 'rocket_launch', label: 'Deployment' },
+      { to: '/deploy', icon: 'paid', label: 'Mining' },
     ],
   },
   {

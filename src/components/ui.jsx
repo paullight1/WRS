@@ -108,6 +108,19 @@ export function Icon({ name, className = '', fill = false, size }) {
   )
 }
 
+export function CoinMark({ size = 24, className = '' }) {
+  return (
+    <span
+      role="img"
+      aria-label="RoboCoin"
+      className={`grid shrink-0 place-items-center rounded-full border border-[#f7c948]/45 bg-[#f7c948]/15 text-[#f7c948] ${className}`}
+      style={{ width: size, height: size }}
+    >
+      <Icon name="paid" fill size={Math.round(size * 0.64)} />
+    </span>
+  )
+}
+
 /* -------------------------------------------------------------- icon chip */
 /** Flat colour chip. `to` is kept for call-site compatibility (border only). */
 export function GradIcon({ icon, from, to, size = 44, radius = 12, className = '', fill = true }) {
