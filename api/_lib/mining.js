@@ -32,7 +32,10 @@ function miningSnapshotShape(data) {
     data.authoritative !== true ||
     !data.eligibility ||
     typeof data.rbcBalanceAtomic !== 'string' ||
-    !(data.atomicScale === null || (Number.isInteger(data.atomicScale) && data.atomicScale >= 0 && data.atomicScale <= 12)) ||
+    !(
+      data.atomicScale === null ||
+      (Number.isInteger(data.atomicScale) && data.atomicScale >= 0 && data.atomicScale <= 12)
+    ) ||
     !Array.isArray(data.robots) ||
     !Array.isArray(data.worksites)
   ) {
@@ -49,11 +52,48 @@ export async function miningSnapshot(userId) {
     // Keep the authoritative due session visible so the member can retry settlement.
   }
   try {
-    const { data } = await serviceRpc('wrs_mining_snapshot', { p_user_id: userId })
-    return miningSnapshotShape(data)
+    const [{ data }, { data: summary }] = await Promise.all([
+      serviceRpc('wrs_mining_snapshot', { p_user_id: userId }),
+      serviceRpc('wrs_mining_summary', { p_user_id: userId }),
+    ])
+    const snapshot = miningSnapshotShape(data)
+    const milliseconds = Number(summary?.stats?.miningMilliseconds)
+    const activeRobots = Number(summary?.stats?.activeRobots)
+    const averageRate = summary?.stats?.averageRateAtomicPerHour
+    const summaryScale = summary?.stats?.atomicScale
+    if (
+      !Number.isSafeInteger(milliseconds) ||
+      milliseconds < 0 ||
+      ![0, 1].includes(activeRobots) ||
+      !(averageRate === null || typeof averageRate === 'string') ||
+      typeof summary?.availableAtomic !== 'string' ||
+      !(summaryScale === null || (Number.isInteger(summaryScale) && summaryScale >= 0 && summaryScale <= 12))
+    ) {
+      throw new HttpError(502, 'Mining metrics could not be verified. Please try again.', 'mining-summary-invalid')
+    }
+    const memberSnapshot = { ...snapshot }
+    delete memberSnapshot.rbcBalanceAtomic
+    return {
+      ...memberSnapshot,
+      recentSessions: Array.isArray(snapshot.recentSessions) ? snapshot.recentSessions : [],
+      stats: {
+        activeRobots,
+        miningMilliseconds: milliseconds,
+        averageRateAtomicPerHour: averageRate,
+        atomicScale: summaryScale ?? snapshot.atomicScale,
+      },
+      balance: {
+        availableAtomic: summary.availableAtomic,
+        atomicScale: snapshot.atomicScale,
+      },
+    }
   } catch (error) {
     if (error?.upstreamData?.code === 'PGRST202') {
-      throw new HttpError(503, 'Mining setup is pending. The 24-hour cycle is not available yet.', 'mining-not-configured')
+      throw new HttpError(
+        503,
+        'Mining setup is pending. The 24-hour cycle is not available yet.',
+        'mining-not-configured',
+      )
     }
     throw error
   }
@@ -65,7 +105,12 @@ export async function startMiningSession(userId, { robotId, worksiteId, idempote
   if (current.session) return current
   if (!current.eligibility.eligible) return current
   const robot = current.robots.find((item) => item.robotId === robotId)
-  if (!robot?.unlocked) throw new HttpError(409, 'This robot is locked until the previous robot completes a full mining cycle.', 'robot-locked')
+  if (!robot?.unlocked)
+    throw new HttpError(
+      409,
+      'This robot is locked until the previous robot completes a full mining cycle.',
+      'robot-locked',
+    )
   const worksite = current.worksites.find((item) => item.worksiteId === worksiteId && item.available)
   if (!worksite) throw new HttpError(409, 'Choose an approved mining worksite.', 'worksite-unavailable')
 
@@ -76,4 +121,34 @@ export async function startMiningSession(userId, { robotId, worksiteId, idempote
     p_idempotency_key: idempotencyKey,
   })
   return miningSnapshot(userId)
+}
+
+export async function miningLeaderboard(period = 'week') {
+  if (period !== 'week' && period !== 'all-time') {
+    throw new HttpError(400, 'Choose a supported leaderboard period.', 'leaderboard-period-invalid')
+  }
+  const { data } = await serviceRpc('wrs_mining_leaderboard', { p_period: period })
+  if (!data || data.period !== period || !Array.isArray(data.rows)) {
+    throw new HttpError(502, 'The mining leaderboard could not be verified.', 'leaderboard-invalid')
+  }
+  const rows = data.rows.map((row) => {
+    if (
+      !Number.isInteger(row?.rank) ||
+      row.rank < 1 ||
+      typeof row.memberHandle !== 'string' ||
+      typeof row.earnedAtomic !== 'string' ||
+      !Number.isInteger(row.atomicScale) ||
+      row.atomicScale < 0 ||
+      row.atomicScale > 12
+    ) {
+      throw new HttpError(502, 'The mining leaderboard could not be verified.', 'leaderboard-invalid')
+    }
+    return {
+      rank: row.rank,
+      memberHandle: row.memberHandle,
+      earnedAtomic: row.earnedAtomic,
+      atomicScale: row.atomicScale,
+    }
+  })
+  return { period, rows }
 }
