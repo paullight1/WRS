@@ -20,8 +20,20 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 const repository: EcosystemRepository = {
   async marketplace() {
-    const result = await request<{ items: MarketplaceCatalogItem[] }>('/api/marketplace')
-    return result.items
+    const result = await request<{ items?: unknown }>('/api/marketplace')
+    if (
+      !Array.isArray(result?.items) ||
+      !result.items.every(
+        (item) =>
+          item &&
+          typeof item === 'object' &&
+          typeof item.versionId === 'string' &&
+          typeof item.name === 'string',
+      )
+    ) {
+      throw new Error('Marketplace service returned an invalid catalogue.')
+    }
+    return result.items as MarketplaceCatalogItem[]
   },
   acquire: (versionId, idempotencyKey) =>
     request<Json>('/api/marketplace/purchase', { method: 'POST', body: JSON.stringify({ versionId, idempotencyKey }) }),

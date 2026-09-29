@@ -172,3 +172,9 @@ test('production ecosystem screens use the authoritative ecosystem client rather
     assert.doesNotMatch(source, /\.\.\/data\/mock\.js/, path)
   }
 })
+
+test('server ecosystem routes resolve their shared marketplace and reward operations', () => {
+  assert.ok(exists('server/ecosystem.js'))
+  assert.match(read('server/ecosystem.js'), /api\/_lib\/ecosystem\.js/)
+  assert.match(read('api/marketplace.js'), /marketplaceCatalog/)
+})
