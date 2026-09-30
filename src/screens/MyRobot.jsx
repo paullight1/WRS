@@ -3,6 +3,7 @@ import AppShell from '../components/AppShell.jsx'
 import { useRobot } from '../components/robot/RobotProvider.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
 import StateView from '../components/states/StateView.jsx'
+import RobotSetupPanel from '../components/robot/RobotSetupPanel.jsx'
 import { Badge, Button, Card, Icon, SectionTitle } from '../components/ui.jsx'
 import { hasCapability, packageDefinition } from '../domain/robot/packages.ts'
 
@@ -21,12 +22,7 @@ export default function MyRobot() {
   if (robotState.isDemo || !robotState.robot) {
     return (
       <AppShell title="My Robot">
-        <StateView
-          kind="locked"
-          title="Robot details unavailable"
-          desc={robotState.error || 'Provision your robot before opening this workspace.'}
-          action={<Button to="/onboarding">Open onboarding</Button>}
-        />
+        <RobotSetupPanel robotState={robotState} />
       </AppShell>
     )
   }

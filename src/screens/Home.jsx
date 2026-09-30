@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
 import { useRobot } from '../components/robot/RobotProvider.jsx'
+import RobotSetupPanel from '../components/robot/RobotSetupPanel.jsx'
 import WelcomeModal, { consumeWelcome } from '../components/WelcomeModal.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
 import StateView from '../components/states/StateView.jsx'
@@ -184,12 +185,7 @@ export default function Home() {
       {robotState.loading ? (
         <StateView kind="loading" title="Loading your robot" desc="Reading the latest confirmed robot state." />
       ) : robotState.isDemo || !robotState.robot ? (
-        <StateView
-          kind="locked"
-          title="Robot is not connected"
-          desc={robotState.error || 'Connect a verified robot account before viewing robot identity and configuration.'}
-          action={<Button to="/onboarding">Open onboarding</Button>}
-        />
+        <RobotSetupPanel robotState={robotState} />
       ) : (
         <section>
           <Card accent={ACCENTS.indigo} className="overflow-hidden p-5">
