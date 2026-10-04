@@ -103,3 +103,43 @@ The temporary container was removed after verification. No remote Supabase conne
 - The audit accepts canonical Supabase connection forms only, as documented above. Nonstandard tunnels, custom DB names/users, and arbitrary URI options require a deliberate reviewed extension.
 - The MIME contract preserves the existing requirement to contain every required MIME entry, rather than introducing a new exact allowlist policy.
 - Supabase skill documentation was consulted: `https://supabase.com/changelog.md`, current database migrations guide, CLI migration reference, and the September 25 PostgreSQL 15.19/17.11 changelog. No audit-contract change was needed for those minor-release migration notes.
+
+## Review round 1 fix report
+
+Finding: Important — the Supabase audit was piped into `tee` without explicit pipefail. An unspecified GitHub Bash shell could return the successful `tee` exit status when the Node audit failed, incorrectly passing the job.
+
+Fix: `.github/workflows/plan11-live-activation-gate.yml` now declares `shell: bash` on the Supabase audit step and runs a multiline script beginning with `set -euo pipefail`. This explicitly propagates the failing pipeline command's exit status. The artifact command and its target-specific name remain as implemented in Task 1.
+
+Regression contract: `tests/plan11/supabaseLiveInfrastructureContract.test.mjs` extracts the actual Supabase audit step's shell body, substitutes a synthetic Node executable, and runs the pipeline under plain Bash without runner-supplied safety flags. It proves an audit exit status of 17 survives the successful real `tee`, and that an audit exit status of 0 still succeeds and saves stdout. It also asserts the workflow selects Bash explicitly. Temporary fixtures are removed by the test.
+
+TDD covering command:
+
+```sh
+node --test --test-name-pattern='audit failure cannot be masked by tee' tests/plan11/supabaseLiveInfrastructureContract.test.mjs
+```
+
+RED output (`/tmp/wrs-task1-review1-red.log`):
+
+```text
+Supabase workflow audit failure cannot be masked by tee: FAIL
+AssertionError: audit exit 17 was masked by tee:
+0 !== 17
+tests 1; pass 0; fail 1
+```
+
+GREEN output (`/tmp/wrs-task1-review1-green.log`):
+
+```text
+Supabase workflow audit failure cannot be masked by tee: PASS
+tests 1; pass 1; fail 0; skipped 0
+```
+
+Focused regression command:
+
+```sh
+node --test tests/plan11/supabaseLiveInfrastructureContract.test.mjs tests/plan11/liveMigrationSetContract.test.mjs
+```
+
+Output (`/tmp/wrs-task1-review1-focused.log`): `tests 10; pass 10; fail 0; skipped 0`. `git diff --check` also passed.
+
+Self-review: confirmed that both the workflow command body and explicit shell carry the failure handling, that the regression runs the extracted command rather than a separate illustrative pipeline, and that the successful path still saves stdout. Only the live workflow, its owned contract test, and this report changed. No PR was published, no remote probe was run, and no unrelated changes were staged. The previously reported PR-triggered and live-configuration checks remain pending.

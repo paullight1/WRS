@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { spawnSync } from 'node:child_process'
 import test from 'node:test'
 
 const loadAudit = () => import('../../scripts/plan11/supabase-live-audit.mjs')
@@ -96,4 +99,30 @@ test('Supabase live audit is manual and scoped to one declared protected environ
   assert.match(job, /secrets\.WRS_SUPABASE_AUDIT_DB_URL/)
   assert.match(job, /vars\.WRS_SUPABASE_AUDIT_PROJECT_REF/)
   assert.doesNotMatch(job, /WRS_SUPABASE_STAGING_|strategy:|matrix:/)
+})
+
+
+test('Supabase workflow audit failure cannot be masked by tee', () => {
+  const workflow = fs.readFileSync('.github/workflows/plan11-live-activation-gate.yml', 'utf8')
+  const job = workflow.split('  supabase-live-infrastructure:')[1].split('\n  strict-go:')[0]
+  const run = job.match(/^      - run: (.*)(?:\n((?:          .*\n)+))?/m)
+  assert.ok(run, 'Supabase audit step must exist')
+  const script = run[1] === '|' ? run[2].split('\n').map((line) => line.replace(/^          /, '')).join('\n') : run[1]
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wrs-task1-audit-pipeline-'))
+  try {
+    fs.mkdirSync(path.join(root, 'bin'))
+    fs.writeFileSync(path.join(root, 'bin/node'), '#!/bin/sh\nprintf "synthetic audit output\\n"\nexit "$WRS_TASK1_AUDIT_EXIT"\n', { mode: 0o755 })
+    for (const exitCode of [17, 0]) {
+      // Plain bash reproduces the unspecified GitHub shell. Safety must also be
+      // present in the extracted script, independent of runner default flags.
+      const result = spawnSync('bash', ['--noprofile', '--norc', '-c', script], {
+        cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${path.join(root, 'bin')}:${process.env.PATH}`, WRS_TASK1_AUDIT_EXIT: String(exitCode) },
+      })
+      assert.equal(result.status, exitCode, `audit exit ${exitCode} was masked by tee: ${result.stderr}`)
+      assert.equal(fs.readFileSync(path.join(root, 'plan11-supabase-live-infrastructure.json'), 'utf8'), 'synthetic audit output\n')
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true })
+  }
+  assert.match(job, /shell: bash/)
 })
