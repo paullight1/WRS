@@ -45,7 +45,9 @@ The local runtime default remains fail-closed staging. Production mode must be s
 - Use encrypted logical PostgreSQL exports outside the application repository. GitHub Actions artifacts may serve as a short-retention transport only after repository access, artifact quotas, retention, encryption-key custody, and restore procedures are confirmed. They are not considered an independent disaster-recovery copy because they share the code-hosting account and have finite retention/storage quotas.
 - Include Supabase Storage object exports as well as the database dump; a database dump alone does not recover private uploaded files.
 - Alert on failed/missed backups, backup size or quota limits, project pause/restriction, authentication failure, payment/reconciliation failures, scanner/deletion failures, and availability incidents.
-- Run scheduled restore drills into staging and retain timestamps, restore duration, integrity comparison, and operator identity. Define acceptable recovery-point and recovery-time objectives with the owners before production GO.
+- Before launch, prove restoration of a synthetic-only backup into staging and retain timestamps, restore duration, integrity comparison, and operator identity.
+- After real customer data exists, never restore a production backup into staging. Run production-data recovery drills only in an isolated, access-controlled temporary target approved for that data. If no compliant target is available using existing resources, customer-data launch remains NO-GO.
+- Define acceptable recovery-point and recovery-time objectives with the owners before production GO.
 - Do not rely on artificial traffic as a substitute for the Free-plan availability guarantee. Monitor project state and maintain a documented owner procedure to resume a paused project.
 - If no secure off-site backup destination and restore drill can be established from available resources, the release remains NO-GO for customer balances, payments, or sensitive-data workflows.
 
