@@ -83,13 +83,19 @@ jobs:
       - name: Apply all WRS migrations in timestamp order
         run: |
           set -euo pipefail
+          export LC_ALL=C
+          shopt -s nullglob
+          migrations=(supabase/migrations/*.sql)
+          expected_count=${#migrations[@]}
+          test "${expected_count}" -gt 0
           count=0
-          for migration in supabase/migrations/*.sql; do
-            count=$((count + 1))
+          for migration in "${migrations[@]}"; do
             echo "Applying ${migration}"
             psql -v ON_ERROR_STOP=1 -f "${migration}"
+            count=$((count + 1))
           done
-          test "${count}" -eq 25
+          test "${count}" -eq "${expected_count}"
+          echo "Applied ${count}/${expected_count} repository migrations"
       - name: Run Plan 11 read-only verification SQL
         run: |
           set -euo pipefail
