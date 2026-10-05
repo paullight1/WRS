@@ -94,10 +94,9 @@ export function AuthProvider({ children }) {
         if (runtimeConfig.isDemo) {
           return {
             userId: 'demo-user',
-            challenges: [
-              { id: 'demo-email', kind: 'email' },
-              { id: 'demo-phone', kind: 'phone' },
-            ],
+            email: input.email,
+            confirmationRequired: false,
+            challenges: [],
           }
         }
         return browserAuthClient.register(input)

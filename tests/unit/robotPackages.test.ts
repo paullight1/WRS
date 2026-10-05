@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { hasCapability, packageDefinition, tierAtLeast } from '../../src/domain/robot/packages'
 
 describe('robot package capabilities', () => {
+  it('supports a free robot without paid-tier capabilities', () => {
+    expect(packageDefinition('free')).toMatchObject({ name: 'Free', priceUsd: 0, robotClass: 'Basic Robot' })
+    expect(hasCapability('free', 'robot.core')).toBe(true)
+    expect(hasCapability('free', 'deployment.standard')).toBe(false)
+    expect(hasCapability('free', 'voice.custom')).toBe(false)
+    expect(tierAtLeast('free', 'starter')).toBe(false)
+  })
   it('orders all six WRS package tiers', () => {
     expect(tierAtLeast('visionary', 'starter')).toBe(true)
     expect(tierAtLeast('enterprise', 'professional')).toBe(true)

@@ -26,15 +26,15 @@ function DemoTask({ task }) {
     setTimeout(() => setToast(''), 2400)
   }
   return (
-    <AppShell title={`${task.title} demo`} back avatar={false}>
+    <AppShell title={`${task.title}`} back avatar={false}>
       <Card className="p-card-padding">
         <div className="flex items-start gap-4">
           <IconTile icon={task.icon} accent={c.accent} size={56} radius={12} iconSize={26} />
           <div className="min-w-0 flex-1">
             <h2 className="font-headline-md text-headline-md text-on-surface">{task.title}</h2>
-            <p className="text-label-sm text-outline">{task.cat} · demo task</p>
+            <p className="text-label-sm text-outline">{task.cat} · task</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              <Badge t="outline">+{task.xp} demo XP</Badge>
+              <Badge t="outline">+{task.xp} XP</Badge>
               <Badge t="outline">{task.time}</Badge>
             </div>
           </div>
@@ -44,12 +44,12 @@ function DemoTask({ task }) {
         {accepted ? 'Task preview opened' : 'Preview task'}
       </Button>
       {accepted && (
-        <Button full icon="visibility" onClick={() => fire('Demo only — no submission, review or XP was created')}>
+        <Button full icon="visibility" onClick={() => fire('— no submission, review or XP was created')}>
           Preview submission
         </Button>
       )}
       <Disclosure icon="verified_user">
-        Demo only. Production submissions require purpose-specific consent and server review.
+        Production submissions require purpose-specific consent and server review.
       </Disclosure>
       <Toast show={!!toast} message={toast} />
     </AppShell>

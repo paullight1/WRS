@@ -65,7 +65,7 @@ export default function Settings() {
   }
 
   return (
-    <AppShell title={auth.isDemo ? 'Settings demo' : 'Settings'} back avatar={false}>
+    <AppShell title={auth.isDemo ? 'Settings' : 'Settings'} back avatar={false}>
       <section>
         <SectionTitle>Account</SectionTitle>
         <List>
@@ -75,7 +75,7 @@ export default function Settings() {
             title="Personal details"
             subtitle={
               auth.isDemo
-                ? 'Demo account — personal editing is not connected'
+                ? 'account — personal editing is not connected'
                 : 'Identity and verification are owned by the authentication service'
             }
           />

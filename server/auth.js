@@ -49,13 +49,11 @@ export function validateRegistration(input) {
     .trim()
     .replace(/\s+/g, ' ')
   const email = normalizeEmail(input?.email)
-  const phone = normalizePhone(input?.phone)
+  const phone = normalizePhone(input?.phone || '')
   const password = String(input?.password || '')
   const confirmation = String(input?.passwordConfirmation || '')
   if (fullName.length < 2) throw new HttpError(400, 'Enter your full name.', 'invalid-registration')
   if (!EMAIL.test(email)) throw new HttpError(400, 'Enter a valid email address.', 'invalid-registration')
-  if (!E164.test(phone))
-    throw new HttpError(400, 'Use international phone format, for example +234…', 'invalid-registration')
   const issues = passwordIssues(password)
   if (issues.length) throw new HttpError(400, `Password must contain ${issues.join(', ')}.`, 'invalid-registration')
   if (password !== confirmation) throw new HttpError(400, 'Passwords do not match.', 'invalid-registration')
@@ -126,12 +124,31 @@ export async function loadProfileByIdentifier(identifier) {
 
 async function issueProviderOtp(kind, contact) {
   const body = kind === 'email' ? { email: contact, create_user: false } : { phone: contact, create_user: false }
-  await authPublic('/auth/v1/otp', {
-    method: 'POST',
-    body,
-    exposeError: false,
-    errorMessage: 'Verification delivery is unavailable.',
-  })
+  try {
+    await authPublic('/auth/v1/otp', {
+      method: 'POST',
+      body,
+      exposeError: false,
+      errorMessage: 'Verification delivery is unavailable.',
+    })
+  } catch (error) {
+    const providerCode = error?.upstreamData?.error_code
+    if (providerCode === 'otp_disabled' || error?.message === 'Verification delivery is unavailable.') {
+      throw new HttpError(
+        503,
+        `Supabase ${kind} OTP delivery is disabled. Enable the ${kind} provider in Supabase Auth before registering users.`,
+        'verification-provider-disabled',
+      )
+    }
+    if (error?.upstreamStatus >= 500) {
+      throw new HttpError(
+        503,
+        `Supabase ${kind} OTP delivery is unavailable. Check the provider configuration.`,
+        'verification-provider-unavailable',
+      )
+    }
+    throw error
+  }
 }
 
 async function insertChallengeRow(userId, kind, ref, expiresAt, resendAvailableAt) {
@@ -212,7 +229,7 @@ async function markProfileVerified(userId, kind) {
     body: { [field]: new Date().toISOString(), updated_at: new Date().toISOString() },
   })
   const profile = await loadProfile(userId)
-  if (profile?.email_verified_at && profile?.phone_verified_at && profile.status === 'pending') {
+  if (profile?.email_verified_at && profile.status === 'pending') {
     await serviceRest(`/rest/v1/user_profiles?user_id=eq.${encodeURIComponent(userId)}`, {
       method: 'PATCH',
       headers: { Prefer: 'return=minimal' },
@@ -284,10 +301,8 @@ export async function createPendingAccount(registration) {
       method: 'POST',
       body: {
         email: registration.email,
-        phone: registration.phone,
         password: registration.password,
         email_confirm: false,
-        phone_confirm: false,
         user_metadata: { full_name: registration.fullName },
       },
       errorMessage: 'Unable to create the account.',
@@ -303,7 +318,7 @@ export async function createPendingAccount(registration) {
         user_id: authUser.id,
         full_name: registration.fullName,
         normalized_email: registration.email,
-        normalized_phone: registration.phone,
+        normalized_phone: null,
         status: 'pending',
         terms_version: registration.termsVersion,
         privacy_version: registration.privacyVersion,
@@ -311,12 +326,9 @@ export async function createPendingAccount(registration) {
       },
     })
 
-    const [emailChallenge, phoneChallenge] = await Promise.all([
-      issueVerificationChallenge(authUser.id, 'email', registration.email),
-      issueVerificationChallenge(authUser.id, 'phone', registration.phone),
-    ])
+    const emailChallenge = await issueVerificationChallenge(authUser.id, 'email', registration.email)
     await recordSecurityEvent(authUser.id, 'account.registered')
-    return { userId: authUser.id, challenges: [emailChallenge, phoneChallenge] }
+    return { userId: authUser.id, challenges: [emailChallenge] }
   } catch (error) {
     if (authUser?.id) {
       await authSecret(`/auth/v1/admin/users/${encodeURIComponent(authUser.id)}`, {
@@ -324,6 +336,14 @@ export async function createPendingAccount(registration) {
         errorMessage: 'Registration rollback failed.',
       }).catch((rollbackError) => console.error('Registration rollback failed', rollbackError))
     }
+    if (error instanceof HttpError && error.message === 'Verification delivery is unavailable.') {
+      throw new HttpError(
+        503,
+        'Supabase email/SMS verification is not enabled. Enable the required Auth providers before registering users.',
+        'verification-provider-disabled',
+      )
+    }
+    if (error instanceof HttpError && error.status >= 500) throw error
     if (error instanceof HttpError && error.status === 400) throw error
     throw new HttpError(503, 'Unable to create the account right now.', 'registration-unavailable')
   }
@@ -333,10 +353,8 @@ export async function issueMissingVerificationChallenges(user) {
   if (!user?.id) return []
   const profile = await loadProfile(user.id)
   if (!profile) return []
-  const challenges = []
-  if (!profile.email_verified_at) challenges.push(await replaceChallenge(user.id, 'email', profile.normalized_email))
-  if (!profile.phone_verified_at) challenges.push(await replaceChallenge(user.id, 'phone', profile.normalized_phone))
-  return challenges
+  if (!profile.email_verified_at) return [await replaceChallenge(user.id, 'email', profile.normalized_email)]
+  return []
 }
 
 async function replaceChallenge(userId, kind, contact) {

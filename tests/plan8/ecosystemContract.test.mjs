@@ -12,22 +12,22 @@ const required = [
   'src/services/ecosystem/EcosystemService.ts',
   'src/infrastructure/ecosystem/browserEcosystemClient.ts',
   'api/_lib/ecosystem.js',
-  'api/marketplace.js',
-  'api/marketplace/purchase.js',
-  'api/marketplace/install.js',
-  'api/marketplace/review.js',
-  'api/rewards.js',
-  'api/rewards/event-code.js',
-  'api/rewards/boost.js',
-  'api/academy.js',
-  'api/academy/progress.js',
-  'api/certificates/verify.js',
-  'api/community.js',
-  'api/community/event.js',
-  'api/community/moderate.js',
-  'api/referrals.js',
-  'api/referrals/accept.js',
-  'api/referrals/qualify.js',
+  'server/routes/marketplace.js',
+  'server/routes/marketplace/purchase.js',
+  'server/routes/marketplace/install.js',
+  'server/routes/marketplace/review.js',
+  'server/routes/rewards.js',
+  'server/routes/rewards/event-code.js',
+  'server/routes/rewards/boost.js',
+  'server/routes/academy.js',
+  'server/routes/academy/progress.js',
+  'server/routes/certificates/verify.js',
+  'server/routes/community.js',
+  'server/routes/community/event.js',
+  'server/routes/community/moderate.js',
+  'server/routes/referrals.js',
+  'server/routes/referrals/accept.js',
+  'server/routes/referrals/qualify.js',
   'supabase/migrations/20260822080000_plan8_ecosystem.sql',
   'tests/database/plan8-invariants.sql',
 ]
@@ -56,7 +56,7 @@ test('marketplace ownership is versioned and distinct from installation', () => 
 
 test('paid marketplace acquisition uses the financial ledger and never trusts a browser price', () => {
   const sql = read('supabase/migrations/20260822080000_plan8_ecosystem.sql').toLowerCase()
-  const api = read('api/marketplace/purchase.js')
+  const api = read('server/routes/marketplace/purchase.js')
   assert.match(sql, /wrs_acquire_marketplace_item/)
   assert.match(sql, /wrs_wallet_snapshot/)
   assert.match(sql, /wrs_post_ledger_transaction/)
@@ -68,7 +68,7 @@ test('paid marketplace acquisition uses the financial ledger and never trusts a 
 
 test('marketplace install requires entitlement and only approved catalogue capability reaches the robot', () => {
   const sql = read('supabase/migrations/20260822080000_plan8_ecosystem.sql').toLowerCase()
-  const api = read('api/marketplace/install.js')
+  const api = read('server/routes/marketplace/install.js')
   assert.match(sql, /wrs_install_marketplace_item/)
   assert.match(sql, /marketplace_entitlements/)
   assert.match(sql, /robot_skills/)
@@ -79,7 +79,7 @@ test('marketplace install requires entitlement and only approved catalogue capab
 
 test('event codes are hashed, expiry-limited, rate-limited and one-user-per-event redeemable', () => {
   const sql = read('supabase/migrations/20260822080000_plan8_ecosystem.sql').toLowerCase()
-  const endpoint = read('api/rewards/event-code.js')
+  const endpoint = read('server/routes/rewards/event-code.js')
   assert.match(sql, /event_reward_codes/)
   assert.match(sql, /code_hash/)
   assert.doesNotMatch(sql, /code_plaintext/)
@@ -97,7 +97,7 @@ test('reward points are append-only, idempotent and not client-awardable', () =>
   assert.match(sql, /append-only/)
   assert.match(sql, /idempotency_key/)
   assert.match(sql, /wrs_reward_points_balance/)
-  const rewards = read('api/rewards.js')
+  const rewards = read('server/routes/rewards.js')
   assert.match(rewards, /requireSession/)
   assert.doesNotMatch(rewards, /body\.(?:points|amount|award)/)
 })
@@ -110,7 +110,7 @@ test('boost activation atomically spends points and has an explicit expiry/effec
   assert.match(sql, /cost_points/)
   assert.match(sql, /expires_at/)
   assert.match(sql, /effect/)
-  assert.match(read('api/rewards/boost.js'), /requireSession/)
+  assert.match(read('server/routes/rewards/boost.js'), /requireSession/)
 })
 
 test('academy assessment and certificate issuance are server-authoritative and publicly privacy-safe', () => {
@@ -127,8 +127,8 @@ test('academy assessment and certificate issuance are server-authoritative and p
   }
   assert.match(sql, /public_verification_id/)
   assert.match(sql, /wrs_verify_academy_certificate/)
-  assert.match(read('api/certificates/verify.js'), /verifyAcademyCertificate/)
-  assert.doesNotMatch(read('api/certificates/verify.js'), /owner_user_id|email|phone|wallet/i)
+  assert.match(read('server/routes/certificates/verify.js'), /verifyAcademyCertificate/)
+  assert.doesNotMatch(read('server/routes/certificates/verify.js'), /owner_user_id|email|phone|wallet/i)
 })
 
 test('community attendance is verifiable, leaderboard is opt-in and moderation is internal', () => {
@@ -139,7 +139,7 @@ test('community attendance is verifiable, leaderboard is opt-in and moderation i
   assert.match(sql, /community_moderation_actions/)
   assert.match(sql, /attended/)
   assert.match(sql, /display_alias/)
-  assert.match(read('api/community/moderate.js'), /requireInternalBearer/)
+  assert.match(read('server/routes/community/moderate.js'), /requireInternalBearer/)
 })
 
 test('referrals prevent self/duplicate attribution and qualify only after verified paid activation plus review window', () => {
@@ -153,7 +153,7 @@ test('referrals prevent self/duplicate attribution and qualify only after verifi
   assert.match(sql, /package_entitlements/)
   assert.match(sql, /interval '7 days'/)
   assert.match(sql, /wrs_qualify_referral/)
-  assert.match(read('api/referrals/qualify.js'), /requireInternalBearer/)
+  assert.match(read('server/routes/referrals/qualify.js'), /requireInternalBearer/)
 })
 
 test('production ecosystem screens use the authoritative ecosystem client rather than mock data', () => {

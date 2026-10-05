@@ -49,11 +49,8 @@ export function getSensitiveActionPolicy(id, config = runtimeConfig) {
       enabled: action.disposition === 'demo-label',
       authoritative: false,
       demo: true,
-      label: 'Demo only',
-      reason:
-        action.disposition === 'demo-label'
-          ? 'Simulation only — no real transaction, upload, reward, or account change is created.'
-          : 'Unavailable in demo mode because this action could be mistaken for a real sensitive operation.',
+      label: 'Preview',
+      reason: action.disposition === 'demo-label' ? 'Preview this action.' : 'This action is currently unavailable.',
     }
   }
 

@@ -270,3 +270,54 @@ END
 $$;
 
 select 'Plans 3-4 database invariants verified' as result;
+
+-- Free provisioning is payment-free, but cannot unlock paid capabilities.
+begin;
+do $$
+declare
+  v_user uuid := gen_random_uuid();
+  v_input jsonb := jsonb_build_object(
+    'requestedPackageSlug','free', 'name','Free Test Robot',
+    'palette','Oceania Flow', 'personality','Logical',
+    'voiceProfileId','standard-en', 'parts',jsonb_build_object('head','phantom'),
+    'tuning',jsonb_build_object('speed',70,'battery',75,'sensor',68)
+  );
+  v_result jsonb;
+  v_robot uuid;
+begin
+  insert into auth.users(id,email) values(v_user, v_user::text || '@example.test');
+  insert into public.user_profiles(user_id,full_name,normalized_email,normalized_phone,status,terms_version,privacy_version)
+    values(v_user,'Free Test',v_user::text || '@example.test','+2348999999901','active','test','test');
+
+  v_result := public.wrs_complete_robot_onboarding(v_user,
+    v_input || jsonb_build_object('requestedPackageSlug','starter'),'free-test-paid');
+  if v_result->>'status' <> 'entitlement-required' then
+    raise exception 'paid tier bypassed entitlement: %', v_result;
+  end if;
+
+  v_result := public.wrs_complete_robot_onboarding(v_user,
+    v_input || jsonb_build_object('voiceProfileId','custom-voice'),'free-test-locked');
+  if v_result->>'status' <> 'capability-locked' then
+    raise exception 'free tier unlocked custom voice: %', v_result;
+  end if;
+
+  v_result := public.wrs_complete_robot_onboarding(v_user,v_input,'free-test-create');
+  if v_result->>'status' <> 'completed' then
+    raise exception 'free provisioning failed: %', v_result;
+  end if;
+  v_robot := (v_result->>'robotId')::uuid;
+  if not exists(select 1 from public.robots where id=v_robot and package_slug='free')
+    or not exists(select 1 from public.robot_public_passports where robot_id=v_robot and robot_class='Basic Robot') then
+    raise exception 'free robot or passport metadata incorrect';
+  end if;
+  if exists(select 1 from public.package_entitlements where user_id=v_user) then
+    raise exception 'free onboarding created a paid entitlement';
+  end if;
+
+  v_result := public.wrs_complete_robot_onboarding(v_user,v_input,'free-test-create');
+  if v_result->>'status' <> 'already-completed' or (v_result->>'robotId')::uuid <> v_robot then
+    raise exception 'free onboarding retry was not idempotent';
+  end if;
+end;
+$$;
+rollback;

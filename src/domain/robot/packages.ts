@@ -10,6 +10,14 @@ export interface PackageDefinition {
 }
 
 export const PACKAGE_DEFINITIONS: Record<PackageSlug, PackageDefinition> = {
+  free: {
+    slug: 'free',
+    name: 'Free',
+    robotClass: 'Basic Robot',
+    priceUsd: 0,
+    rank: 0,
+    capabilities: ['robot.core', 'training.basic', 'data.basic'],
+  },
   starter: {
     slug: 'starter',
     name: 'Starter',

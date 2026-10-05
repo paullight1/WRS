@@ -8,42 +8,6 @@ import { packages } from '../data/mock.js'
 import { browserFinanceClient } from '../infrastructure/finance/browserFinanceClient.ts'
 import { runtimeConfig } from '../lib/runtimeConfig.js'
 import { getSensitiveActionPolicy } from '../lib/sensitiveActions.js'
-import { evaluatePaymentSuccessAccess } from '../lib/successAccess.js'
-
-function DemoSuccess({ packageInfo, search }) {
-  const access = evaluatePaymentSuccessAccess({ mode: runtimeConfig.mode, search, authority: null })
-  if (!access.allowed) {
-    return (
-      <AppShell title="Purchase status" back={false} avatar={false}>
-        <StateView
-          kind="locked"
-          title="No verified payment found"
-          desc="A URL cannot activate a WRS package. This demo page requires its explicit preview token."
-          action={<Button to={`/packages/${packageInfo.slug}`}>Back to package</Button>}
-        />
-      </AppShell>
-    )
-  }
-  return (
-    <AppShell title="Demo purchase preview" back={false} avatar={false}>
-      <Disclosure icon="science">
-        No payment was processed. No package entitlement, receipt, wallet entry or robot provisioning record was
-        created.
-      </Disclosure>
-      <Card className="p-card-padding text-center">
-        <Icon name="visibility" className="text-[42px] text-tertiary" />
-        <Badge t="outline" className="mt-4">
-          Demo only
-        </Badge>
-        <h2 className="mt-4 font-headline-md text-headline-md text-on-surface">Preview: {packageInfo.name} package</h2>
-        <RobotFace tier={packageInfo.slug} size={92} animate className="mx-auto mt-5" />
-      </Card>
-      <Button to={`/packages/${packageInfo.slug}`} full>
-        Return to package
-      </Button>
-    </AppShell>
-  )
-}
 
 export default function PaymentSuccess() {
   const { slug } = useParams()
@@ -76,7 +40,13 @@ export default function PaymentSuccess() {
   }, [packageInfo, policy.authoritative, reference])
 
   if (!packageInfo) return <Navigate to="/packages" replace />
-  if (runtimeConfig.isDemo) return <DemoSuccess packageInfo={packageInfo} search={location.search} />
+  if (runtimeConfig.isDemo) {
+    return (
+      <AppShell title="Purchase status" avatar={false}>
+        <StateView kind="locked" title="Payment verification unavailable" desc="A package entitlement can only be activated after an authoritative provider verification." />
+      </AppShell>
+    )
+  }
   if (!policy.authoritative) {
     return (
       <AppShell title="Purchase status" avatar={false}>

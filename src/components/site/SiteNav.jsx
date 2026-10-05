@@ -7,16 +7,6 @@ import { navLinks } from './content.js'
 export const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background'
 
-export function Wordmark({ className = '' }) {
-  return (
-    <span
-      className={`whitespace-nowrap font-display text-title-sm font-bold tracking-tight text-on-surface sm:text-title ${className}`}
-    >
-      World Robotic <span className="text-primary">System</span>
-    </span>
-  )
-}
-
 /**
  * Sticky page header. Transparent over the hero, then a hairline and a blur
  * once the page has moved — the only state change in the chrome.
@@ -50,7 +40,11 @@ export default function SiteNav() {
     >
       <div className={`${SITE_WIDTH} flex h-[68px] items-center justify-between gap-6`}>
         <a href="#top" className={`rounded-lg ${focusRing}`} onClick={() => setOpen(false)}>
-          <Wordmark />
+          <img
+            src="/wrs-logo-footer.png"
+            alt="World Robotic System"
+            className="block h-auto w-[128px] max-w-full object-contain sm:w-[150px]"
+          />
         </a>
 
         <nav aria-label="Sections" className="hidden items-center gap-8 lg:flex">
@@ -74,7 +68,7 @@ export default function SiteNav() {
           </Link>
           <Link
             to="/register"
-            className={`inline-flex min-h-[44px] items-center whitespace-nowrap rounded-xl bg-primary-container px-4 text-label-md text-white transition-colors duration-fast hover:bg-[#2450e6] sm:px-5 ${focusRing}`}
+            className={`hidden min-h-[44px] items-center whitespace-nowrap rounded-xl bg-primary-container px-4 text-label-md text-white transition-colors duration-fast hover:bg-[#2450e6] sm:inline-flex sm:px-5 ${focusRing}`}
           >
             Get Started
           </Link>

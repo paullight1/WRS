@@ -25,20 +25,17 @@ export default function EventCode() {
 
   const submit = () => {
     if (!code.trim()) {
-      setToast('Enter a demo code to preview the flow')
+      setToast('Enter a code to preview the flow')
     } else if (!policy.enabled) {
       setToast(policy.reason)
     } else {
-      setToast('Demo preview only — no XP, points, boost or attendance record was awarded')
+      setToast('Preview only — no XP, points, boost or attendance record was awarded')
     }
     setTimeout(() => setToast(''), 2600)
   }
 
   return (
-    <AppShell title="Event code demo" back avatar={false}>
-      <Disclosure icon="science">
-        Demo only. Codes entered here are not validated, redeemed or written to an account.
-      </Disclosure>
+    <AppShell title="Event code" back avatar={false}>
       <section>
         <Card className="p-card-padding text-center">
           <Icon name="confirmation_number" className="text-[54px] text-tertiary" />
@@ -49,8 +46,8 @@ export default function EventCode() {
           <input
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="DEMO-CODE"
-            aria-label="Demo event code"
+            placeholder="Enter event code"
+            aria-label="event code"
             className="mt-5 w-full rounded-xl border border-outline-variant bg-black/30 px-4 py-3 text-center font-data text-on-surface outline-none focus:border-tertiary"
           />
           <Button full size="lg" className="mt-4" onClick={submit} disabled={!policy.enabled}>
@@ -59,11 +56,11 @@ export default function EventCode() {
         </Card>
       </section>
       <section>
-        <SectionTitle>Illustrative reward outcome</SectionTitle>
+        <SectionTitle>reward outcome</SectionTitle>
         <Card className="divide-y divide-white/8">
           {[
-            ['XP', '+250 demo XP'],
-            ['Points', '+250 demo points'],
+            ['XP', '+250 XP'],
+            ['Points', '+250 points'],
             ['Robot boost', 'Preview only'],
             ['Attendance', 'Not recorded'],
           ].map(([k, v]) => (

@@ -72,7 +72,7 @@ export default function DeployProduction() {
   const history = deployments.filter((deployment) => ['completed', 'cancelled', 'failed'].includes(deployment.status))
 
   return (
-    <AppShell title="Deployments" subtitle="Authoritative opportunity and contract state">
+    <AppShell title="Mining" subtitle="Authoritative opportunity and contract state">
       <div className="surface sticky top-[68px] z-30 flex gap-1 rounded-2xl p-1">
         {['Available', 'Active', 'History'].map((name) => (
           <button

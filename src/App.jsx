@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute } from './components/auth/AuthProvider.jsx'
 import { NotifyProvider } from './components/notifications/Notify.jsx'
 import { RobotProvider } from './components/robot/RobotProvider.jsx'
+import { ThemeProvider } from './components/ThemeProvider.jsx'
 import Landing from './screens/Landing.jsx'
 import Splash from './screens/Splash.jsx'
 import Login from './screens/Login.jsx'
@@ -44,6 +45,7 @@ import SecuritySettings from './screens/SecuritySettings.jsx'
 import SupportProduction from './screens/SupportProduction.jsx'
 import AccountDeletionRecoveryProduction from './screens/AccountDeletionRecoveryProduction.jsx'
 import AdminOperationsProduction from './screens/AdminOperationsProduction.jsx'
+import AuthCallback from './screens/AuthCallback.jsx'
 
 const authenticated = (element) => <ProtectedRoute policy="authenticated">{element}</ProtectedRoute>
 const verified = (element) => <ProtectedRoute requireVerified>{element}</ProtectedRoute>
@@ -66,6 +68,7 @@ const SupportScreen = SupportProduction
 
 export default function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <RobotProvider>
         <NotifyProvider>
@@ -75,6 +78,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify" element={<Verify />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -126,5 +130,6 @@ export default function App() {
         </NotifyProvider>
       </RobotProvider>
     </AuthProvider>
+    </ThemeProvider>
   )
 }

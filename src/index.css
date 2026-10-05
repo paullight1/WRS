@@ -4,21 +4,53 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
 
     /* Semantic elevation — surfaces get lighter as they come forward. */
-    --surface-0: #111417; /* page */
-    --surface-1: #191c1f; /* card / row group */
-    --surface-2: #1d2023; /* raised: sheets, menus */
-    --surface-3: #282a2e; /* controls */
-    --hairline: rgba(255, 255, 255, 0.07);
-    --hairline-strong: rgba(255, 255, 255, 0.12);
+    --surface-0: #f7f7fb; /* page */
+    --surface-1: #ffffff; /* card / row group */
+    --surface-2: #f0eef8; /* raised: sheets, menus */
+    --surface-3: #e7e2f4; /* controls */
+    --hairline: rgba(35, 26, 56, 0.1);
+    --hairline-strong: rgba(35, 26, 56, 0.16);
+    --brand-primary: #6d44b8;
+    --brand-primary-container: #6d44b8;
+    --brand-secondary: #8255c8;
+    --brand-tertiary: #9b78e2;
+    --brand-on-primary: #ffffff;
+    --text-primary: #211a31;
+    --text-secondary: #655c76;
+    --text-outline: #877e98;
+    --section-soft: #fbfaff;
+    --section-lavender: #f3effd;
+    --section-accent: #ece4fb;
 
     /* Motion — product pace: state change, not choreography. */
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --dur-fast: 120ms;
     --dur: 180ms;
     --dur-slow: 240ms;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --surface-0: #111417;
+    --surface-1: #191c1f;
+    --surface-2: #1d2023;
+    --surface-3: #282a2e;
+    --hairline: rgba(255, 255, 255, 0.07);
+    --hairline-strong: rgba(255, 255, 255, 0.12);
+    --brand-primary: #c9a8ff;
+    --brand-primary-container: #7d4bc5;
+    --brand-secondary: #d2b4ff;
+    --brand-tertiary: #b08aff;
+    --brand-on-primary: #24113f;
+    --text-primary: #eee9f7;
+    --text-secondary: #cbc3d8;
+    --text-outline: #a39aaa;
+    --section-soft: #14161a;
+    --section-lavender: #191423;
+    --section-accent: #211533;
   }
 
   html,
@@ -114,7 +146,7 @@
   }
 
   ::selection {
-    background: rgba(45, 91, 255, 0.35);
+    background: color-mix(in srgb, var(--brand-primary) 35%, transparent);
   }
 
   ::-webkit-scrollbar {
@@ -125,7 +157,7 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #323539;
+    background: var(--surface-3);
     border-radius: 10px;
   }
 
@@ -192,9 +224,13 @@
   }
 
   .bar-blur {
-    background: rgba(17, 20, 23, 0.82);
+    background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+  }
+
+  .dark .bar-blur {
+    background: rgba(17, 20, 23, 0.9);
   }
 
   /* Legacy aliases so any un-swept call site stays opaque rather than glassy. */

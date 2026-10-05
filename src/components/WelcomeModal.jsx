@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Icon } from './ui.jsx'
 import StateArt from './states/StateArt.jsx'
-import { robot } from '../data/mock.js'
+import { robot as demoRobot } from '../data/mock.js'
+import { useRobot } from './robot/RobotProvider.jsx'
 
 /* Shown once, the first time a new owner reaches Home after building their
    robot. It names the robot and points at exactly one next action — the moment
@@ -35,6 +36,8 @@ const NEXT = [
 ]
 
 export default function WelcomeModal({ open, onClose }) {
+  const robotState = useRobot()
+  const robot = robotState.robot || demoRobot
   const panel = useRef(null)
   const restoreTo = useRef(null)
 

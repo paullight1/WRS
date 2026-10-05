@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import health from '../../api/health.js'
+import health from '../../server/routes/health.js'
 
 describe('deployment health endpoint', () => {
   it('returns no-store liveness without environment details', async () => {

@@ -6,7 +6,7 @@ export type OAuthProvider = 'google' | 'apple'
 export interface RegistrationInput {
   fullName: string
   email: string
-  phone: string
+  phone?: string
   password: string
   passwordConfirmation: string
   termsAccepted: boolean
@@ -19,7 +19,7 @@ export interface RegistrationInput {
 export interface NormalizedRegistration {
   fullName: string
   normalizedEmail: string
-  normalizedPhone: string
+  normalizedPhone?: string
   password: string
   termsVersion: string
   privacyVersion: string
