@@ -33,7 +33,7 @@ jobs:
       PGUSER: postgres
       PGPASSWORD: postgres
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Bootstrap Supabase-compatible auth primitives
         run: |
           psql -v ON_ERROR_STOP=1 <<'SQL'
