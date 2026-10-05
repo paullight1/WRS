@@ -4,7 +4,7 @@ This file freezes the Plan 11 repository/SQL activation package for final read-o
 
 The branch contains:
 
-- the complete 25-file Supabase migration pack and migration guide;
+- the complete 33-file Supabase migration pack and migration guide;
 - six read-only Plan 11 Supabase verification SQL files;
 - live environment preflight/manifest;
 - repository governance/CODEOWNERS/release checklist;
@@ -13,7 +13,7 @@ The branch contains:
 - human launch review template;
 - fail-closed live evidence/GO evaluator;
 - merge/activation/rollback sequence;
-- Plan 11 Activation Database Gate that executes all 25 migrations and all six verification SQL files on PostgreSQL 17.
+- Plan 11 Activation Database Gate that executes all 33 migrations and all six verification SQL files on PostgreSQL 17.
 
 Final workflow/database run IDs for this immutable head are recorded on Draft PR #7 after the workflows complete so this commit itself does not move merely to add evidence metadata.
 

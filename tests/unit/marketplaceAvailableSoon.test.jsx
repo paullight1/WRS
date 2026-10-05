@@ -4,7 +4,13 @@ import MarketplaceProduction from '../../src/screens/MarketplaceProduction.jsx'
 import { browserEcosystemClient } from '../../src/infrastructure/ecosystem/browserEcosystemClient.ts'
 
 vi.mock('../../src/components/AppShell.jsx', () => ({
-  default: ({ title, subtitle, children }) => <main><h1>{title}</h1><p>{subtitle}</p>{children}</main>,
+  default: ({ title, subtitle, children }) => (
+    <main>
+      <h1>{title}</h1>
+      <p>{subtitle}</p>
+      {children}
+    </main>
+  ),
 }))
 vi.mock('../../src/infrastructure/ecosystem/browserEcosystemClient.ts', () => ({
   browserEcosystemClient: { marketplace: vi.fn(), acquire: vi.fn(), install: vi.fn() },
@@ -40,7 +46,9 @@ describe('Marketplace available soon', () => {
     expect(screen.getByText('Available soon')).toBeInTheDocument()
     expect(screen.queryByText('$12.00')).not.toBeInTheDocument()
     expect(screen.queryByText(/rating|\d+ approved|catalogue preview|\d+ demo items/i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/read-only commerce preview|illustrative catalogue|plan 8|purchase|install/i)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/read-only commerce preview|illustrative catalogue|plan 8|purchase|install/i),
+    ).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /more \d+/i })).not.toBeInTheDocument()
     const action = screen.getByRole('button', { name: 'Available soon' })
     expect(action).toBeDisabled()

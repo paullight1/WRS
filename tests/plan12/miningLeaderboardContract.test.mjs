@@ -41,10 +41,10 @@ test('leaderboard ranks posted, settled mining awards and excludes reversed ledg
   assert.doesNotMatch(service.slice(service.indexOf('export async function miningLeaderboard')), /rbcBalance|wallet/i)
 })
 
-test('browser client validates snapshots, starts selected sessions, and loads both leaderboard periods', async () => {
+test('browser client validates snapshots, starts the selected robot, and loads both leaderboard periods', async () => {
   const client = await read('src/infrastructure/mining/browserMiningClient.ts')
   assert.match(client, /async snapshot\(/)
-  assert.match(client, /async start\(input: \{ robotId: string; worksiteId: string; idempotencyKey: string \}/)
+  assert.match(client, /async start\(input: \{ robotId: string; idempotencyKey: string \}/)
   assert.match(client, /async leaderboard\(/)
   assert.match(client, /credentials:\s*'include'/)
   assert.match(client, /MiningLeaderboardPeriod/)

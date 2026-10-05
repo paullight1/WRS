@@ -14,9 +14,13 @@ export type MarketplaceCatalogItem = {
 }
 
 export type RewardSnapshot = {
-  points: number
-  boosts: Array<Record<string, unknown>>
-  catalog?: Array<Record<string, unknown>>
+  xp: number
+  rbc: { availableAtomic: string | null; atomicScale: number | null }
+  level: { level: number; name: string; multiplierBps: number; totalXp: number }
+  issuanceEnabled: boolean
+  activities: Array<{ source: string; xp: number; rbcAtomic: string; dailyLimit: number }>
+  levels: Array<Record<string, unknown>>
+  recentAwards: Array<Record<string, unknown>>
 }
 
 export interface EcosystemRepository {

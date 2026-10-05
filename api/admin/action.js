@@ -7,7 +7,15 @@ import {
 } from '../_lib/account.js'
 import { matchDeploymentRequest, settleDeployment } from '../_lib/deployment.js'
 import { moderateCommunity, qualifyReferral } from '../_lib/ecosystem.js'
-import { assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../_lib/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  HttpError,
+  json,
+  readJson,
+  requireMethod,
+} from '../_lib/http.js'
 import { serviceRpc } from '../_lib/supabase.js'
 
 function text(value, max = 1000) {
@@ -31,6 +39,82 @@ export default functionHandler(async (request) => {
   const action = text(body.action, 100)
   const reason = text(body.reason)
   if (!action || reason.length < 3) throw new HttpError(400, 'Action and reason are required.', 'action-required')
+
+  if (action === 'role.grant' || action === 'role.revoke') {
+    const resolved = await requireAdminSession(request, 'operations.roles', { stepUp: true })
+    const userId = String(body.userId || '').trim()
+    const role = String(body.role || '').trim()
+    const scopedRoles = [
+      'support_operator',
+      'kyc_operator',
+      'finance_operator',
+      'data_operator',
+      'deployment_operator',
+      'risk_operator',
+      'reward_operator',
+    ]
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+      throw new HttpError(400, 'A target account UUID is required.', 'invalid-role-subject')
+    }
+    if (!scopedRoles.includes(role))
+      throw new HttpError(400, 'Select a supported scoped operator role.', 'invalid-operator-role')
+    if (userId.toLowerCase() === resolved.user.id.toLowerCase())
+      throw new HttpError(403, 'Self role changes are forbidden.', 'self-role-change')
+    const { data } = await serviceRpc('wrs_admin_set_operator_role', {
+      p_operator_user_id: resolved.user.id,
+      p_subject_user_id: userId,
+      p_role_slug: role,
+      p_enabled: action === 'role.grant',
+      p_reason: reason,
+    })
+    return appendCookies(json(data), resolved.cookies)
+  }
+
+  if (
+    [
+      'rewards.rule.save',
+      'rewards.rule.activate',
+      'rewards.rule.disable',
+      'rewards.issuance.enable',
+      'rewards.issuance.disable',
+      'rewards.activity.verify',
+    ].includes(action)
+  ) {
+    const resolved = await requireAdminSession(request, 'operations.rewards', { stepUp: true })
+    let rpc
+    let args
+    if (action === 'rewards.rule.save') {
+      if (!body.rule || typeof body.rule !== 'object' || Array.isArray(body.rule))
+        throw new HttpError(400, 'Reward settings are required.', 'rule-required')
+      rpc = 'wrs_admin_save_reward_rule'
+      args = { p_operator_user_id: resolved.user.id, p_reason: reason, p_rule: body.rule }
+    } else if (action === 'rewards.activity.verify') {
+      rpc = 'wrs_admin_verify_reward_activity'
+      args = {
+        p_operator_user_id: resolved.user.id,
+        p_user_id: text(body.userId, 100),
+        p_source: text(body.source, 40),
+        p_reference_id: text(body.referenceId, 200),
+        p_evidence: text(body.evidence, 2000),
+        p_achievement_code: text(body.achievementCode, 80) || null,
+      }
+    } else {
+      const ruleId = text(body.ruleId, 100)
+      if (!ruleId) throw new HttpError(400, 'Select a saved reward rule.', 'rule-required')
+      const issuance = action.startsWith('rewards.issuance.')
+      rpc = issuance ? 'wrs_admin_set_mining_issuance' : 'wrs_admin_set_reward_rule_status'
+      args = {
+        p_operator_user_id: resolved.user.id,
+        p_rule_id: ruleId,
+        p_reason: reason,
+        ...(issuance
+          ? { p_enabled: action.endsWith('.enable') }
+          : { p_status: action.endsWith('.activate') ? 'active' : 'disabled' }),
+      }
+    }
+    const { data } = await serviceRpc(rpc, args)
+    return json(data)
+  }
 
   if (action === 'support.update') {
     const resolved = await requireAdminSession(request, 'operations.support')
@@ -128,6 +212,23 @@ export default functionHandler(async (request) => {
     await recordOperationsAction(resolved.user.id, 'operations.data', 'data.submission', submissionId, action, reason, {
       ...dimensions,
       result: data,
+    })
+    return json(data)
+  }
+
+  if (action === 'data.task.review') {
+    const resolved = await requireAdminSession(request, 'operations.data')
+    const responseId = text(body.responseId, 100)
+    const status = text(body.status, 40)
+    if (!responseId || !['approved', 'rejected'].includes(status)) {
+      throw new HttpError(400, 'Task response and a valid review decision are required.', 'task-review-required')
+    }
+    const { data } = await serviceRpc('wrs_review_data_task_response', {
+      p_operator_user_id: resolved.user.id,
+      p_response_id: responseId,
+      p_status: status,
+      p_quality_score: quality(body.qualityScore, 'Quality score'),
+      p_reason: reason,
     })
     return json(data)
   }

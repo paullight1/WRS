@@ -20,10 +20,7 @@ describe('browserEcosystemClient marketplace catalogue', () => {
 
   it('returns a well-formed catalogue from the service', async () => {
     const items = [{ versionId: 'catalogue-v1', name: 'Language Pack' }]
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ items }) }),
-    )
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ items }) }))
 
     await expect(browserEcosystemClient.marketplace()).resolves.toEqual(items)
   })

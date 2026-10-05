@@ -141,12 +141,18 @@ test('production deployment routes are isolated from demo mock screens', () => {
     'src/screens/DeploymentDetailsProduction.jsx',
     'src/screens/ActiveDeploymentProduction.jsx',
   ]) {
-    assert.match(read(path), path.endsWith('MiningProduction.jsx') ? /browserMiningClient/ : /browserDeploymentClient/, path)
+    assert.match(
+      read(path),
+      path.endsWith('MiningProduction.jsx') ? /browserMiningClient/ : /browserDeploymentClient/,
+      path,
+    )
     assert.doesNotMatch(read(path), /\.\.\/data\/mock\.js/, path)
   }
   const app = read('src/App.jsx')
-  assert.match(app, /Route path="\/deploy" element=\{verified\(<MiningProduction \/>\)\}/)
+  assert.match(
+    app,
+    /Route path="\/deploy" element=\{verified\(runtimeConfig\.isDemo \? <Deploy \/> : <MiningProduction \/>\)\}/,
+  )
   assert.match(app, /const DeploymentDetailsScreen = DeploymentDetailsProduction/)
   assert.match(app, /const ActiveDeploymentScreen = ActiveDeploymentProduction/)
-  assert.doesNotMatch(app, /runtimeConfig\.isDemo \? (?:Deploy|DeploymentDetails|ActiveDeployment)/)
 })

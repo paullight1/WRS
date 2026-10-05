@@ -55,4 +55,10 @@ const repository: AccountRepository = {
     request<Json>('/api/admin/action', { method: 'POST', body: JSON.stringify(input) }),
 }
 
-export const browserAccountClient = new AccountService(repository)
+export const browserAccountClient = Object.assign(new AccountService(repository), {
+  roleSubject(identifier: string) {
+    return request<{ userId: string; identifier: string; roles: string[] }>(
+      `/api/admin/role-subject?identifier=${encodeURIComponent(identifier)}`,
+    )
+  },
+})

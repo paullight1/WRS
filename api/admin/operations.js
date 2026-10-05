@@ -1,3 +1,4 @@
+import { serviceRpc } from '../_lib/supabase.js'
 import { operationsSnapshot, requireAdminSession } from '../_lib/account.js'
 import { appendCookies, functionHandler, HttpError, json, requireMethod } from '../_lib/http.js'
 
@@ -9,6 +10,7 @@ const scopePermission = {
   deployments: 'operations.deployment',
   data: 'operations.data',
   risk: 'operations.risk',
+  rewards: 'operations.rewards',
 }
 
 export default functionHandler(async (request) => {
@@ -17,6 +19,9 @@ export default functionHandler(async (request) => {
   const permission = scopePermission[scope]
   if (!permission) throw new HttpError(400, 'Unsupported operations scope.', 'invalid-scope')
   const resolved = await requireAdminSession(request, permission)
-  const snapshot = await operationsSnapshot(scope)
+  const snapshot =
+    scope === 'rewards'
+      ? (await serviceRpc('wrs_mining_operations_snapshot', { p_operator_user_id: resolved.user.id })).data
+      : await operationsSnapshot(scope)
   return appendCookies(json({ scope, ...snapshot }), resolved.cookies)
 })

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
@@ -12,6 +12,7 @@ import { browserAccountClient } from '../infrastructure/account/browserAccountCl
 import { browserMiningClient } from '../infrastructure/mining/browserMiningClient.ts'
 import { browserRobotClient } from '../infrastructure/robot/browserRobotClient.ts'
 import { atomicUnitsToDecimal } from '../domain/mining/metrics.ts'
+import MiningCyclePanel from '../components/mining/MiningCyclePanel.jsx'
 import { runtimeConfig } from '../lib/runtimeConfig.js'
 import { packageDefinition } from '../domain/robot/packages.ts'
 
@@ -57,18 +58,100 @@ function formatRbc(balance) {
   }
 }
 
-function SummaryCard({ title, value, loading, error, empty, icon }) {
+function formatDailyMiningRate(snapshot) {
+  const session = snapshot?.session
+  const rate = snapshot?.rateBreakdown?.estimatedAtomicPerHour ?? session?.rule?.rateAtomicPerHour
+  const scale = snapshot?.rateBreakdown?.atomicUnitScale ?? session?.rule?.atomicUnitScale
+  if (rate === null || rate === undefined || scale === null || !Number.isInteger(scale) || scale < 0 || scale > 12) {
+    return null
+  }
+
+  const [whole = '', fraction = ''] = String(rate).split('.')
+  if (!/^\d+$/.test(whole) || (fraction && !/^\d+$/.test(fraction)) || scale + fraction.length > 18) {
+    return null
+  }
+
+  try {
+    const atomicAmount = BigInt(`${whole}${fraction}`) * 24n
+    const formatted = atomicUnitsToDecimal(atomicAmount.toString(), scale + fraction.length)
+    const [integer, decimal = ''] = formatted.split('.')
+    const trimmedDecimal = decimal.replace(/0+$/, '')
+    return `${integer}${trimmedDecimal ? `.${trimmedDecimal}` : ''} RBC / 24h`
+  } catch {
+    return null
+  }
+}
+
+const BALANCE_STATE_COPY = {
+  preview: 'Live account required',
+  signedOut: 'Sign in to view',
+  robot: 'Connect a robot to earn XP',
+  unavailable: 'Service unavailable',
+  empty: 'No verified balance',
+}
+
+function SummaryCard({ title, value, loading, state, icon }) {
+  const message = BALANCE_STATE_COPY[state] || BALANCE_STATE_COPY.unavailable
   return (
     <Card className="min-w-0 p-4">
       <div className="flex items-center gap-2 text-on-surface-variant">
         <Icon name={icon} className="text-tertiary" />
-        <h2 className="truncate text-label-md">{title}</h2>
+        <h2 className="min-w-0 whitespace-normal break-words text-label-sm leading-tight sm:text-label-md">{title}</h2>
       </div>
-      <p className="mt-3 font-data text-headline-md text-on-surface" aria-live="polite">
-        {loading
-          ? 'Loading…'
-          : (value ?? (empty ? 'No verified balance' : error ? 'Balance unavailable' : 'Balance unavailable'))}
+      <p
+        className={`mt-3 text-on-surface ${value !== null && !loading ? 'font-data text-headline-md' : 'text-body-sm'}`}
+        aria-live="polite"
+      >
+        {loading ? 'Loading…' : (value ?? message)}
       </p>
+    </Card>
+  )
+}
+
+function SettledMiningReport({ session, robotName, worksiteName }) {
+  if (!session) return null
+  let award = null
+  if (session.estimatedAwardAtomic !== null && session.rule?.atomicUnitScale !== undefined) {
+    try {
+      award = atomicUnitsToDecimal(session.estimatedAwardAtomic, session.rule.atomicUnitScale)
+    } catch {
+      award = null
+    }
+  }
+
+  return (
+    <Card className="p-4 sm:p-5" aria-label="Latest mining cycle report">
+      <div className="flex items-start gap-3">
+        <Icon name="task_alt" className="mt-0.5 text-tertiary" />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-title font-semibold text-on-surface">Last mining cycle</h2>
+            <Badge t="tertiary">Settled</Badge>
+          </div>
+          <p className="mt-1 text-body-sm text-on-surface-variant">
+            {robotName || 'Your robot'} · {worksiteName || 'Worksite'}
+          </p>
+          <p className="mt-1 text-label-sm text-outline">
+            Completed {new Date(session.settledAt || session.endsAt).toLocaleString()}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="rounded-xl bg-surface-container px-3 py-3">
+          <p className="text-label-sm text-on-surface-variant">Cycle duration</p>
+          <p className="tnum mt-1 text-title font-semibold text-on-surface">24 hours</p>
+        </div>
+        <div className="rounded-xl bg-surface-container px-3 py-3">
+          <p className="text-label-sm text-on-surface-variant">RoboCoin awarded</p>
+          <p className="tnum mt-1 text-title font-semibold text-tertiary">{award === null ? '—' : `+${award} RBC`}</p>
+        </div>
+      </div>
+      <p className="mt-4 text-body-sm text-on-surface-variant">
+        Come back after each 24-hour cycle and start mining again when your robot and worksite are ready.
+      </p>
+      <Button to="/deploy" full className="mt-4" icon="paid">
+        Return to Mining
+      </Button>
     </Card>
   )
 }
@@ -91,43 +174,70 @@ export default function Home() {
   const [welcome, setWelcome] = useState(false)
   const [ids, setIds] = useState(loadShortcuts)
   const [editing, setEditing] = useState(false)
+  const [refreshCount, setRefreshCount] = useState(0)
+  const [miningSnapshot, setMiningSnapshot] = useState(null)
+  const [miningRefreshing, setMiningRefreshing] = useState(false)
+  const [dailyActivityMessage, setDailyActivityMessage] = useState('')
+  const settledCycleRefresh = useRef(null)
+  const miningRefreshLock = useRef(false)
   const [summary, setSummary] = useState({
     loading: true,
     name: null,
     xp: null,
     rbc: null,
-    xpEmpty: false,
-    xpError: false,
-    rbcError: false,
+    xpState: null,
+    rbcState: null,
   })
 
   useEffect(() => {
     let active = true
-    const unavailable = {
+    const initial = {
       loading: false,
       name: null,
       xp: null,
       rbc: null,
-      xpEmpty: false,
-      xpError: true,
-      rbcError: true,
+    }
+    if (auth.loading) {
+      queueMicrotask(() => {
+        if (!active) return
+        setMiningSnapshot(null)
+        setDailyActivityMessage('')
+        setSummary({ ...initial, loading: true })
+      })
+      return () => {
+        active = false
+      }
     }
     if (runtimeConfig.isDemo || !auth.session?.userId) {
+      const state = runtimeConfig.isDemo ? 'preview' : 'signedOut'
       queueMicrotask(() => {
-        if (active) setSummary(unavailable)
+        if (!active) return
+        setMiningSnapshot(null)
+        setDailyActivityMessage('')
+        setSummary({ ...initial, xpState: state, rbcState: state })
       })
       return () => {
         active = false
       }
     }
 
+    queueMicrotask(() => {
+      if (!active) return
+      setSummary({ ...initial, loading: true })
+      setDailyActivityMessage('')
+    })
     const accountRequest = runtimeConfig.services.identity
       ? browserAccountClient.snapshot()
       : Promise.reject(new Error('Account service is unavailable.'))
-    const miningRequest = browserMiningClient.snapshot()
+    const dailyActivity = browserMiningClient.claimDailyActivity().catch(() => ({ status: 'unavailable' }))
+    dailyActivity.then((activity) => {
+      if (!active || activity?.status !== 'awarded' || !Number.isSafeInteger(activity.xp) || activity.xp <= 0) return
+      setDailyActivityMessage(`Daily login reward: +${activity.xp} XP added.`)
+    })
+    const miningRequest = dailyActivity.then(() => browserMiningClient.snapshot())
     const passportRequest =
       robotState.robot?.id && runtimeConfig.services.robots
-        ? browserRobotClient.passport(robotState.robot.id)
+        ? dailyActivity.then(() => browserRobotClient.passport(robotState.robot.id))
         : Promise.resolve(null)
 
     Promise.allSettled([accountRequest, miningRequest, passportRequest]).then(
@@ -137,19 +247,27 @@ export default function Home() {
         const name = typeof profile?.fullName === 'string' && profile.fullName.trim() ? profile.fullName.trim() : null
         const mining =
           miningResult.status === 'fulfilled' && miningResult.value?.authoritative === true ? miningResult.value : null
+        setMiningSnapshot(mining)
         const passport = passportResult.status === 'fulfilled' ? passportResult.value?.passport : null
         const verifiedXp =
           passport?.authoritative === true && Number.isSafeInteger(passport.totalXp) && passport.totalXp >= 0
             ? passport.totalXp
             : null
+        const xpState =
+          verifiedXp !== null
+            ? null
+            : !robotState.robot?.id
+              ? 'robot'
+              : passport?.authoritative === true
+                ? 'empty'
+                : 'unavailable'
         setSummary({
           loading: false,
           name,
           xp: verifiedXp,
           rbc: mining ? formatRbc(mining.balance) : null,
-          xpEmpty: Boolean(passport?.authoritative === true && verifiedXp === null),
-          xpError: passportResult.status === 'rejected' || !passport,
-          rbcError: !mining,
+          xpState,
+          rbcState: mining ? (formatRbc(mining.balance) === null ? 'empty' : null) : 'unavailable',
         })
       },
     )
@@ -157,7 +275,42 @@ export default function Home() {
     return () => {
       active = false
     }
-  }, [auth.session?.userId, robotState.robot?.id])
+  }, [auth.loading, auth.session?.userId, refreshCount, robotState.robot?.id])
+
+  const refreshMining = useCallback(async () => {
+    if (miningRefreshLock.current) return
+    miningRefreshLock.current = true
+    setMiningRefreshing(true)
+    try {
+      const next = await browserMiningClient.snapshot()
+      if (next?.authoritative === true) {
+        setMiningSnapshot(next)
+        const rbc = formatRbc(next.balance)
+        setSummary((current) => ({ ...current, rbc, rbcState: rbc === null ? 'empty' : null }))
+      }
+    } catch {
+      // The existing panel retains its last confirmed snapshot and lets the user retry.
+    } finally {
+      miningRefreshLock.current = false
+      setMiningRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const session = miningSnapshot?.session
+    if (!session || session.status !== 'active') return undefined
+    const endsAt = Date.parse(session.endsAt)
+    if (!Number.isFinite(endsAt)) return undefined
+    const key = session.id
+    const serverOffset = (Date.parse(miningSnapshot.serverNow) || Date.now()) - Date.now()
+    const delay = Math.max(0, endsAt - (Date.now() + serverOffset))
+    const timer = window.setTimeout(() => {
+      if (settledCycleRefresh.current === key) return
+      settledCycleRefresh.current = key
+      void refreshMining()
+    }, delay + 250)
+    return () => window.clearTimeout(timer)
+  }, [miningSnapshot, refreshMining])
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -179,8 +332,14 @@ export default function Home() {
   const full = ids.length >= MAX_SHORTCUTS
 
   return (
-    <AppShell title={greeting(summary.name)} brand>
+    <AppShell title={greeting(summary.name)} brand lightTopBackdrop>
       <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
+
+      {dailyActivityMessage && (
+        <p role="status" aria-live="polite" className="rounded-xl bg-tertiary/10 px-4 py-3 text-body-sm text-tertiary">
+          {dailyActivityMessage}
+        </p>
+      )}
 
       {robotState.loading ? (
         <StateView kind="loading" title="Loading your robot" desc="Reading the latest confirmed robot state." />
@@ -188,7 +347,7 @@ export default function Home() {
         <RobotSetupPanel robotState={robotState} />
       ) : (
         <section>
-          <Card accent={ACCENTS.indigo} className="overflow-hidden p-5">
+          <Card className="overflow-hidden border-[#433c92] bg-[#1d1c40] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)] sm:p-5">
             <div className="flex items-start gap-4">
               <Robot3D
                 size={96}
@@ -206,24 +365,62 @@ export default function Home() {
                       {packageDefinition(robotState.robot.packageSlug).robotClass} · {robotState.robot.packageSlug}
                     </p>
                   </div>
-                  <Badge t="tertiary">{robotState.robot.lifecycle}</Badge>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#b7e5d0] bg-[#e6f6ee] px-2.5 py-1 text-label-sm font-medium capitalize text-[#176b4c]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#1d9a68]" />
+                    {robotState.robot.lifecycle}
+                  </span>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button to="/robot" size="sm">
-                    Open Robot
-                  </Button>
-                  <Button to="/robot/passport" variant="ghost" size="sm">
-                    Passport
-                  </Button>
-                </div>
+                <Button to="/deploy" size="sm" className="mt-4" icon="bolt">
+                  Start mining
+                </Button>
               </div>
             </div>
-            <p className="mt-4 text-label-sm text-outline">
-              Robot identity and configuration come from your verified robot account.
-            </p>
+            <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[#303747] bg-[#171b25] px-4 py-3.5">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[.07] text-[#f1c75b]">
+                <Icon name="paid" className="text-[22px]" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-label-sm text-[#b5bdcf]">24-hour mining rate</p>
+                <p className="tnum mt-0.5 break-words font-data text-title font-bold text-white" aria-live="polite">
+                  {summary.loading ? 'Loading rate…' : formatDailyMiningRate(miningSnapshot) || 'Rate unavailable'}
+                </p>
+              </div>
+            </div>
           </Card>
         </section>
       )}
+
+      {!runtimeConfig.isDemo &&
+        miningSnapshot?.authoritative === true &&
+        (() => {
+          const session = miningSnapshot.session
+          const robotName = (item) => miningSnapshot.robots.find((robot) => robot.robotId === item?.robotId)?.name
+          const worksiteName = (item) =>
+            miningSnapshot.worksites.find((site) => site.worksiteId === item?.worksiteId)?.name
+          const latestSettled = miningSnapshot.recentSessions.find((item) => item.status === 'settled')
+          return session?.status === 'settled' ? (
+            <SettledMiningReport
+              session={session}
+              robotName={robotName(session)}
+              worksiteName={worksiteName(session)}
+            />
+          ) : session ? (
+            <MiningCyclePanel
+              session={session}
+              robotName={robotName(session)}
+              worksiteName={worksiteName(session)}
+              serverNow={miningSnapshot.serverNow}
+              onRefresh={refreshMining}
+              refreshing={miningRefreshing}
+            />
+          ) : latestSettled ? (
+            <SettledMiningReport
+              session={latestSettled}
+              robotName={robotName(latestSettled)}
+              worksiteName={worksiteName(latestSettled)}
+            />
+          ) : null
+        })()}
 
       <section
         aria-label="Member balances"
@@ -236,17 +433,27 @@ export default function Home() {
           icon="stars"
           loading={summary.loading}
           value={summary.xp === null ? null : formatXp(summary.xp)}
-          empty={summary.xpEmpty}
-          error={summary.xpError}
+          state={summary.xpState}
         />
         <SummaryCard
           title="RoboCoin balance"
           icon="paid"
           loading={summary.loading}
           value={summary.rbc}
-          error={summary.rbcError}
+          state={summary.rbcState}
         />
       </section>
+      {!runtimeConfig.isDemo &&
+        auth.session?.userId &&
+        (summary.xpState === 'unavailable' || summary.rbcState === 'unavailable') && (
+          <button
+            type="button"
+            onClick={() => setRefreshCount((count) => count + 1)}
+            className="-mt-4 justify-self-start text-label-md text-primary hover:underline"
+          >
+            Refresh balances
+          </button>
+        )}
 
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-4">

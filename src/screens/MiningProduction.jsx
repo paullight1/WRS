@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
 import MiningCyclePanel from '../components/mining/MiningCyclePanel.jsx'
 import StateView from '../components/states/StateView.jsx'
-import { Badge, Button, Card, CoinMark, Icon, SectionTitle, Stat, Tabs } from '../components/ui.jsx'
+import { Badge, Button, Card, CoinMark, Icon, SectionTitle, Tabs } from '../components/ui.jsx'
 import { atomicRateToDecimal, atomicUnitsToDecimal } from '../domain/mining/metrics.ts'
 import { browserMiningClient } from '../infrastructure/mining/browserMiningClient.ts'
 
@@ -26,7 +26,8 @@ function summaryReason(code) {
   const reasons = {
     'robot-required': 'An active robot is required before you can start mining.',
     'robot-inactive': 'Your robot must be active to start mining.',
-    'mining-not-configured': 'Mining is not configured for this account yet.',
+    'mining-not-configured':
+      'Mining rewards are not configured yet. The cycle will be available when reward settings are activated.',
     'verified-contribution-required': 'Complete a verified activity to meet the current mining requirements.',
   }
   return reasons[code] || 'The server has not confirmed that mining can start yet.'
@@ -37,11 +38,22 @@ function currencyAmount(amount, scale) {
   return atomicUnitsToDecimal(amount, scale)
 }
 
+function robotSlotProgress(value) {
+  const earned = Number(value?.lifetimeMinedRbc)
+  const threshold = Number(value?.thresholdRbc)
+  if (!Number.isFinite(earned) || !Number.isFinite(threshold) || threshold <= 0) return null
+  return {
+    earned: Math.max(0, earned),
+    threshold,
+    unlocked: value.unlocked === true,
+    percent: Math.max(0, Math.min(100, (earned / threshold) * 100)),
+  }
+}
+
 export default function MiningProduction() {
   const [tab, setTab] = useState('Available')
   const [snapshot, setSnapshot] = useState(null)
   const [selectedRobotId, setSelectedRobotId] = useState('')
-  const [selectedWorksiteId, setSelectedWorksiteId] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [starting, setStarting] = useState(false)
@@ -64,11 +76,6 @@ export default function MiningProduction() {
         if (next.robots.some((robot) => robot.robotId === current && robot.unlocked)) return current
         return next.robots.find((robot) => robot.unlocked)?.robotId || ''
       })
-      setSelectedWorksiteId((current) =>
-        next.worksites.some((worksite) => worksite.worksiteId === current && worksite.available)
-          ? current
-          : next.worksites.find((worksite) => worksite.available)?.worksiteId || '',
-      )
       if (next.session) setTab('Active')
     } catch (reason) {
       setError(errorMessage(reason, 'Mining data could not be loaded.'))
@@ -79,14 +86,21 @@ export default function MiningProduction() {
   }, [])
 
   useEffect(() => {
-    void loadSnapshot()
+    let active = true
+    Promise.resolve().then(() => active && loadSnapshot())
+    return () => {
+      active = false
+    }
   }, [loadSnapshot])
 
   useEffect(() => {
     if (tab !== 'Leaderboard') return undefined
     let current = true
-    setLeaderboardLoading(true)
-    setLeaderboardError('')
+    queueMicrotask(() => {
+      if (!current) return
+      setLeaderboardLoading(true)
+      setLeaderboardError('')
+    })
     browserMiningClient
       .leaderboard(leaderboardPeriod)
       .then((result) => {
@@ -107,25 +121,23 @@ export default function MiningProduction() {
     () => new Map((snapshot?.robots || []).map((robot) => [robot.robotId, robot.name])),
     [snapshot],
   )
-  const worksiteNames = useMemo(
-    () => new Map((snapshot?.worksites || []).map((worksite) => [worksite.worksiteId, worksite.name])),
-    [snapshot],
-  )
   const currentSession = snapshot?.session || null
-  const balance = currencyAmount(snapshot?.balance?.availableAtomic, snapshot?.balance?.atomicScale)
-  const averageRate = snapshot?.stats?.averageRateAtomicPerHour
-  const rateScale = snapshot?.stats?.atomicScale
   const currentRobot = snapshot?.robots.find((robot) => robot.robotId === selectedRobotId)
-  const currentWorksite = snapshot?.worksites.find((worksite) => worksite.worksiteId === selectedWorksiteId)
+  const slotProgress = robotSlotProgress(snapshot?.robotSlotProgress)
   const configuredRate = snapshot?.rateBreakdown?.estimatedAtomicPerHour
   const configuredScale = snapshot?.rateBreakdown?.atomicUnitScale
+  const hasConfiguredRate =
+    snapshot?.issuanceEnabled === true &&
+    typeof configuredRate === 'string' &&
+    /^\d+(?:\.\d+)?$/.test(configuredRate) &&
+    Number.isInteger(configuredScale) &&
+    configuredScale >= 0 &&
+    configuredScale <= 12
   const canStart = Boolean(
     snapshot?.eligibility?.eligible &&
     snapshot.issuanceEnabled &&
     selectedRobotId &&
     currentRobot?.unlocked &&
-    selectedWorksiteId &&
-    currentWorksite?.available &&
     !currentSession &&
     !starting,
   )
@@ -136,7 +148,6 @@ export default function MiningProduction() {
     try {
       const next = await browserMiningClient.start({
         robotId: selectedRobotId,
-        worksiteId: selectedWorksiteId,
         idempotencyKey: `mining-cycle:${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`,
       })
       setSnapshot(next)
@@ -151,7 +162,7 @@ export default function MiningProduction() {
 
   const content = () => {
     if (loading)
-      return <StateView kind="loading" title="Loading mining" desc="Checking your robot, worksite and mining status." />
+      return <StateView kind="loading" title="Loading mining" desc="Checking your robot and mining status." />
     if (error || !snapshot) {
       return (
         <StateView
@@ -166,21 +177,64 @@ export default function MiningProduction() {
     if (tab === 'Available') {
       return (
         <div className="space-y-6">
-          <Card className="p-4">
-            <div className="flex items-start gap-3">
-              <CoinMark size={42} />
-              <div>
-                <h2 className="text-title font-semibold text-on-surface">One robot, one worksite, one 24-hour cycle</h2>
-                <p className="mt-1 text-body-sm text-on-surface-variant">
-                  Choose an unlocked robot and an approved worksite. Your configured rate is confirmed by the server
-                  before the cycle begins.
-                </p>
-              </div>
+          {(snapshot.level?.name || Number.isInteger(snapshot.level?.multiplierBps)) && (
+            <div className="flex items-center justify-between gap-3 text-body-sm text-on-surface-variant">
+              {snapshot.level.name && <span>{snapshot.level.name}</span>}
+              {Number.isInteger(snapshot.level.multiplierBps) && (
+                <span>Mining power · {snapshot.level.multiplierBps / 10000}×</span>
+              )}
             </div>
-          </Card>
-
+          )}
           <section>
-            <SectionTitle action={`${snapshot.robots.length} owned`}>Choose your robot</SectionTitle>
+            <SectionTitle action={`${snapshot.robots.filter((robot) => robot.unlocked).length} unlocked`}>
+              Choose your robot
+            </SectionTitle>
+            <Card className="mb-4 border-primary/20 bg-primary-container/10 p-4">
+              <div className="flex items-start gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-container/20 text-primary">
+                  <Icon name={slotProgress?.unlocked ? 'lock_open' : 'lock'} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-title font-semibold text-on-surface">Unlock more robots</h3>
+                    {slotProgress && (
+                      <Badge t={slotProgress.unlocked ? 'tertiary' : 'outline'}>
+                        {slotProgress.unlocked ? 'Unlocked' : `${Math.floor(slotProgress.percent)}%`}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="mt-1 text-body-sm text-on-surface-variant">
+                    {slotProgress
+                      ? `Earn ${slotProgress.threshold.toLocaleString()} RBC from settled mining rewards to open every additional robot slot. Spending RBC will not reduce this progress.`
+                      : 'Robot slot progress will appear when mining rewards are available.'}
+                  </p>
+                  {slotProgress && (
+                    <>
+                      <div className="mt-3 flex items-center justify-between gap-3 text-label-sm text-on-surface-variant">
+                        <span>Lifetime mined</span>
+                        <span className="tnum font-semibold text-on-surface">
+                          {slotProgress.earned.toLocaleString(undefined, { maximumFractionDigits: 2 })} /{' '}
+                          {slotProgress.threshold.toLocaleString()} RBC
+                        </span>
+                      </div>
+                      <div
+                        role="progressbar"
+                        aria-label="Progress to unlock additional robot slots"
+                        aria-valuemin={0}
+                        aria-valuemax={slotProgress.threshold}
+                        aria-valuenow={Math.min(slotProgress.earned, slotProgress.threshold)}
+                        className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high"
+                      >
+                        <div
+                          className="h-full rounded-full bg-tertiary transition-[width] duration-500"
+                          style={{ width: `${slotProgress.percent}%` }}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </Card>
             {snapshot.robots.length ? (
               <div className="space-y-2">
                 {snapshot.robots.map((robot) => {
@@ -203,7 +257,7 @@ export default function MiningProduction() {
                       <span className="min-w-0 flex-1">
                         <span className="block text-title font-semibold text-on-surface">{robot.name}</span>
                         <span className="mt-0.5 block text-body-sm text-on-surface-variant">
-                          {locked ? robot.unlockRequirement : 'Ready to mine'}
+                          {locked ? robot.unlockRequirement : 'Ready to mine for 24 hours'}
                         </span>
                       </span>
                       <Badge t={locked ? 'outline' : selectedRobotId === robot.robotId ? 'tertiary' : 'outline'}>
@@ -222,65 +276,26 @@ export default function MiningProduction() {
             )}
           </section>
 
-          <section>
-            <SectionTitle action={`${snapshot.worksites.length} approved`}>Choose a worksite</SectionTitle>
-            {snapshot.worksites.length ? (
-              <div className="space-y-2">
-                {snapshot.worksites.map((worksite) => (
-                  <button
-                    key={worksite.worksiteId}
-                    type="button"
-                    role="radio"
-                    aria-checked={selectedWorksiteId === worksite.worksiteId}
-                    disabled={Boolean(currentSession)}
-                    onClick={() => setSelectedWorksiteId(worksite.worksiteId)}
-                    className={choiceButtonClass(selectedWorksiteId === worksite.worksiteId, Boolean(currentSession))}
-                  >
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-tertiary/15 text-tertiary">
-                      <Icon name="location_on" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-title font-semibold text-on-surface">{worksite.name}</span>
-                      {worksite.description && (
-                        <span className="mt-0.5 block text-body-sm text-on-surface-variant">
-                          {worksite.description}
-                        </span>
-                      )}
-                    </span>
-                    {selectedWorksiteId === worksite.worksiteId && <Badge>Selected</Badge>}
-                  </button>
-                ))}
+          {hasConfiguredRate && (
+            <Card className="flex items-center gap-3 p-4">
+              <CoinMark size={38} />
+              <div>
+                <p className="text-label-sm text-on-surface-variant">Configured mining rate</p>
+                <p className="tnum text-title font-semibold text-on-surface">
+                  {atomicRateToDecimal(configuredRate, configuredScale)} RBC per hour
+                </p>
               </div>
-            ) : (
-              <StateView
-                kind="empty"
-                title="No approved worksites yet"
-                desc="A worksite will appear here after it is approved for mining."
-              />
-            )}
-          </section>
+            </Card>
+          )}
 
-          {configuredRate !== null &&
-            configuredRate !== undefined &&
-            configuredScale !== null &&
-            configuredScale !== undefined && (
-              <Card className="flex items-center gap-3 p-4">
-                <CoinMark size={38} />
-                <div>
-                  <p className="text-label-sm text-on-surface-variant">Configured mining rate</p>
-                  <p className="tnum text-title font-semibold text-on-surface">
-                    {atomicRateToDecimal(String(configuredRate), Number(configuredScale))} RBC per hour
-                  </p>
-                </div>
-              </Card>
-            )}
-
-          {!snapshot.eligibility.eligible && (
+          {(!snapshot.eligibility.eligible || !snapshot.issuanceEnabled) && (
             <p
               role="status"
               className="rounded-xl border border-white/10 bg-surface-container px-4 py-3 text-body-sm text-on-surface-variant"
             >
-              {summaryReason(snapshot.eligibility.reasonCodes?.[0])}
+              {!snapshot.issuanceEnabled
+                ? 'Mining is disabled until an authorized operator activates a reward rule with a rate and issuance limits.'
+                : summaryReason(snapshot.eligibility.reasonCodes?.[0])}
             </p>
           )}
           {actionError && (
@@ -289,7 +304,7 @@ export default function MiningProduction() {
             </p>
           )}
           <Button full size="lg" loading={starting} disabled={!canStart} icon="play_arrow" onClick={start}>
-            Start 24-hour mining cycle
+            Start mining
           </Button>
         </div>
       )
@@ -303,7 +318,6 @@ export default function MiningProduction() {
             <MiningCyclePanel
               session={currentSession}
               robotName={robotNames.get(currentSession.robotId)}
-              worksiteName={worksiteNames.get(currentSession.worksiteId)}
               serverNow={snapshot.serverNow}
               onRefresh={() => loadSnapshot({ quiet: true })}
               refreshing={refreshing}
@@ -312,7 +326,7 @@ export default function MiningProduction() {
             <StateView
               kind="empty"
               title="No active mining cycle"
-              desc="Choose an available robot and worksite to start your next 24-hour cycle."
+              desc="Choose an available robot to start your next 24-hour cycle."
             />
           )}
           <section>
@@ -327,7 +341,6 @@ export default function MiningProduction() {
                         {robotNames.get(session.robotId) || 'Robot'}
                       </p>
                       <p className="truncate text-body-sm text-on-surface-variant">
-                        {worksiteNames.get(session.worksiteId) || 'Worksite'} ·{' '}
                         {new Date(session.settledAt || session.endsAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -400,43 +413,6 @@ export default function MiningProduction() {
 
   return (
     <AppShell title="Mining" subtitle="Earn RoboCoin through verified robot work" wide>
-      {snapshot && !loading && !error && (
-        <section aria-label="Mining summary" className="grid grid-cols-3 gap-2.5">
-          <Stat label="Active robots" value={snapshot.stats.activeRobots} t="tertiary" icon="smart_toy" />
-          <Stat
-            label="Mining time"
-            value={`${(snapshot.stats.miningMilliseconds / 3_600_000).toFixed(1)} h`}
-            icon="schedule"
-          />
-          <Stat
-            label="Average rate"
-            value={
-              averageRate !== null && rateScale !== null ? `${atomicRateToDecimal(averageRate, rateScale)} RBC/h` : '—'
-            }
-            t="secondary"
-            icon="trending_up"
-          />
-        </section>
-      )}
-      {snapshot && !loading && !error && (
-        <Card className="flex items-center gap-3 p-4">
-          <CoinMark size={42} />
-          <div className="min-w-0 flex-1">
-            <p className="text-label-sm text-on-surface-variant">Available RoboCoin</p>
-            <p className="tnum text-headline-md font-semibold text-on-surface">
-              {balance === null ? 'Unavailable' : `${balance} RBC`}
-            </p>
-          </div>
-          <Button
-            variant="quiet"
-            onClick={() => loadSnapshot({ quiet: true })}
-            loading={refreshing}
-            aria-label="Refresh mining status"
-          >
-            <Icon name="refresh" />
-          </Button>
-        </Card>
-      )}
       <Tabs items={pageTabs} value={tab} onChange={setTab} />
       {content()}
     </AppShell>

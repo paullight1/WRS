@@ -13,11 +13,11 @@ export default function EventCodeProduction() {
     setMessage('')
     try {
       const result = await browserEcosystemClient.redeemEventCode(code)
-      const points = Number(result.points || 0)
+      const xp = Number(result.reward?.xp || 0)
       setMessage(
         result.status === 'already-redeemed'
           ? 'This event was already claimed by your account.'
-          : `Event claim verified${points ? ` · +${points} points` : ''}.`,
+          : `Event claim verified${xp ? ` · +${xp} XP` : ''}.`,
       )
       setCode('')
     } catch (reason) {

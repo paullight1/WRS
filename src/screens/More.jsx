@@ -15,6 +15,7 @@ const operatorRoles = new Set([
   'data_operator',
   'deployment_operator',
   'risk_operator',
+  'reward_operator',
 ])
 
 export default function More() {

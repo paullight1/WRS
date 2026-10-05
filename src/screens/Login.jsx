@@ -23,6 +23,7 @@ export default function Login() {
   const auth = useAuth()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,7 +35,7 @@ export default function Login() {
     setError('')
     try {
       const result = await auth.login(identifier, password, remember)
-      if (!result.session.emailVerified || !result.session.phoneVerified) {
+      if (!result.session.emailVerified) {
         nav('/verify', {
           replace: true,
           state: {
@@ -58,12 +59,7 @@ export default function Login() {
       <Atmosphere />
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <span className="mb-5 grid h-14 w-14 place-items-center rounded-2xl border border-white/10 bg-white/5">
-            <Icon name="language" className="text-[30px] text-primary" fill />
-          </span>
-          <h1 className="font-headline-lg text-[26px] font-extrabold uppercase tracking-tight text-on-surface">
-            World Robotic <span className="text-primary">System</span>
-          </h1>
+          <img src="/wrs-logo-footer.png" alt="World Robotic System" className="mb-5 h-auto w-[230px] max-w-full" />
           <p className="mt-3 text-body-md text-on-surface-variant">Login to your account</p>
         </div>
 
@@ -81,8 +77,19 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             icon="lock"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
+            trailing={
+              <button
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-on-surface-variant hover:bg-white/[.06] hover:text-on-surface"
+              >
+                <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="text-[20px]" />
+              </button>
+            }
           />
           {error && (
             <p role="alert" className="text-label-sm text-error">

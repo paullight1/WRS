@@ -161,7 +161,6 @@ test('production ecosystem screens use the authoritative ecosystem client rather
     'src/screens/MarketplaceProduction.jsx',
     'src/screens/RewardsProduction.jsx',
     'src/screens/EventCodeProduction.jsx',
-    'src/screens/BoostsProduction.jsx',
     'src/screens/AcademyProduction.jsx',
     'src/screens/CommunityProduction.jsx',
     'src/screens/ReferralsProduction.jsx',
@@ -171,6 +170,7 @@ test('production ecosystem screens use the authoritative ecosystem client rather
     assert.match(source, /browserEcosystemClient/, path)
     assert.doesNotMatch(source, /\.\.\/data\/mock\.js/, path)
   }
+  assert.match(read('src/screens/BoostsProduction.jsx'), /Navigate to="\/rewards"/)
 })
 
 test('server ecosystem routes resolve their shared marketplace and reward operations', () => {

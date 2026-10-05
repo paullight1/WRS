@@ -4,7 +4,7 @@ import AppShell from '../components/AppShell.jsx'
 import RobotFace from '../components/RobotFace.jsx'
 import Worksite3D from '../components/robot3d/Worksite3D.jsx'
 import { ACCENTS, Badge, Button, Card, Field, Icon, Progress, SectionTitle, tone, IconTile } from '../components/ui.jsx'
-import { industries, robot, activeDeployments, deploymentHistory, deploymentSummary, unlocked } from '../data/mock.js'
+import { industries, robot, activeDeployments, deploymentHistory, unlocked } from '../data/mock.js'
 import { worksiteFor } from '../data/worksites.js'
 
 const STATUS_TONE = {
@@ -13,6 +13,12 @@ const STATUS_TONE = {
   Completed: 'tertiary',
   'Ended early': 'outline',
 }
+
+const starterRobotSummary = [
+  { label: 'Active units', value: '1', icon: 'rocket_launch', tone: 'tertiary' },
+  { label: 'Total hours', value: '48.5', icon: 'schedule', tone: 'primary' },
+  { label: 'Avg. performance', value: '98%', icon: 'trending_up', tone: 'success' },
+]
 
 /* Metric strip shared by active + history cards. */
 function Metrics({ items }) {
@@ -241,7 +247,7 @@ export default function Deploy() {
           )}
 
           <section className="grid grid-cols-3 gap-3">
-            {deploymentSummary.map((s) => {
+            {starterRobotSummary.map((s) => {
               const c = tone(s.tone)
               return (
                 <Card key={s.label} className="p-3.5 text-center">
@@ -254,14 +260,23 @@ export default function Deploy() {
           </section>
 
           <section className="space-y-3">
-            {activeDeployments.map((d) => (
+            {activeDeployments.slice(0, 1).map((d) => (
               <DeploymentCard key={d.id} d={d} />
             ))}
           </section>
 
-          <Button variant="ghost" full size="lg" icon="add" onClick={() => setTab('Available')}>
-            Deploy Another Robot
-          </Button>
+          <Card className="flex items-start gap-3 border-primary/20 bg-primary-container/10 p-4">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-container/20 text-primary">
+              <Icon name="lock" />
+            </span>
+            <div>
+              <h2 className="text-title font-semibold text-on-surface">More robots unlock at 200 RBC</h2>
+              <p className="mt-1 text-body-sm text-on-surface-variant">
+                Earn 200 RBC from settled mining cycles to open additional robot slots. Spending RBC will not reduce
+                your progress.
+              </p>
+            </div>
+          </Card>
         </>
       )}
 

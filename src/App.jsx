@@ -2,11 +2,13 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute } from './components/auth/AuthProvider.jsx'
 import { NotifyProvider } from './components/notifications/Notify.jsx'
 import { RobotProvider } from './components/robot/RobotProvider.jsx'
+import { runtimeConfig } from './lib/runtimeConfig.js'
 import Landing from './screens/Landing.jsx'
 import Splash from './screens/Splash.jsx'
 import Login from './screens/Login.jsx'
 import Register from './screens/Register.jsx'
 import Verify from './screens/Verify.jsx'
+import AuthCallback from './screens/AuthCallback.jsx'
 import ForgotPassword from './screens/ForgotPassword.jsx'
 import ResetPassword from './screens/ResetPassword.jsx'
 import Onboarding from './screens/Onboarding.jsx'
@@ -23,6 +25,7 @@ import TrainingModule from './screens/TrainingModule.jsx'
 import DataContribution from './screens/DataContribution.jsx'
 import DataTask from './screens/DataTask.jsx'
 import DataQuality from './screens/DataQuality.jsx'
+import Deploy from './screens/Deploy.jsx'
 import DeploymentDetailsProduction from './screens/DeploymentDetailsProduction.jsx'
 import ActiveDeploymentProduction from './screens/ActiveDeploymentProduction.jsx'
 import MiningProduction from './screens/MiningProduction.jsx'
@@ -75,6 +78,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify" element={<Verify />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -97,7 +101,7 @@ export default function App() {
             <Route path="/data/quality" element={verified(<DataQuality />)} />
             <Route path="/data/:slug" element={verified(<DataTask />)} />
 
-            <Route path="/deploy" element={verified(<MiningProduction />)} />
+            <Route path="/deploy" element={verified(runtimeConfig.isDemo ? <Deploy /> : <MiningProduction />)} />
             <Route path="/deploy/active" element={verified(<ActiveDeploymentScreen />)} />
             <Route path="/deploy/active/:id" element={verified(<ActiveDeploymentScreen />)} />
             <Route path="/deploy/:name" element={verified(<DeploymentDetailsScreen />)} />

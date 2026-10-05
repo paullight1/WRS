@@ -2,7 +2,7 @@
 
 These files are **read-only production/staging verification queries**. They are not migrations and must not be inserted into the `supabase/migrations` timestamp sequence.
 
-Apply all 25 migrations from `supabase/MIGRATION_GUIDE.md` first, then run the relevant verification files against the dedicated WRS Supabase project.
+Apply all 33 migrations from `supabase/MIGRATION_GUIDE.md` first, then run the relevant verification files against the dedicated WRS Supabase project.
 
 | File | When to run | What it verifies |
 |---|---|---|

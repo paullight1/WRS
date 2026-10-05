@@ -515,7 +515,7 @@ export function Tabs({ items, value, onChange, className = '' }) {
 }
 
 /* ------------------------------------------------------------------ field */
-export function Field({ label, hint, error, icon, className = '', id, ...rest }) {
+export function Field({ label, hint, error, icon, trailing, className = '', id, ...rest }) {
   const inputId = id || `f-${label?.replace(/\W+/g, '-').toLowerCase() || rest.placeholder?.slice(0, 8)}`
   return (
     <div className={className}>
@@ -533,9 +533,10 @@ export function Field({ label, hint, error, icon, className = '', id, ...rest })
         <input
           id={inputId}
           aria-invalid={error ? true : undefined}
-          className="w-full bg-transparent text-body-md text-on-surface outline-none placeholder:text-outline"
+          className="min-w-0 flex-1 bg-transparent text-body-md text-on-surface outline-none placeholder:text-outline"
           {...rest}
         />
+        {trailing}
       </div>
       {(hint || error) && (
         <p className={`mt-1.5 text-label-sm ${error ? 'text-error' : 'text-on-surface-variant'}`}>{error || hint}</p>

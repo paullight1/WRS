@@ -8,21 +8,19 @@ export function validateMiningStartBody(body) {
     throw new HttpError(400, 'A mining start request is required.', 'mining-start-invalid')
   }
   const keys = Object.keys(body).sort()
-  const allowed = ['idempotencyKey', 'robotId', 'worksiteId']
+  const allowed = ['idempotencyKey', 'robotId']
   const idempotencyKey = typeof body.idempotencyKey === 'string' ? body.idempotencyKey.trim() : ''
   const robotId = typeof body.robotId === 'string' ? body.robotId.trim() : ''
-  const worksiteId = typeof body.worksiteId === 'string' ? body.worksiteId.trim() : ''
   if (
     keys.length !== allowed.length ||
     keys.some((key, index) => key !== allowed[index]) ||
     !UUID.test(robotId) ||
-    !UUID.test(worksiteId) ||
     idempotencyKey.length < 8 ||
     idempotencyKey.length > 200
   ) {
-    throw new HttpError(400, 'Send a robot, an approved worksite, and a valid idempotency key.', 'mining-start-invalid')
+    throw new HttpError(400, 'Send a robot and a valid idempotency key.', 'mining-start-invalid')
   }
-  return { robotId, worksiteId, idempotencyKey }
+  return { robotId, idempotencyKey }
 }
 
 function miningSnapshotShape(data) {
@@ -99,25 +97,17 @@ export async function miningSnapshot(userId) {
   }
 }
 
-export async function startMiningSession(userId, { robotId, worksiteId, idempotencyKey }) {
+export async function startMiningSession(userId, { robotId, idempotencyKey }) {
   if (!UUID.test(String(userId || ''))) throw new HttpError(401, 'Authentication is required.', 'unauthenticated')
   const current = await miningSnapshot(userId)
   if (current.session) return current
   if (!current.eligibility.eligible) return current
   const robot = current.robots.find((item) => item.robotId === robotId)
-  if (!robot?.unlocked)
-    throw new HttpError(
-      409,
-      'This robot is locked until the previous robot completes a full mining cycle.',
-      'robot-locked',
-    )
-  const worksite = current.worksites.find((item) => item.worksiteId === worksiteId && item.available)
-  if (!worksite) throw new HttpError(409, 'Choose an approved mining worksite.', 'worksite-unavailable')
-
+  if (!robot?.unlocked) throw new HttpError(409, 'Mine 200 RBC to unlock additional robot slots.', 'robot-locked')
   await serviceRpc('wrs_start_mining_session', {
     p_user_id: userId,
     p_robot_id: robotId,
-    p_worksite_id: worksiteId,
+    p_worksite_id: null,
     p_idempotency_key: idempotencyKey,
   })
   return miningSnapshot(userId)

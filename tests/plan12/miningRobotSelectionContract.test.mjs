@@ -4,39 +4,29 @@ import test from 'node:test'
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8')
 
-test('mining sessions bind to approved worksites and allow only one open session per member', async () => {
-  const sql = await read('supabase/migrations/20260929120000_mining_robot_worksite_unlocks.sql')
-  assert.match(sql, /create table public\.mining_worksites/i)
-  assert.match(sql, /status text not null default 'pending'.*approved/i)
-  assert.match(sql, /alter table public\.mining_sessions\s+add column worksite_id uuid/i)
-  assert.match(sql, /worksite_id uuid references public\.mining_worksites/i)
-  assert.match(sql, /create unique index mining_sessions_one_open_per_user_idx[\s\S]*?on public\.mining_sessions\(user_id\)[\s\S]*?where status in \('active','ended'\)/i)
+test('mining sessions allow a robot-only cycle while retaining optional worksite history', async () => {
+  const sql = await read('supabase/migrations/20261001080216_configurable_xp_rbc_reward_rules.sql')
+  const api = await read('api/_lib/mining.js')
+  assert.match(sql, /p_user_id uuid,\s*p_robot_id uuid,\s*p_worksite_id uuid,\s*p_idempotency_key text/i)
+  assert.match(sql, /if p_worksite_id is not null and not exists[\s\S]*?approved worksite required/i)
+  assert.doesNotMatch(sql, /p_user_id is null or p_robot_id is null or p_worksite_id is null/)
+  assert.match(api, /p_worksite_id:\s*null/)
+  assert.match(api, /wrs_start_mining_session/)
 })
 
-test('start RPC checks selected robot ownership, lifecycle, sequential unlock, and approved worksite', async () => {
-  const sql = await read('supabase/migrations/20260929120000_mining_robot_worksite_unlocks.sql')
-  assert.match(sql, /wrs_start_mining_session\(\s*p_user_id uuid, p_robot_id uuid, p_worksite_id uuid, p_idempotency_key text\s*\)/i)
-  assert.match(sql, /id\s*=\s*p_robot_id and owner_user_id\s*=\s*p_user_id/i)
-  assert.match(sql, /robot lifecycle must be active/i)
-  assert.match(sql, /settled mining session required to unlock this robot/i)
-  assert.match(sql, /status\s*=\s*'approved'[\s\S]*?id\s*=\s*p_worksite_id/i)
-  assert.match(sql, /grant execute on function public\.wrs_start_mining_session\(uuid,uuid,uuid,text\) to service_role/i)
-})
-
-test('start request accepts only UUID robot/worksite IDs and a bounded idempotency key', async () => {
+test('mining start validates robot ownership at the server and accepts only a robot plus idempotency key', async () => {
   const { validateMiningStartBody } = await import(new URL('../../api/_lib/mining.js', import.meta.url))
   const robotId = '123e4567-e89b-42d3-a456-426614174000'
-  const worksiteId = '123e4567-e89b-42d3-a456-426614174001'
-  assert.deepEqual(validateMiningStartBody({ robotId, worksiteId, idempotencyKey: 'mining-cycle-0001' }), {
+  assert.deepEqual(validateMiningStartBody({ robotId, idempotencyKey: 'mining-cycle-0001' }), {
     robotId,
-    worksiteId,
     idempotencyKey: 'mining-cycle-0001',
   })
   for (const input of [
     {},
-    { robotId, worksiteId, idempotencyKey: 'short' },
-    { robotId: 'not-a-uuid', worksiteId, idempotencyKey: 'mining-cycle-0001' },
-    { robotId, worksiteId, idempotencyKey: 'mining-cycle-0001', amount: 10 },
+    { robotId, idempotencyKey: 'short' },
+    { robotId: 'not-a-uuid', idempotencyKey: 'mining-cycle-0001' },
+    { robotId, worksiteId: '123e4567-e89b-42d3-a456-426614174001', idempotencyKey: 'mining-cycle-0001' },
+    { robotId, idempotencyKey: 'mining-cycle-0001', amount: 10 },
   ]) {
     assert.throws(() => validateMiningStartBody(input), { name: 'HttpError' })
   }

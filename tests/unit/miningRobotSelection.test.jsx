@@ -83,21 +83,19 @@ describe('Mining robot selection', () => {
 
   it('starts one selected robot at the configured server rate and shows the selection as fixed', async () => {
     render(<MiningProduction />)
-    fireEvent.click(await screen.findByRole('button', { name: /Start 24-hour mining cycle/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /Start mining/ }))
     await waitFor(() =>
       expect(browserMiningClient.start).toHaveBeenCalledWith({
         robotId: 'robot-1',
-        worksiteId: 'site-1',
         idempotencyKey: expect.any(String),
       }),
     )
     expect(await screen.findByText('WRS Explorer')).toBeInTheDocument()
-    expect(screen.getByText('Northern Test Facility')).toBeInTheDocument()
-    expect(screen.getByText(/2\.50 RBC per hour/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Start 24-hour mining cycle/ })).not.toBeInTheDocument()
+    expect(screen.getByText(/24h 00m 00s/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Start mining/ })).not.toBeInTheDocument()
   })
 
-  it('keeps the active robot and worksite fixed when a session is already running', async () => {
+  it('keeps the active robot fixed when a session is already running', async () => {
     browserMiningClient.snapshot.mockResolvedValueOnce({
       ...base,
       session: {
@@ -118,7 +116,6 @@ describe('Mining robot selection', () => {
     render(<MiningProduction />)
     fireEvent.click(await screen.findByRole('tab', { name: 'Active' }))
     expect(await screen.findByText('WRS Explorer')).toBeInTheDocument()
-    expect(screen.getByText('Northern Test Facility')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Start 24-hour mining cycle/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Start mining/ })).not.toBeInTheDocument()
   })
 })

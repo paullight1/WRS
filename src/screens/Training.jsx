@@ -1,39 +1,81 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
-import { Badge, Button, Card, GradIcon, Icon, Progress, SectionTitle, Tabs, tone, IconTile } from '../components/ui.jsx'
-import { trainingTiles, contribution, dataTasks } from '../data/mock.js'
+import { Button, Card, GradIcon, Icon, SectionTitle, Tabs, Toast } from '../components/ui.jsx'
+import { trainingTiles } from '../data/mock.js'
+import { browserDataClient } from '../infrastructure/data/browserDataClient.ts'
+import { runtimeConfig } from '../lib/runtimeConfig.js'
+import { getSensitiveActionPolicy } from '../lib/sensitiveActions.js'
 
 /* Colourful launcher tile — the core of the training grid. */
-function TrainingTile({ t }) {
+function TrainingTile({ t, onLockedClick }) {
   return (
-    <Link
-      to={`/training/${t.slug}`}
-      className="surface group relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl px-2.5 py-5 text-center transition-all hover:border-white/25 active:scale-[.97]"
+    <button
+      type="button"
+      onClick={() => onLockedClick(t.title)}
+      aria-label={`${t.title}, locked. Coming soon.`}
+      className="surface group relative flex w-full flex-col items-center gap-2 overflow-hidden rounded-2xl px-2.5 py-5 text-center transition-all hover:border-white/25 active:scale-[.97]"
     >
+      <span
+        className="absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full border border-white/10 bg-black/20 text-on-surface-variant"
+        aria-hidden="true"
+      >
+        <Icon name="lock" className="text-[15px]" />
+      </span>
       <GradIcon
         icon={t.icon}
         from={t.from}
         to={t.to}
         size={54}
         radius={18}
-        className="relative transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
+        className="relative opacity-70 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
       />
       <span className="relative mt-1 block text-[13px] font-medium leading-tight text-on-surface">{t.title}</span>
-      <span className="relative block text-[11px] leading-tight text-outline">{t.desc}</span>
-      <span
-        className="relative mt-1 h-1 w-10 overflow-hidden rounded-full"
-        style={{ background: 'rgba(255,255,255,.1)' }}
-      >
-        <span className="block h-full rounded-full" style={{ width: `${t.progress}%`, backgroundColor: t.from }} />
-      </span>
-    </Link>
+    </button>
   )
 }
 
 export default function Training() {
   const [tab, setTab] = useState('Train')
-  const overall = Math.round(trainingTiles.reduce((s, t) => s + t.progress, 0) / trainingTiles.length)
+  const [responses, setResponses] = useState([])
+  const [responseState, setResponseState] = useState('loading')
+  const [lockedNotice, setLockedNotice] = useState('')
+  const dataPolicy = getSensitiveActionPolicy('data.taskSubmit')
+
+  const showLockedNotice = (title) => {
+    setLockedNotice(`${title} is coming soon — keep mining.`)
+    window.setTimeout(() => setLockedNotice(''), 2600)
+  }
+
+  useEffect(() => {
+    let active = true
+    if (runtimeConfig.isDemo || !dataPolicy.authoritative) {
+      queueMicrotask(() => {
+        if (!active) return
+        setResponseState(runtimeConfig.isDemo ? 'demo' : 'unavailable')
+      })
+      return () => {
+        active = false
+      }
+    }
+    browserDataClient.taskResponses().then(
+      (result) => {
+        if (!active) return
+        setResponses(result.responses.filter((response) => response.taskSlug.startsWith('training-')))
+        setResponseState('ready')
+      },
+      () => {
+        if (active) setResponseState('unavailable')
+      },
+    )
+    return () => {
+      active = false
+    }
+  }, [dataPolicy.authoritative])
+
+  const totalXp = responses.reduce((total, response) => total + response.xpAwarded, 0)
+  const approved = responses.filter((response) => response.status === 'approved').length
+  const pending = responses.filter((response) => ['submitted', 'review'].includes(response.status)).length
+  const rejected = responses.filter((response) => response.status === 'rejected').length
 
   return (
     <AppShell title="AI Training Center" subtitle="Train your robot with your data" back avatar={false}>
@@ -45,7 +87,7 @@ export default function Training() {
           <section>
             <div className="grid grid-cols-3 gap-3">
               {trainingTiles.map((t) => (
-                <TrainingTile key={t.slug} t={t} />
+                <TrainingTile key={t.slug} t={t} onLockedClick={showLockedNotice} />
               ))}
             </div>
           </section>
@@ -57,26 +99,24 @@ export default function Training() {
                 <GradIcon icon="workspace_premium" from="#57c9ff" to="#1f6fd0" size={52} radius={16} />
                 <div className="min-w-0 flex-1">
                   <p className="text-title font-semibold text-on-surface">Your Contributions</p>
-                  <p className="text-label-md text-success">{contribution.quality}</p>
+                  <p className="text-label-md text-success">
+                    {responseState === 'ready'
+                      ? `${totalXp.toLocaleString()} XP awarded`
+                      : responseState === 'loading'
+                        ? 'Loading verified progress…'
+                        : 'Verified progress unavailable'}
+                  </p>
                 </div>
-                <Button to="/data/quality" size="sm">
-                  View
+                <Button to="/rewards" size="sm">
+                  XP details
                 </Button>
-              </div>
-
-              <div className="relative mt-5">
-                <Progress value={(contribution.score / contribution.target) * 100} height="h-2.5" />
-                <div className="mt-2 flex items-center justify-between text-label-sm">
-                  <span className="text-on-surface">Score: {contribution.score.toLocaleString()}</span>
-                  <span className="text-outline">Target {contribution.target.toLocaleString()}</span>
-                </div>
               </div>
 
               <div className="relative mt-5 grid grid-cols-3 gap-3 border-t border-white/8 pt-4 text-center">
                 {[
-                  ['Submitted', contribution.submissions],
-                  ['Approved', contribution.approved],
-                  ['Day streak', contribution.streak],
+                  ['Submitted', responseState === 'ready' ? responses.length : '—'],
+                  ['Approved', responseState === 'ready' ? approved : '—'],
+                  ['Pending review', responseState === 'ready' ? pending : '—'],
                 ].map(([k, v]) => (
                   <div key={k}>
                     <p className="text-title font-bold text-on-surface">{v}</p>
@@ -84,46 +124,38 @@ export default function Training() {
                   </div>
                 ))}
               </div>
+              {responseState === 'ready' && rejected > 0 && (
+                <p className="relative mt-3 text-label-sm text-on-surface-variant">
+                  {rejected} response{rejected === 1 ? '' : 's'} need revision. Open a module to review status.
+                </p>
+              )}
+              {responseState === 'demo' && (
+                <p className="relative mt-3 text-label-sm text-on-surface-variant">
+                  Demo mode does not save contributions or issue XP.
+                </p>
+              )}
+              {responseState === 'unavailable' && (
+                <p role="status" className="relative mt-3 text-label-sm text-on-surface-variant">
+                  Connect a verified account and data service to load contribution history.
+                </p>
+              )}
             </Card>
           </section>
 
-          <div>
-            <div className="mb-3 flex items-center justify-between text-label-sm">
-              <span className="text-outline">Overall training completion</span>
-              <span className="text-tertiary">{overall}%</span>
-            </div>
-            <Progress value={overall} className="mb-4" />
-            <Button to="/training/voice" full size="lg" icon="play_arrow">
-              Continue Training
-            </Button>
-          </div>
+          <p className="text-center text-body-sm text-on-surface-variant">
+            Training contributions earn XP after trusted review and approval.
+          </p>
         </>
       ) : (
         <section>
-          <SectionTitle action="12 new">Available Data Tasks</SectionTitle>
-          <div className="space-y-2">
-            {dataTasks.map((t) => {
-              const c = tone(t.tone)
-              return (
-                <Link
-                  key={t.slug}
-                  to={`/data/${t.slug}`}
-                  className="surface flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-white/25"
-                >
-                  <IconTile icon={t.icon} accent={c.accent} size={48} radius={12} iconSize={22} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-body-md font-medium text-on-surface">{t.title}</p>
-                    <p className="text-label-sm text-outline">
-                      {t.cat} · {t.time}
-                    </p>
-                  </div>
-                  <Badge t={t.tone}>+{t.xp} XP</Badge>
-                </Link>
-              )
-            })}
-          </div>
+          <SectionTitle>Available Data Tasks</SectionTitle>
+          <Card className="p-4 text-body-sm text-on-surface-variant" role="status">
+            No independently published data tasks are available yet. The training modules above accept reviewed
+            contributions and show XP only after the server approves them.
+          </Card>
         </section>
       )}
+      <Toast show={!!lockedNotice} message={lockedNotice} icon="lock" />
     </AppShell>
   )
 }

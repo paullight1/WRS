@@ -17,7 +17,14 @@ vi.mock('../../src/components/AppShell.jsx', () => ({
 }))
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal()
-  return { ...actual, Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a> }
+  return {
+    ...actual,
+    Link: ({ to, children, ...props }) => (
+      <a href={to} {...props}>
+        {children}
+      </a>
+    ),
+  }
 })
 
 vi.mock('../../src/components/robot/RobotProvider.jsx', () => ({
@@ -41,7 +48,9 @@ vi.mock('../../src/infrastructure/account/browserAccountClient.ts', () => ({
   browserAccountClient: { snapshot: vi.fn() },
 }))
 vi.mock('../../src/infrastructure/robot/browserRobotClient.ts', () => ({ browserRobotClient: { passport: vi.fn() } }))
-vi.mock('../../src/infrastructure/mining/browserMiningClient.ts', () => ({ browserMiningClient: { snapshot: vi.fn() } }))
+vi.mock('../../src/infrastructure/mining/browserMiningClient.ts', () => ({
+  browserMiningClient: { snapshot: vi.fn(), claimDailyActivity: vi.fn() },
+}))
 
 const miningSnapshot = (availableAtomic = '0') => ({
   authoritative: true,
@@ -61,6 +70,7 @@ describe('verified Home summary', () => {
     browserAccountClient.snapshot.mockResolvedValue({ profile: { fullName: 'Ada Lovelace' } })
     browserRobotClient.passport.mockResolvedValue({ passport: { authoritative: true, totalXp: 1250 } })
     browserMiningClient.snapshot.mockResolvedValue(miningSnapshot('3475'))
+    browserMiningClient.claimDailyActivity.mockResolvedValue({ status: 'awarded', xp: 5 })
   })
 
   it('uses the WRS logo and greets the authenticated profile name', async () => {
@@ -82,6 +92,12 @@ describe('verified Home summary', () => {
     expect(headings.indexOf('XP balance')).toBeLessThan(headings.indexOf('RoboCoin balance'))
   })
 
+  it('claims and reports the server-confirmed daily login XP', async () => {
+    render(<Home />)
+    expect(await screen.findByText('Daily login reward: +5 XP added.')).toBeInTheDocument()
+    expect(browserMiningClient.claimDailyActivity).toHaveBeenCalledOnce()
+  })
+
   it('shows a loading state while the verified summary is unresolved', () => {
     browserMiningClient.snapshot.mockImplementation(() => new Promise(() => {}))
     render(<Home />)
@@ -95,7 +111,7 @@ describe('verified Home summary', () => {
     cleanup()
     browserMiningClient.snapshot.mockResolvedValue(miningSnapshot(null))
     render(<Home />)
-    await waitFor(() => expect(screen.getByText(/balance unavailable/i)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/no verified balance/i)).toBeInTheDocument())
   })
 
   it('shows unavailable values and a neutral greeting when account services fail', async () => {

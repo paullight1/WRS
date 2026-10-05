@@ -25,10 +25,7 @@ const repository: EcosystemRepository = {
       !Array.isArray(result?.items) ||
       !result.items.every(
         (item) =>
-          item &&
-          typeof item === 'object' &&
-          typeof item.versionId === 'string' &&
-          typeof item.name === 'string',
+          item && typeof item === 'object' && typeof item.versionId === 'string' && typeof item.name === 'string',
       )
     ) {
       throw new Error('Marketplace service returned an invalid catalogue.')

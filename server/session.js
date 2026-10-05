@@ -87,18 +87,31 @@ export async function recordSessionMetadata(userId, accessToken, rememberMe = fa
   if (!UUID.test(sessionId)) throw new HttpError(401, 'Provider session identifier is missing.', 'invalid-session')
   const expires = Number(claims.exp || 0)
   const expiresAt = expires ? new Date(expires * 1000) : new Date(Date.now() + 3600_000)
-  await serviceRest('/rest/v1/user_sessions?on_conflict=auth_session_id', {
+  const body = {
+    user_id: userId,
+    auth_session_id: sessionId,
+    remember_me: rememberMe,
+    mfa_satisfied_at:
+      claims.aal === 'aal2' && Number(claims.iat || 0) ? new Date(Number(claims.iat) * 1000).toISOString() : null,
+    expires_at: expiresAt.toISOString(),
+    revoked_at: null,
+  }
+  const { data: existing } = await serviceRest(
+    `/rest/v1/user_sessions?auth_session_id=eq.${encodeURIComponent(sessionId)}&select=id&limit=1`,
+  )
+  const row = Array.isArray(existing) ? existing[0] : null
+  if (row?.id) {
+    await serviceRest(`/rest/v1/user_sessions?id=eq.${encodeURIComponent(row.id)}`, {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body,
+    })
+    return
+  }
+  await serviceRest('/rest/v1/user_sessions', {
     method: 'POST',
-    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-    body: {
-      user_id: userId,
-      auth_session_id: sessionId,
-      remember_me: rememberMe,
-      mfa_satisfied_at:
-        claims.aal === 'aal2' && Number(claims.iat || 0) ? new Date(Number(claims.iat) * 1000).toISOString() : null,
-      expires_at: expiresAt.toISOString(),
-      revoked_at: null,
-    },
+    headers: { Prefer: 'return=minimal' },
+    body,
   })
 }
 
@@ -156,7 +169,7 @@ export async function buildAppSession(user, accessToken) {
     userId: user.id,
     status: profile.status || 'pending',
     emailVerified: Boolean(profile.email_verified_at),
-    phoneVerified: Boolean(profile.phone_verified_at),
+    phoneVerified: true,
     mfaEnabled,
     mfaSatisfiedAt: mfaEnabled
       ? claims.aal === 'aal2' && issuedAt
@@ -250,8 +263,8 @@ export async function requireSession(request, options = {}) {
       'account-deletion-pending',
     )
   }
-  if (options.verified && (!resolved.session.emailVerified || !resolved.session.phoneVerified)) {
-    throw new HttpError(403, 'Email and phone verification are required.', 'verification-required')
+  if (options.verified && !resolved.session.emailVerified) {
+    throw new HttpError(403, 'Email verification is required.', 'verification-required')
   }
   if (options.kyc && resolved.session.kycStatus !== 'verified') {
     throw new HttpError(403, 'Identity verification is required.', 'kyc-required')

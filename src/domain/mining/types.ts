@@ -52,6 +52,12 @@ export interface MiningBalance {
   atomicScale: number | null
 }
 
+export interface MiningRobotSlotProgress {
+  lifetimeMinedRbc: string
+  thresholdRbc: string
+  unlocked: boolean
+}
+
 export interface MiningSnapshot {
   authoritative: true
   serverNow: string
@@ -61,9 +67,11 @@ export interface MiningSnapshot {
   worksites: MiningWorksiteChoice[]
   stats: MiningStats
   balance: MiningBalance
+  robotSlotProgress?: MiningRobotSlotProgress
   eligibility: { eligible: boolean; reasonCodes: string[] }
   issuanceEnabled: boolean
   miningPower: number
+  level?: { name: string; multiplierBps: number; totalXp: number }
   rateBreakdown: Record<string, string | number> | null
 }
 

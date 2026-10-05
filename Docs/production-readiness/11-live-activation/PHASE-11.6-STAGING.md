@@ -14,7 +14,7 @@ Validate the deployed WRS application against real staging authority/services in
 ## Evidence to collect later
 
 1. Deploy the exact candidate commit to the WRS staging environment.
-2. Ensure all 25 Supabase migrations and read-only post-migration checks pass there.
+2. Ensure all 33 Supabase migrations and read-only post-migration checks pass there.
 3. Configure `WRS_STAGING_URL`, `WRS_STAGING_EMAIL` and `WRS_STAGING_PASSWORD` in the GitHub `staging` environment.
 4. Run **Plan 11 Staging Validation** and retain its workflow run ID/artifacts.
 5. Exercise the Paystack sandbox, sensitive-data and operational drills from Phases 11.3–11.5.

@@ -6,7 +6,7 @@ Package a controlled, re-verifiable route from the stacked Plan 11 branch to `ma
 
 ## Database/migration position
 
-**No new database migration is required for Phase 11.10.** The final database candidate uses the 25 migrations documented in `supabase/MIGRATION_GUIDE.md` plus the read-only Plan 11 verification SQL files.
+**No new database migration is required for Phase 11.10.** The final database candidate uses the 33 migrations documented in `supabase/MIGRATION_GUIDE.md` plus the read-only Plan 11 verification SQL files.
 
 ## Repository implementation
 

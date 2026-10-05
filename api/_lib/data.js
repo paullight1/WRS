@@ -52,6 +52,41 @@ export async function submitDataAsset(userId, assetId, metadata) {
   return { submissionId: String(data) }
 }
 
+export async function ownedDataTaskResponses(userId, taskSlug = null) {
+  const filters = [
+    `user_id=eq.${encodeURIComponent(userId)}`,
+    'select=id,task_slug,data_category,status,quality_score,submitted_at,reviewed_at',
+    'order=submitted_at.desc',
+    'limit=100',
+  ]
+  if (taskSlug) filters.push(`task_slug=eq.${encodeURIComponent(taskSlug)}`)
+  const { data } = await serviceRest(`/rest/v1/data_task_responses?${filters.join('&')}`)
+  const rows = Array.isArray(data) ? data : []
+  const ids = rows.map((row) => String(row.id || '')).filter((id) => /^[0-9a-f-]{36}$/i.test(id))
+  const xpByResponse = new Map()
+  if (ids.length) {
+    const referenceFilter = encodeURIComponent(`(${ids.join(',')})`)
+    const { data: events } = await serviceRest(
+      `/rest/v1/robot_xp_events?user_id=eq.${encodeURIComponent(userId)}&source=eq.data&reference_type=eq.data-task-response&reference_id=in.${referenceFilter}&amount=gt.0&reversal_of=is.null&select=reference_id,amount&limit=100`,
+    )
+    for (const event of Array.isArray(events) ? events : []) {
+      const id = String(event.reference_id || '')
+      const amount = Number(event.amount)
+      if (ids.includes(id) && Number.isSafeInteger(amount) && amount > 0) xpByResponse.set(id, amount)
+    }
+  }
+  return rows.map((row) => ({
+    id: String(row.id),
+    taskSlug: String(row.task_slug),
+    dataCategory: String(row.data_category),
+    status: String(row.status),
+    qualityScore: row.quality_score === null ? null : Number(row.quality_score),
+    submittedAt: String(row.submitted_at),
+    reviewedAt: row.reviewed_at ? String(row.reviewed_at) : null,
+    xpAwarded: xpByResponse.get(String(row.id)) || 0,
+  }))
+}
+
 export async function ownedAsset(userId, assetId) {
   const { data } = await serviceRest(
     `/rest/v1/data_assets?id=eq.${encodeURIComponent(assetId)}&user_id=eq.${encodeURIComponent(userId)}&select=id,storage_bucket,storage_path,status&limit=1`,

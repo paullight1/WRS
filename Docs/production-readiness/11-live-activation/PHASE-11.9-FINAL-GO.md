@@ -15,7 +15,7 @@ Make the live release decision deterministic and fail closed. Missing evidence, 
 
 Before creating `LIVE_EVIDENCE.json` from the example template:
 
-1. Apply all 25 migrations and pass every Plan 11 read-only Supabase verification SQL file.
+1. Apply all 33 migrations and pass every Plan 11 read-only Supabase verification SQL file.
 2. Enable/evidence repository branch protection and required checks.
 3. Complete Paystack sandbox payment/webhook/refund/withdrawal/reconciliation evidence.
 4. Complete private storage/scanner/deletion/export/licensing evidence.

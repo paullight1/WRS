@@ -12,6 +12,42 @@ export default function ReferralsProduction() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
 
+  const referralLink = snapshot?.code
+    ? `${window.location.origin}/register?referralCode=${encodeURIComponent(snapshot.code)}`
+    : ''
+
+  const copyInvite = async (value, label) => {
+    setMessage('')
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard access is unavailable in this browser.')
+      await navigator.clipboard.writeText(value)
+      setMessage(`${label} copied.`)
+    } catch (reason) {
+      setMessage(reason instanceof Error ? reason.message : 'Could not copy the referral invite.')
+    }
+  }
+
+  const shareInvite = async () => {
+    if (!referralLink) return
+    if (!navigator.share) {
+      await copyInvite(referralLink, 'Referral link')
+      return
+    }
+    setMessage('')
+    try {
+      await navigator.share({
+        title: 'Join World Robotic System',
+        text: `Use my WRS referral code ${snapshot.code}.`,
+        url: referralLink,
+      })
+      setMessage('Referral invite shared.')
+    } catch (reason) {
+      if (reason?.name !== 'AbortError') {
+        setMessage(reason instanceof Error ? reason.message : 'Could not share the referral invite.')
+      }
+    }
+  }
+
   const refresh = async () => setSnapshot(await browserEcosystemClient.referrals())
 
   useEffect(() => {
@@ -66,9 +102,17 @@ export default function ReferralsProduction() {
           <Card className="p-card-padding">
             <p className="text-label-sm text-outline">Your referral code</p>
             <p className="mt-2 font-data text-data-lg text-on-surface">{snapshot.code}</p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Button variant="ghost" icon="content_copy" onClick={() => copyInvite(snapshot.code, 'Referral code')}>
+                Copy code
+              </Button>
+              <Button icon="share" onClick={shareInvite}>
+                Share invite
+              </Button>
+            </div>
             <p className="mt-2 text-body-sm text-on-surface-variant">
-              Sharing a code does not create money or points. Qualification happens only after account verification,
-              paid package activation and the server review window.
+              Your invite opens signup with this code filled in. Rewards are earned only by qualified referrals, after
+              account verification, paid package activation and the server review window.
             </p>
           </Card>
 

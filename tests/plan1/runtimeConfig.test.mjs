@@ -8,10 +8,11 @@ test('rejects unknown application modes', () => {
   assert.throws(() => parseRuntimeConfig({ VITE_WRS_MODE: 'banana' }), /VITE_WRS_MODE/)
 })
 
-test('defaults to explicit demo behavior when mode is omitted', () => {
+test('defaults to fail-closed staging behavior when mode is omitted', () => {
   const config = parseRuntimeConfig({})
-  assert.equal(config.mode, 'demo')
-  assert.equal(config.isDemo, true)
+  assert.equal(config.mode, 'staging')
+  assert.equal(config.isDemo, false)
+  assert.equal(config.isStaging, true)
   assert.equal(config.isProduction, false)
 })
 

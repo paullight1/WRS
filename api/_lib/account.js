@@ -330,6 +330,9 @@ export async function operationsSnapshot(scope = 'overview') {
       submissions: await recentRows(
         '/rest/v1/data_submissions?select=id,user_id,status,quality_score,submitted_at,reviewed_at&order=submitted_at.desc&limit=100',
       ),
+      taskResponses: await recentRows(
+        '/rest/v1/data_task_responses?select=id,task_slug,data_category,status,quality_score,submitted_at,response&order=submitted_at.desc&limit=100',
+      ),
       deletions: await recentRows(
         '/rest/v1/data_deletion_requests?select=id,user_id,status,eligible_at,attempt_count,requested_at,completed_at&order=requested_at.desc&limit=100',
       ),

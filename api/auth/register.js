@@ -7,5 +7,5 @@ export default functionHandler(async (request) => {
   const input = await readJson(request)
   const registration = validateRegistration(input)
   await enforceRateLimit(request, 'register', `${registration.email}:${registration.phone}`, 4, 15 * 60)
-  return json(await createPendingAccount(registration), 201)
+  return json(await createPendingAccount(registration, new URL('/auth/callback', request.url).toString()), 201)
 })

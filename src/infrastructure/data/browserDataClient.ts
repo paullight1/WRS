@@ -62,6 +62,20 @@ export const browserDataClient = {
       body: JSON.stringify({ taskSlug, response }),
     }),
 
+  taskResponses: (taskSlug?: string) =>
+    request<{
+      responses: Array<{
+        id: string
+        taskSlug: string
+        dataCategory: string
+        status: string
+        qualityScore: number | null
+        submittedAt: string
+        reviewedAt: string | null
+        xpAwarded: number
+      }>
+    }>(`/api/data/tasks/responses${taskSlug ? `?taskSlug=${encodeURIComponent(taskSlug)}` : ''}`),
+
   deleteAsset: (assetId: string, reason?: string) =>
     request<DeletionRequest>('/api/data/delete', {
       method: 'POST',

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto'
+import { miningSnapshot } from './mining.js'
 import { HttpError } from './http.js'
 import { serviceRest, serviceRpc } from './supabase.js'
 
@@ -80,13 +81,19 @@ export async function reviewMarketplaceItem(userId, itemId, rating, reviewText) 
 }
 
 export async function rewardSnapshot(userId) {
-  const [{ data: points }, { data: boosts }] = await Promise.all([
-    serviceRpc('wrs_reward_points_balance', { p_user_id: userId }),
-    serviceRest(
-      `/rest/v1/reward_boost_activations?user_id=eq.${encodeURIComponent(userId)}&status=eq.active&expires_at=gt.${encodeURIComponent(new Date().toISOString())}&select=id,boost_slug,effect_snapshot,starts_at,expires_at&order=expires_at.asc&limit=100`,
-    ),
+  const [mining, { data: policy }] = await Promise.all([
+    miningSnapshot(userId),
+    serviceRpc('wrs_member_reward_policy', { p_user_id: userId }),
   ])
-  return { points: Number(points || 0), boosts: Array.isArray(boosts) ? boosts : [] }
+  return {
+    xp: mining.level?.totalXp || 0,
+    rbc: mining.balance,
+    level: mining.level,
+    issuanceEnabled: mining.issuanceEnabled,
+    activities: policy.activities || [],
+    levels: policy.levels || [],
+    recentAwards: policy.recentAwards || [],
+  }
 }
 
 export function eventCodeHash(code) {

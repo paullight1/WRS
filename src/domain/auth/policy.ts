@@ -16,6 +16,7 @@ const OPERATIONS_ROLES = new Set([
   'data_operator',
   'deployment_operator',
   'risk_operator',
+  'reward_operator',
 ])
 
 export function authorizeSession(

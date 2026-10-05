@@ -8,18 +8,18 @@
       "phase": "11.1",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Operations",
-      "evidence": "Connected Supabase discovery found the crescivacapital organization and an unrelated Cresciva project only. No WRS project was provisioned or reused. The complete ordered WRS SQL migration and verification handoff is stored under supabase/ for later application to dedicated WRS staging and production projects.",
-      "evidenceRef": "repo:supabase/MIGRATION_GUIDE.md",
-      "checkedAt": "2026-08-25T04:55:00.000Z"
+      "evidence": "Dedicated WRS staging project zaujrbcvgargyabebjyj is ACTIVE_HEALTHY on PostgreSQL 17.11 in eu-central-1. At the recorded check time, all 33 migrations then present in the repository were applied there and plan11_post_migration_checks.sql completed without error. The WRS organization is on Supabase Free and now has two active projects (development and staging); Free projects can pause after inactivity and do not include automatic backups, so this is not a production plan. Supabase security advisors flag two anon-executable SECURITY DEFINER verification RPCs; source documents them as public verification projections, but they need release security review. The separate development project bymiojfdlkspawvakrif remains on PostgreSQL 17.6 with only 31 migrations applied; do not promote its history. A production-grade plan/project, environment-scoped secrets, staging behavior drills, and migration reconciliation remain required. The recorded application covers 33 migrations; the repository now contains a 34th admin-role migration, which this work did not apply to a Supabase project and which must be reconciled on the exact staging candidate.",
+      "evidenceRef": "Supabase:project:zaujrbcvgargyabebjyj; Supabase:project:bymiojfdlkspawvakrif; Supabase:organization:nqvragetcfkactufewek; repo:supabase/MIGRATION_GUIDE.md; repo:supabase/verification/plan11_post_migration_checks.sql",
+      "checkedAt": "2026-10-03T18:29:56.000Z"
     },
     {
       "id": "vercel-infrastructure",
       "phase": "11.1",
       "status": "EXTERNAL_BLOCKER",
       "owner": "Operations",
-      "evidence": "The connected Vercel team contains zero projects and does not expose a WRS hosting project. No unrelated hosting project was reused.",
-      "evidenceRef": "repo:Docs/production-readiness/11-live-activation/PHASE-11.1-INFRASTRUCTURE.md",
-      "checkedAt": "2026-08-25T04:30:00.000Z"
+      "evidence": "The currently connected Vercel team returned zero projects on 2026-10-03, so no WRS hosting project is available through this connection. No unrelated hosting project was reused.",
+      "evidenceRef": "Vercel:team:team_0m722looHPylaECSCKh2f6oa; repo:Docs/production-readiness/11-live-activation/PHASE-11.1-INFRASTRUCTURE.md",
+      "checkedAt": "2026-10-03T18:08:54.000Z"
     },
     {
       "id": "github-branch-protection",

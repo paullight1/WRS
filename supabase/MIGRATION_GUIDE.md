@@ -17,38 +17,44 @@ The SQL assumes Supabase-provided schemas/roles exist, including `auth`, `storag
 
 ## Required migration order
 
-Run **all 28 files** below in order. Do not skip hardening/fix migrations; later files intentionally correct or strengthen earlier definitions.
+Run **all 34 files** below in order. Do not skip hardening/fix migrations; later files intentionally correct or strengthen earlier definitions.
 
-| # | Migration | Purpose |
-|---:|---|---|
-| 1 | `20260821030000_plan3_identity.sql` | Identity/profile/session/role/security base schema and RLS. |
-| 2 | `20260821031000_plan3_identity_hardening.sql` | Identity privilege, audit and security hardening. |
-| 3 | `20260821033000_plan3_rate_limits.sql` | Database-backed distributed auth/API rate limits. |
-| 4 | `20260821034000_plan3_auth_atomicity.sql` | Atomic authentication/verification operations. |
-| 5 | `20260821034100_plan3_security_state_uniqueness.sql` | Security-state uniqueness/idempotency constraints. |
-| 6 | `20260821034200_plan3_phone_constraint_fix.sql` | Portable E.164-style phone validation correction. |
-| 7 | `20260821040000_plan4_robot_domain.sql` | Robot ownership, packages, capabilities, configuration and progression base schema. |
-| 8 | `20260821041000_plan4_robot_functions.sql` | Atomic onboarding/configuration/robot service functions. |
-| 9 | `20260821042000_plan4_xp_projection_hardening.sql` | XP idempotency, reversals and passport progression projection. |
-| 10 | `20260821043000_plan4_passport_projection.sql` | Authoritative/private and privacy-safe public robot passport projections. |
-| 11 | `20260822050000_plan5_financial_ledger.sql` | Package prices, payment intents, double-entry ledger, wallet and withdrawal base. |
-| 12 | `20260822051000_plan5_finance_reversals.sql` | Refund, reversal and compensating financial journals. |
-| 13 | `20260822052000_plan5_idempotency_isolation.sql` | Financial idempotency-key isolation and collision protection. |
-| 14 | `20260822053000_plan5_reversal_reference_fix.sql` | Provider reversal/reference correctness hardening. |
-| 15 | `20260822060000_plan6_data_privacy.sql` | Consent, private data assets, submissions, quality, datasets/licensing and export base. |
-| 16 | `20260822061000_plan6_deletion_distribution_hardening.sql` | Privacy deletion and dataset-revenue distribution hardening. |
-| 17 | `20260822062000_plan6_data_tasks.sql` | Authoritative AI/data contribution task definitions. |
-| 18 | `20260822063000_plan6_deletion_queue.sql` | Durable, retryable, grace-period-aware sensitive-data deletion queue. |
-| 19 | `20260822070000_plan7_deployment_engine.sql` | Deployment opportunities, eligibility, contracts, lifecycle, evidence and settlement base. |
-| 20 | `20260822071000_plan7_deployment_hardening.sql` | Deployment concurrency/idempotency/ownership and settlement hardening. |
-| 21 | `20260822080000_plan8_ecosystem.sql` | Marketplace, reward points/codes/boosts, academy, community and referrals base. |
-| 22 | `20260822081000_plan8_ecosystem_hardening.sql` | Ecosystem package compatibility and trust-boundary hardening. |
-| 23 | `20260822082000_plan8_referral_code_portability.sql` | Portable bounded referral-code generation under hardened search paths. |
-| 24 | `20260822090000_plan9_account_operations.sql` | Persistent settings, account deletion, support/KB, operator RBAC and operations audit. |
-| 25 | `20260825010000_plan11_storage_activation.sql` | Creates/locks down the private WRS Storage bucket used by data and support uploads. |
-| 26 | `20260926092033_xp_rbc_mining_foundation.sql` | Adds authoritative XP and RoboCoin ledgers, mining rules, sessions and settlement foundations. |
-| 27 | `20260929120000_mining_robot_worksite_unlocks.sql` | Adds one-active-session robot/worksite selection, approved worksites and sequential robot unlocks. |
-| 28 | `20260929130000_mining_reporting.sql` | Adds server-derived mining metrics and privacy-safe weekly/all-time RoboCoin leaderboard projections. |
+|   # | Migration                                                  | Purpose                                                                                                    |
+| --: | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+|   1 | `20260821030000_plan3_identity.sql`                        | Identity/profile/session/role/security base schema and RLS.                                                |
+|   2 | `20260821031000_plan3_identity_hardening.sql`              | Identity privilege, audit and security hardening.                                                          |
+|   3 | `20260821033000_plan3_rate_limits.sql`                     | Database-backed distributed auth/API rate limits.                                                          |
+|   4 | `20260821034000_plan3_auth_atomicity.sql`                  | Atomic authentication/verification operations.                                                             |
+|   5 | `20260821034100_plan3_security_state_uniqueness.sql`       | Security-state uniqueness/idempotency constraints.                                                         |
+|   6 | `20260821034200_plan3_phone_constraint_fix.sql`            | Portable E.164-style phone validation correction.                                                          |
+|   7 | `20260821040000_plan4_robot_domain.sql`                    | Robot ownership, packages, capabilities, configuration and progression base schema.                        |
+|   8 | `20260821041000_plan4_robot_functions.sql`                 | Atomic onboarding/configuration/robot service functions.                                                   |
+|   9 | `20260821042000_plan4_xp_projection_hardening.sql`         | XP idempotency, reversals and passport progression projection.                                             |
+|  10 | `20260821043000_plan4_passport_projection.sql`             | Authoritative/private and privacy-safe public robot passport projections.                                  |
+|  11 | `20260822050000_plan5_financial_ledger.sql`                | Package prices, payment intents, double-entry ledger, wallet and withdrawal base.                          |
+|  12 | `20260822051000_plan5_finance_reversals.sql`               | Refund, reversal and compensating financial journals.                                                      |
+|  13 | `20260822052000_plan5_idempotency_isolation.sql`           | Financial idempotency-key isolation and collision protection.                                              |
+|  14 | `20260822053000_plan5_reversal_reference_fix.sql`          | Provider reversal/reference correctness hardening.                                                         |
+|  15 | `20260822060000_plan6_data_privacy.sql`                    | Consent, private data assets, submissions, quality, datasets/licensing and export base.                    |
+|  16 | `20260822061000_plan6_deletion_distribution_hardening.sql` | Privacy deletion and dataset-revenue distribution hardening.                                               |
+|  17 | `20260822062000_plan6_data_tasks.sql`                      | Authoritative AI/data contribution task definitions.                                                       |
+|  18 | `20260822063000_plan6_deletion_queue.sql`                  | Durable, retryable, grace-period-aware sensitive-data deletion queue.                                      |
+|  19 | `20260822070000_plan7_deployment_engine.sql`               | Deployment opportunities, eligibility, contracts, lifecycle, evidence and settlement base.                 |
+|  20 | `20260822071000_plan7_deployment_hardening.sql`            | Deployment concurrency/idempotency/ownership and settlement hardening.                                     |
+|  21 | `20260822080000_plan8_ecosystem.sql`                       | Marketplace, reward points/codes/boosts, academy, community and referrals base.                            |
+|  22 | `20260822081000_plan8_ecosystem_hardening.sql`             | Ecosystem package compatibility and trust-boundary hardening.                                              |
+|  23 | `20260822082000_plan8_referral_code_portability.sql`       | Portable bounded referral-code generation under hardened search paths.                                     |
+|  24 | `20260822090000_plan9_account_operations.sql`              | Persistent settings, account deletion, support/KB, operator RBAC and operations audit.                     |
+|  25 | `20260825010000_plan11_storage_activation.sql`             | Creates/locks down the private WRS Storage bucket used by data and support uploads.                        |
+|  26 | `20260908185654_free_robot_tier.sql`                       | Establishes the free robot tier and its capabilities.                                                      |
+|  27 | `20260922150000_email_only_identity.sql`                   | Makes phone optional for email-first account registration.                                                 |
+|  28 | `20260926092033_xp_rbc_mining_foundation.sql`              | Adds authoritative XP and RoboCoin ledgers, mining rules, sessions and settlement foundations.             |
+|  29 | `20260929120000_mining_robot_worksite_unlocks.sql`         | Adds one-active-session robot/worksite selection, approved worksites and sequential robot unlocks.         |
+|  30 | `20260929130000_mining_reporting.sql`                      | Adds server-derived mining metrics and privacy-safe weekly/all-time RoboCoin leaderboard projections.      |
+|  31 | `20261001050017_mining_one_free_robot_slot.sql`            | Limits free mining access to one robot slot.                                                               |
+|  32 | `20261001080216_configurable_xp_rbc_reward_rules.sql`      | Adds operator-configured XP and RoboCoin activity rules with idempotent daily, referral and mining awards. |
+|  33 | `20261003103000_mining_robot_slots_by_rbc.sql`             | Unlocks additional mining robot slots after 200 lifetime RBC from settled, non-reversed awards.            |
+|  34 | `20261003182654_admin_operator_role_management.sql`        | Adds exact-account, audited scoped operator-role management and one-time initial-admin bootstrap.          |
 
 ## Recommended application methods
 
@@ -62,7 +68,7 @@ If you apply manually in the dashboard, open each file in the order above and ex
 
 ## Post-migration verification
 
-After file 28, run:
+After file 34, run:
 
 `supabase/verification/plan11_post_migration_checks.sql`
 

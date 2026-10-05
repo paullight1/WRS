@@ -41,6 +41,8 @@ test('unsafe production configuration fails closed at build time', () => {
     VITE_WRS_REWARD_SERVICE: '',
     VITE_WRS_DEPLOYMENT_SERVICE: '',
     VITE_WRS_SUPPORT_SERVICE: '',
+    VITE_PUBLIC_SUPABASE_URL: '',
+    VITE_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '',
   })
   assert.notEqual(result.status, 0, 'unsafe production build unexpectedly succeeded')
   assert.match(`${result.stdout}\n${result.stderr}`, /Invalid production configuration/)

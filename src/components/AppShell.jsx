@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider.jsx'
 import { Icon } from './ui.jsx'
 import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
+import { runtimeConfig } from '../lib/runtimeConfig.js'
 
 /** Retired: the page background is a flat surface now. */
 export function Atmosphere() {
@@ -21,7 +22,7 @@ export function UserAvatar({ size = 40, className = '' }) {
   )
 }
 
-export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu }) {
+export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu, light = false }) {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(() => typeof window !== 'undefined' && window.scrollY > 4)
 
@@ -33,8 +34,10 @@ export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu }) 
 
   return (
     <header
-      className={`bar-blur sticky top-0 z-sticky px-margin-page pb-2.5 pt-[max(10px,env(safe-area-inset-top))] transition-colors duration-fast ${
-        scrolled ? 'border-b border-white/8' : 'border-b border-transparent'
+      className={`sticky top-0 z-sticky px-margin-page pb-2.5 pt-[max(10px,env(safe-area-inset-top))] transition-colors duration-fast ${
+        light
+          ? `bg-[#f7f8fc] ${scrolled ? 'border-b border-[#e3e7f0]' : 'border-b border-transparent'}`
+          : `bar-blur ${scrolled ? 'border-b border-white/8' : 'border-b border-transparent'}`
       }`}
     >
       <div className="mx-auto flex max-w-[720px] items-center gap-2">
@@ -42,10 +45,10 @@ export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu }) 
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="tap -ml-2.5 grid shrink-0 place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06]"
+            className={`tap -ml-2.5 grid shrink-0 place-items-center rounded-full transition-colors duration-fast ${light ? 'hover:bg-black/[.06]' : 'hover:bg-white/[.06]'}`}
             aria-label="Go back"
           >
-            <Icon name="arrow_back" className="text-on-surface" />
+            <Icon name="arrow_back" className={light ? 'text-[#171b27]' : 'text-on-surface'} />
           </button>
         ) : brand ? (
           <Link
@@ -62,27 +65,33 @@ export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu }) 
         ) : null}
 
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-headline-md text-headline-md text-on-surface">{title}</h1>
-          {subtitle && <p className="truncate text-body-sm text-on-surface-variant">{subtitle}</p>}
+          <h1 className={`truncate font-headline-md text-headline-md ${light ? 'text-[#171b27]' : 'text-on-surface'}`}>
+            {title}
+          </h1>
+          {subtitle && (
+            <p className={`truncate text-body-sm ${light ? 'text-[#596174]' : 'text-on-surface-variant'}`}>
+              {subtitle}
+            </p>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center">
           {right}
           <Link
             to="/notifications"
-            className="tap grid place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06]"
+            className={`tap grid place-items-center rounded-full transition-colors duration-fast ${light ? 'hover:bg-black/[.06]' : 'hover:bg-white/[.06]'}`}
             aria-label="Notifications"
           >
-            <Icon name="notifications" className="text-on-surface" />
+            <Icon name="notifications" className={light ? 'text-[#171b27]' : 'text-on-surface'} />
           </Link>
           {onMenu && (
             <button
               type="button"
               onClick={onMenu}
-              className="tap -mr-2.5 grid place-items-center rounded-full transition-colors duration-fast hover:bg-white/[.06] lg:hidden"
+              className={`tap -mr-2.5 grid place-items-center rounded-full transition-colors duration-fast lg:hidden ${light ? 'hover:bg-black/[.06]' : 'hover:bg-white/[.06]'}`}
               aria-label="Open menu"
             >
-              <Icon name="menu" className="text-on-surface" />
+              <Icon name="menu" className={light ? 'text-[#171b27]' : 'text-on-surface'} />
             </button>
           )}
         </div>
@@ -93,7 +102,7 @@ export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu }) 
 
 const bottomNav = [
   { to: '/home', icon: 'home', label: 'Home' },
-  { to: '/robot', icon: 'smart_toy', label: 'Robot' },
+  { to: '/training', icon: 'model_training', label: 'Train' },
   { to: '/deploy', icon: 'paid', label: 'Mining' },
   { to: '/marketplace', icon: 'storefront', label: 'Market' },
   { to: '/more', icon: 'more_horiz', label: 'More' },
@@ -177,25 +186,38 @@ export function Drawer({ open, onClose }) {
   const navigate = useNavigate()
   const auth = useAuth()
   const [desktop, setDesktop] = useState(desktopViewport)
-  const [profile, setProfile] = useState(null)
-  const [profileStatus, setProfileStatus] = useState('loading')
+  const [profileResult, setProfileResult] = useState(null)
+  const needsProfile = !auth.loading && !auth.isDemo && Boolean(auth.session?.userId) && runtimeConfig.services.identity
+  const currentProfileResult = profileResult?.userId === auth.session?.userId ? profileResult : null
+  const profile = currentProfileResult?.profile || null
+  const profileStatus = !needsProfile ? (auth.loading ? 'loading' : 'ready') : currentProfileResult?.status || 'loading'
 
   useEffect(() => {
     let active = true
+    if (auth.loading) {
+      return () => {
+        active = false
+      }
+    }
+    if (auth.isDemo || !auth.session?.userId || !runtimeConfig.services.identity) return undefined
+    const userId = auth.session.userId
     browserAccountClient
       .snapshot()
       .then((snapshot) => {
         if (!active) return
-        setProfile(snapshot?.profile || null)
-        setProfileStatus(snapshot?.profile ? 'ready' : 'unavailable')
+        setProfileResult({
+          userId,
+          profile: snapshot?.profile || null,
+          status: snapshot?.profile ? 'ready' : 'unavailable',
+        })
       })
       .catch(() => {
-        if (active) setProfileStatus('unavailable')
+        if (active) setProfileResult({ userId, profile: null, status: 'unavailable' })
       })
     return () => {
       active = false
     }
-  }, [])
+  }, [auth.isDemo, auth.loading, auth.session?.userId])
 
   useEffect(() => {
     queueMicrotask(() => onClose?.())
@@ -231,7 +253,7 @@ export function Drawer({ open, onClose }) {
       ? profile.fullName.trim()
       : profileStatus === 'loading'
         ? 'Loading profile'
-        : 'Account profile unavailable'
+        : 'Your account'
   const accountId = profile?.email || (!auth.isDemo && auth.session?.userId) || 'Open profile details'
   const mobileHidden = !desktop && !open
 
@@ -325,6 +347,7 @@ export default function AppShell({
   brand = false,
   children,
   wide = false,
+  lightTopBackdrop = false,
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
@@ -346,11 +369,18 @@ export default function AppShell({
           avatar={avatar}
           brand={brand}
           onMenu={() => setDrawerOpen(true)}
+          light={lightTopBackdrop}
         />
         <main
-          className={`mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`}
+          className={`relative isolate mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`}
         >
-          <div className="space-y-7">{children}</div>
+          {lightTopBackdrop && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 -top-4 z-0 h-[240px] rounded-b-[36px] bg-[#f7f8fc]"
+            />
+          )}
+          <div className="relative z-10 space-y-7">{children}</div>
         </main>
       </div>
       <BottomNav />
