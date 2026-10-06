@@ -99,7 +99,14 @@ export const routeManifest = Object.keys(routes)
 
 export default {
   async fetch(request) {
-    const pathname = new URL(request.url).pathname.replace(/\/+$/, '') || '/'
+    const url = new URL(request.url)
+    if (url.pathname === '/api/gateway') {
+      const route = url.searchParams.get('__wrs_route') || ''
+      url.pathname = `/api/${route}`
+      url.searchParams.delete('__wrs_route')
+      request = new Request(url, request)
+    }
+    const pathname = url.pathname.replace(/\/+$/, '') || '/'
     const loadRoute = routes[pathname]
     if (!loadRoute) return json({ message: 'API route not found.', code: 'not-found' }, 404)
     const route = (await loadRoute()).default
