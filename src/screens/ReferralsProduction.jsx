@@ -5,6 +5,19 @@ import StateView from '../components/states/StateView.jsx'
 import { Badge, Button, Card, Field, SectionTitle } from '../components/ui.jsx'
 import { browserEcosystemClient } from '../infrastructure/ecosystem/browserEcosystemClient.ts'
 
+function referralCodeFrom(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  try {
+    const url = new URL(raw, window.location.origin)
+    const code = url.searchParams.get('referralCode') || url.searchParams.get('ref')
+    if (code) return code.trim().toUpperCase()
+  } catch {
+    // Treat non-URL input as a referral code.
+  }
+  return raw.toUpperCase()
+}
+
 export default function ReferralsProduction() {
   const [snapshot, setSnapshot] = useState(null)
   const [rewards, setRewards] = useState(null)
@@ -39,7 +52,7 @@ export default function ReferralsProduction() {
     try {
       await navigator.share({
         title: 'Join World Robotic System',
-        text: `Use my WRS referral code ${snapshot.code}.`,
+        text: 'Join World Robotic System using my referral link.',
         url: referralLink,
       })
       setMessage('Referral invite shared.')
@@ -83,7 +96,7 @@ export default function ReferralsProduction() {
     setBusy(true)
     setMessage('')
     try {
-      await browserEcosystemClient.acceptReferral(inviteCode)
+      await browserEcosystemClient.acceptReferral(referralCodeFrom(inviteCode))
       setInviteCode('')
       setMessage(
         'Referral attribution recorded. Rewards remain pending until verified paid activation and the review window complete.',
@@ -138,37 +151,30 @@ export default function ReferralsProduction() {
             </Card>
           )}
           <Card className="p-card-padding">
-            <p className="text-label-sm text-outline">Your referral code</p>
-            <p className="mt-2 font-data text-data-lg text-on-surface">{snapshot.code}</p>
+            <p className="text-label-sm text-outline">Your referral link</p>
+            <p className="mt-2 break-all rounded-xl border border-white/10 bg-black/10 p-3 font-data text-body-md text-on-surface">
+              {referralLink}
+            </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <Button variant="ghost" icon="content_copy" onClick={() => copyInvite(snapshot.code, 'Referral code')}>
-                Copy code
+              <Button variant="ghost" icon="content_copy" onClick={() => copyInvite(referralLink, 'Referral link')}>
+                Copy link
               </Button>
               <Button icon="share" onClick={shareInvite}>
                 Share invite
               </Button>
             </div>
-            <Button
-              full
-              variant="tonal"
-              className="mt-2"
-              icon="link"
-              onClick={() => copyInvite(referralLink, 'Referral link')}
-            >
-              Copy invite link
-            </Button>
             <p className="mt-2 text-body-sm text-on-surface-variant">
-              Your invite opens signup with this code filled in. Rewards are earned only by qualified referrals, after
-              account verification, paid package activation and the server review window.
+              Your invite opens signup with your referral prefilled. Rewards are earned only by qualified referrals,
+              after account verification, paid package activation and the server review window.
             </p>
           </Card>
 
           <Card className="space-y-3 p-card-padding">
             <Field
-              label="Referral code you received"
+              label="Referral link or code you received"
               value={inviteCode}
-              onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-              placeholder="Enter code"
+              onChange={(event) => setInviteCode(event.target.value)}
+              placeholder="Paste referral link or enter code"
             />
             <Button full loading={busy} disabled={inviteCode.trim().length < 8} onClick={accept}>
               Apply referral

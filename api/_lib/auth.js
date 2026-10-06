@@ -35,6 +35,19 @@ export function normalizePhone(value) {
     .trim()
 }
 
+function normalizeReferralCode(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return null
+  try {
+    const url = new URL(raw, 'https://worldroboticsystem.com')
+    const code = url.searchParams.get('referralCode') || url.searchParams.get('ref')
+    if (code) return code.trim().toUpperCase()
+  } catch {
+    // Treat non-URL input as a referral code below.
+  }
+  return raw.toUpperCase()
+}
+
 function legacyPhonePlaceholder(userId) {
   const digits = sha256(String(userId)).replace(/\D/g, '').slice(0, 12).padEnd(12, '7')
   return `+999${digits}`
@@ -78,10 +91,7 @@ export function validateRegistration(input) {
     password,
     termsVersion,
     privacyVersion,
-    referralCode:
-      String(input?.referralCode || '')
-        .trim()
-        .toUpperCase() || null,
+    referralCode: normalizeReferralCode(input?.referralCode),
   }
 }
 

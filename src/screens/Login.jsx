@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
-import { Atmosphere } from '../components/AppShell.jsx'
-import { Button, Card, Field, Icon } from '../components/ui.jsx'
+import AuthLayout from '../components/auth/AuthLayout.jsx'
+import { Button, Field, Icon } from '../components/ui.jsx'
 
 function SocialButton({ label, onClick, children }) {
   return (
@@ -10,7 +10,7 @@ function SocialButton({ label, onClick, children }) {
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="surface grid h-12 min-w-12 place-items-center rounded-full px-3 transition-all hover:border-white/25 active:scale-95"
+      className="grid h-12 min-w-12 place-items-center rounded-full border border-[#ded5eb] bg-white px-3 text-[#312445] transition-all hover:border-[#a990d0] hover:bg-[#f8f5fd] active:scale-95"
     >
       {children}
     </button>
@@ -58,93 +58,107 @@ export default function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center px-margin-page py-12">
-      <Atmosphere />
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <img src="/wrs-logo-footer.png" alt="World Robotic System" className="mb-5 h-auto w-[230px] max-w-full" />
-          <p className="mt-3 text-body-md text-on-surface-variant">Login to your account</p>
-        </div>
+    <AuthLayout>
+      <div className="mb-6 text-center">
+        <h1 className="font-headline-lg-mobile text-[28px] font-bold leading-tight tracking-[-.035em] text-[#261a38]">
+          Welcome back
+        </h1>
+        <p className="mt-2 text-[17px] font-medium text-[#665c74]">Log in to your WRS account</p>
+      </div>
 
-        <Card as="form" onSubmit={submit} className="space-y-4 p-card-padding">
-          <Field
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="Email or Phone Number"
-            icon="alternate_email"
-            type="text"
-            autoComplete="username"
-          />
-          <Field
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            icon="lock"
-            type={showPassword ? 'text' : 'password'}
-            autoComplete="current-password"
-            trailing={
-              <button
-                type="button"
-                onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                aria-pressed={showPassword}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-on-surface-variant hover:bg-white/[.06] hover:text-on-surface"
-              >
-                <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="text-[20px]" />
-              </button>
-            }
-          />
-          {error && (
-            <p role="alert" className="text-label-sm text-error">
-              {error}
-            </p>
-          )}
-
-          <div className="flex items-center justify-between">
+      <form
+        onSubmit={submit}
+        className="space-y-5 rounded-[28px] border border-[#e4dced] bg-white p-5 shadow-[0_18px_55px_rgba(45,25,74,.10)] sm:p-7"
+      >
+        <Field
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          placeholder="Email or Phone Number"
+          icon="alternate_email"
+          type="text"
+          autoComplete="username"
+          appearance="light"
+        />
+        <Field
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          icon="lock"
+          type={showPassword ? 'text' : 'password'}
+          autoComplete="current-password"
+          appearance="light"
+          trailing={
             <button
               type="button"
-              onClick={() => setRemember(!remember)}
-              className="flex items-center gap-2 text-label-sm text-on-surface-variant"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-[#6a5588] hover:bg-[#f3eef9] hover:text-[#49247d]"
             >
-              <span
-                className={`grid h-4 w-4 place-items-center rounded border transition-colors ${remember ? 'border-primary bg-primary-container' : 'border-outline'}`}
-              >
-                {remember && <Icon name="check" className="text-[12px] text-white" />}
-              </span>
-              Remember me
+              <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="text-[23px]" />
             </button>
-            <Link to="/forgot-password" className="text-label-sm text-primary hover:text-tertiary">
-              Forgot Password?
-            </Link>
-          </div>
+          }
+        />
+        {error && (
+          <p role="alert" className="text-label-md font-semibold text-[#b12c4a]">
+            {error}
+          </p>
+        )}
 
-          <Button full size="lg" type="submit" loading={loading}>
-            Login
-          </Button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setRemember(!remember)}
+            className="flex items-center gap-2 text-label-md font-semibold text-[#50465e]"
+          >
+            <span
+              className={`grid h-5 w-5 place-items-center rounded-md border transition-colors ${remember ? 'border-[#6841ac] bg-[#6841ac]' : 'border-[#aea4bd] bg-white'}`}
+            >
+              {remember && <Icon name="check" className="text-[14px] text-white" />}
+            </span>
+            Remember me
+          </button>
+          <Link to="/forgot-password" className="text-label-md font-bold text-[#6239a2] hover:text-[#46227f]">
+            Forgot Password?
+          </Link>
+        </div>
 
-          {auth.oauthEnabled && (
-            <>
-              <div className="flex items-center gap-3 py-1">
-                <span className="h-px flex-1 bg-white/10" />
-                <span className="text-label-sm text-outline">or login with</span>
-                <span className="h-px flex-1 bg-white/10" />
-              </div>
-              <div className="flex justify-center gap-4">
-                <SocialButton label="Continue with Google" onClick={() => auth.beginOAuth('google')}>
-                  <span className="text-title font-bold text-on-surface">G</span>
-                </SocialButton>
-                <SocialButton label="Continue with Apple" onClick={() => auth.beginOAuth('apple')}>
-                  <Icon name="phone_iphone" className="text-on-surface" />
-                </SocialButton>
-              </div>
-            </>
-          )}
-        </Card>
-
-        <Button to="/register" variant="ghost" full size="lg" className="mt-4">
-          Create New Account
+        <Button
+          full
+          size="lg"
+          type="submit"
+          loading={loading}
+          className="min-h-[58px] rounded-2xl text-[17px] font-bold"
+          style={{ backgroundColor: '#6336aa' }}
+        >
+          Login
         </Button>
-      </div>
-    </div>
+
+        {auth.oauthEnabled && (
+          <>
+            <div className="flex items-center gap-3 py-1">
+              <span className="h-px flex-1 bg-[#e8e1ef]" />
+              <span className="text-label-md font-semibold text-[#756a83]">or log in with</span>
+              <span className="h-px flex-1 bg-[#e8e1ef]" />
+            </div>
+            <div className="flex justify-center gap-4">
+              <SocialButton label="Continue with Google" onClick={() => auth.beginOAuth('google')}>
+                <span className="text-title font-bold text-[#312445]">G</span>
+              </SocialButton>
+              <SocialButton label="Continue with Apple" onClick={() => auth.beginOAuth('apple')}>
+                <Icon name="phone_iphone" className="text-[#312445]" />
+              </SocialButton>
+            </div>
+          </>
+        )}
+      </form>
+
+      <p className="mt-6 text-center text-[16px] font-semibold text-[#5e536e]">
+        New to WRS?{' '}
+        <Link to="/register" className="font-bold text-[#6336aa] underline decoration-[#bba7dc] underline-offset-4">
+          Create an account
+        </Link>
+      </p>
+    </AuthLayout>
   )
 }

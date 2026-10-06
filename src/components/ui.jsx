@@ -517,31 +517,45 @@ export function Tabs({ items, value, onChange, className = '' }) {
 }
 
 /* ------------------------------------------------------------------ field */
-export function Field({ label, hint, error, icon, trailing, className = '', id, ...rest }) {
+export function Field({ label, hint, error, icon, trailing, className = '', id, appearance = 'dark', ...rest }) {
   const inputId = id || `f-${label?.replace(/\W+/g, '-').toLowerCase() || rest.placeholder?.slice(0, 8)}`
+  const light = appearance === 'light'
   return (
     <div className={className}>
       {label && (
-        <label htmlFor={inputId} className="mb-1.5 block text-label-md text-on-surface-variant">
+        <label
+          htmlFor={inputId}
+          className={`mb-2 block text-title font-semibold ${light ? 'text-[#312445]' : 'text-on-surface-variant'}`}
+        >
           {label}
         </label>
       )}
       <div
-        className={`flex min-h-[48px] items-center gap-2.5 rounded-xl border bg-surface-container px-3.5 transition-colors duration-fast focus-within:border-primary ${
-          error ? 'border-error' : 'border-white/12'
-        }`}
+        className={`flex min-h-[56px] items-center gap-3 rounded-xl border px-4 transition-colors duration-fast ${
+          light
+            ? 'border-[#ded5eb] bg-white shadow-[0_2px_8px_rgba(37,22,66,0.04)] focus-within:border-[#6941b5] focus-within:ring-4 focus-within:ring-[#6941b5]/10'
+            : 'border-white/12 bg-surface-container focus-within:border-primary'
+        } ${error ? (light ? 'border-[#c43c58]' : 'border-error') : ''}`}
       >
-        {icon && <Icon name={icon} className="text-[20px] text-on-surface-variant" />}
+        {icon && <Icon name={icon} className={`text-[22px] ${light ? 'text-[#70589a]' : 'text-on-surface-variant'}`} />}
         <input
           id={inputId}
           aria-invalid={error ? true : undefined}
-          className="min-w-0 flex-1 bg-transparent text-body-md text-on-surface outline-none placeholder:text-outline"
+          className={`min-w-0 flex-1 bg-transparent text-[18px] font-semibold leading-6 outline-none placeholder:font-medium ${
+            light ? 'text-[#211a2d] placeholder:text-[#857a94]' : 'text-on-surface placeholder:text-outline'
+          }`}
           {...rest}
         />
         {trailing}
       </div>
       {(hint || error) && (
-        <p className={`mt-1.5 text-label-sm ${error ? 'text-error' : 'text-on-surface-variant'}`}>{error || hint}</p>
+        <p
+          className={`mt-1.5 text-label-md ${
+            error ? (light ? 'text-[#b12c4a]' : 'text-error') : light ? 'text-[#655b74]' : 'text-on-surface-variant'
+          }`}
+        >
+          {error || hint}
+        </p>
       )}
     </div>
   )

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
-import { Button, Card, Field } from '../components/ui.jsx'
+import AuthLayout from '../components/auth/AuthLayout.jsx'
+import { Button, Field } from '../components/ui.jsx'
 
 export default function ForgotPassword() {
   const auth = useAuth()
@@ -23,10 +24,10 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center px-margin-page py-12">
-      <Card className="w-full max-w-sm space-y-4 p-card-padding">
-        <h1 className="font-headline-md text-headline-md text-on-surface">Recover your account</h1>
-        <p className="text-body-sm text-on-surface-variant">
+    <AuthLayout maxWidth="max-w-md">
+      <section className="space-y-5 rounded-[28px] border border-[#e4dced] bg-white p-5 shadow-[0_18px_55px_rgba(45,25,74,.10)] sm:p-7">
+        <h1 className="font-headline-md text-[24px] font-bold text-[#261a38]">Recover your account</h1>
+        <p className="text-[16px] font-medium leading-6 text-[#665c74]">
           For privacy, WRS gives the same response whether or not an account exists.
         </p>
         <Field
@@ -34,19 +35,20 @@ export default function ForgotPassword() {
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
           autoComplete="username"
+          appearance="light"
         />
         {message && (
-          <p role="status" className="text-label-sm text-on-surface-variant">
+          <p role="status" className="text-label-md font-medium text-[#5f566c]">
             {message}
           </p>
         )}
-        <Button full loading={loading} onClick={submit}>
+        <Button full loading={loading} onClick={submit} style={{ backgroundColor: '#6336aa' }}>
           Send recovery instructions
         </Button>
-        <Link to="/login" className="block text-center text-label-sm text-primary">
+        <Link to="/login" className="block text-center text-label-md font-bold text-[#6336aa]">
           Back to login
         </Link>
-      </Card>
-    </div>
+      </section>
+    </AuthLayout>
   )
 }

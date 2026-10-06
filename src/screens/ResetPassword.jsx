@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
-import { Button, Card, Field } from '../components/ui.jsx'
+import AuthLayout from '../components/auth/AuthLayout.jsx'
+import { Button, Field, Icon } from '../components/ui.jsx'
 import { passwordIssues } from '../domain/auth/validation.ts'
 
 function hashRecoveryToken() {
@@ -17,6 +18,7 @@ export default function ResetPassword() {
   const token = useMemo(() => params.get('token') || hashRecoveryToken(), [params])
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [showPasswords, setShowPasswords] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -40,32 +42,50 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center px-margin-page py-12">
-      <Card className="w-full max-w-sm space-y-4 p-card-padding">
-        <h1 className="font-headline-md text-headline-md text-on-surface">Set a new password</h1>
+    <AuthLayout maxWidth="max-w-md">
+      <section className="space-y-5 rounded-[28px] border border-[#e4dced] bg-white p-5 shadow-[0_18px_55px_rgba(45,25,74,.10)] sm:p-7">
+        <h1 className="font-headline-md text-[24px] font-bold text-[#261a38]">Set a new password</h1>
         <Field
           label="New password"
-          type="password"
+          type={showPasswords ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
+          appearance="light"
+          trailing={<PasswordVisibility show={showPasswords} onToggle={() => setShowPasswords((show) => !show)} />}
         />
         <Field
           label="Confirm password"
-          type="password"
+          type={showPasswords ? 'text' : 'password'}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           autoComplete="new-password"
+          appearance="light"
+          trailing={<PasswordVisibility show={showPasswords} onToggle={() => setShowPasswords((show) => !show)} />}
         />
         {error && (
-          <p role="alert" className="text-label-sm text-error">
+          <p role="alert" className="text-label-md font-semibold text-[#b12c4a]">
             {error}
           </p>
         )}
-        <Button full loading={loading} onClick={submit} disabled={!token}>
+        <Button full loading={loading} onClick={submit} disabled={!token} style={{ backgroundColor: '#6336aa' }}>
           Update password
         </Button>
-      </Card>
-    </div>
+      </section>
+    </AuthLayout>
+  )
+}
+
+function PasswordVisibility({ show, onToggle }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={show ? 'Hide password' : 'Show password'}
+      aria-pressed={show}
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-[#6a5588] hover:bg-[#f3eef9] hover:text-[#49247d]"
+    >
+      <Icon name={show ? 'visibility_off' : 'visibility'} className="text-[23px]" />
+    </button>
   )
 }
