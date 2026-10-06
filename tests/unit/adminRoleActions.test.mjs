@@ -16,8 +16,8 @@ vi.mock('../../api/_lib/supabase.js', () => ({
   authPublic: vi.fn(),
 }))
 
-import action from '../../api/admin/action.js'
-import roleSubject from '../../api/admin/role-subject.js'
+import action from '../../server/routes/admin/action.js'
+import roleSubject from '../../server/routes/admin/role-subject.js'
 import { bootstrapInitialAdmin } from '../../scripts/bootstrap-initial-admin.mjs'
 
 const actor = '11111111-1111-4111-8111-111111111111'

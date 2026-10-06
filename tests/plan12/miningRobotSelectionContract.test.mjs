@@ -33,7 +33,7 @@ test('mining start validates robot ownership at the server and accepts only a ro
 })
 
 test('snapshot and start routes require a verified member session', async () => {
-  const [snapshot, start] = await Promise.all([read('api/mining.js'), read('api/mining/start.js')])
+  const [snapshot, start] = await Promise.all([read('server/routes/mining.js'), read('server/routes/mining/start.js')])
   assert.match(snapshot, /requireSession\(request, \{ verified: true \}\)/)
   assert.match(start, /requireSession\(request, \{ verified: true \}\)/)
   assert.match(start, /assertSameOrigin\(request\)/)

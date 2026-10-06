@@ -12,13 +12,13 @@ const required = [
   'src/services/finance/FinanceService.ts',
   'api/_lib/paystack.js',
   'api/_lib/finance.js',
-  'api/payments/initialize.js',
-  'api/payments/verify.js',
-  'api/payments/webhook.js',
-  'api/wallet.js',
-  'api/wallet/payout-method.js',
-  'api/wallet/withdraw.js',
-  'api/payments/reconcile.js',
+  'server/routes/payments/initialize.js',
+  'server/routes/payments/verify.js',
+  'server/routes/payments/webhook.js',
+  'server/routes/wallet.js',
+  'server/routes/wallet/payout-method.js',
+  'server/routes/wallet/withdraw.js',
+  'server/routes/payments/reconcile.js',
   'supabase/migrations/20260822050000_plan5_financial_ledger.sql',
   'supabase/migrations/20260822051000_plan5_finance_reversals.sql',
   'supabase/migrations/20260822052000_plan5_idempotency_isolation.sql',
@@ -51,7 +51,7 @@ test('ledger schema is double-entry, append-only and uses integer minor units', 
 
 test('payments use server-side provider initialization and verified settlement', () => {
   const provider = read('api/_lib/paystack.js')
-  const webhook = read('api/payments/webhook.js')
+  const webhook = read('server/routes/payments/webhook.js')
   assert.match(provider, /transaction\/initialize/)
   assert.match(provider, /transaction\/verify/)
   assert.match(provider, /sha512/i)
@@ -60,8 +60,8 @@ test('payments use server-side provider initialization and verified settlement',
   assert.match(webhook, /verifyPaystackWebhook/)
   assert.match(webhook, /wrs_settle_payment/)
 
-  const initialize = read('api/payments/initialize.js')
-  const verify = read('api/payments/verify.js')
+  const initialize = read('server/routes/payments/initialize.js')
+  const verify = read('server/routes/payments/verify.js')
   assert.match(initialize, /requireSession/)
   assert.match(initialize, /assertSameOrigin/)
   assert.match(initialize, /wrs_create_payment_intent/)
@@ -92,7 +92,7 @@ test('package entitlement activation can only follow posted verified payment', (
 
 test('wallet balance is derived from ledger entries rather than mutable balance fields', () => {
   const finance = read('api/_lib/finance.js')
-  const wallet = read('api/wallet.js')
+  const wallet = read('server/routes/wallet.js')
   const sql = read('supabase/migrations/20260822050000_plan5_financial_ledger.sql').toLowerCase()
   assert.match(finance, /wrs_wallet_snapshot/)
   assert.match(wallet, /wrs_wallet_snapshot/)
@@ -101,7 +101,7 @@ test('wallet balance is derived from ledger entries rather than mutable balance 
 })
 
 test('withdrawals require verified payout method, KYC and provider transfer verification', () => {
-  const endpoint = read('api/wallet/withdraw.js')
+  const endpoint = read('server/routes/wallet/withdraw.js')
   const provider = read('api/_lib/paystack.js')
   assert.match(endpoint, /requireSession/)
   assert.match(endpoint, /kyc/i)
@@ -114,7 +114,7 @@ test('withdrawals require verified payout method, KYC and provider transfer veri
 
 test('refunds and transfer reversals use compensating ledger transactions', () => {
   const sql = read('supabase/migrations/20260822051000_plan5_finance_reversals.sql').toLowerCase()
-  const webhook = read('api/payments/webhook.js')
+  const webhook = read('server/routes/payments/webhook.js')
   assert.match(sql, /wrs_process_payment_refund/)
   assert.match(sql, /wrs_reverse_withdrawal/)
   assert.match(sql, /package-payment-refund/)
@@ -127,7 +127,7 @@ test('refunds and transfer reversals use compensating ledger transactions', () =
 })
 
 test('reconciliation exists and does not trust callbacks alone', () => {
-  const source = read('api/payments/reconcile.js')
+  const source = read('server/routes/payments/reconcile.js')
   assert.match(source, /CRON_SECRET/)
   assert.match(source, /verifyTransaction|verifyTransfer/)
   assert.match(source, /processPaymentRefund/)

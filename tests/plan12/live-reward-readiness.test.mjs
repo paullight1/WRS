@@ -6,7 +6,7 @@ const read = (path) => fs.readFileSync(new URL(`../../${path}`, import.meta.url)
 
 test('daily login XP is requested before the authoritative member snapshot', () => {
   const home = read('src/screens/Home.jsx')
-  const api = read('api/rewards/activity.js')
+  const api = read('server/routes/rewards/activity.js')
   const client = read('src/infrastructure/mining/browserMiningClient.ts')
   assert.match(home, /claimDailyActivity\(\)/)
   assert.match(home, /dailyActivity\.then\(\(\) => browserMiningClient\.snapshot\(\)\)/)
@@ -25,7 +25,7 @@ test('mining never starts without enabled issuance and explains the disabled sta
 })
 
 test('unpublished tasks and notification records are not represented by local mock data', () => {
-  const submit = read('api/data/tasks/submit.js')
+  const submit = read('server/routes/data/tasks/submit.js')
   const data = read('src/screens/DataContribution.jsx')
   const task = read('src/screens/DataTask.jsx')
   const notifications = read('src/screens/Notifications.jsx')

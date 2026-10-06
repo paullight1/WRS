@@ -7,7 +7,7 @@ const read = (path) => fs.readFileSync(new URL(path, root), 'utf8')
 const migration = 'supabase/migrations/20261003182654_admin_operator_role_management.sql'
 
 test('role lookup is exact, permission guarded and never lists Auth users', () => {
-  const api = read('api/admin/role-subject.js')
+  const api = read('server/routes/admin/role-subject.js')
   const sql = read(migration)
   assert.match(api, /requireAdminSession\(request, 'operations.roles'\)/)
   assert.match(api, /wrs_admin_role_subject/)
@@ -18,7 +18,7 @@ test('role lookup is exact, permission guarded and never lists Auth users', () =
 })
 
 test('role mutations are scoped, transactionally audited and deny unsafe assignments', () => {
-  const api = read('api/admin/action.js')
+  const api = read('server/routes/admin/action.js')
   const sql = read(migration)
   assert.match(api, /requireAdminSession\(request, 'operations.roles', \{ stepUp: true \}\)/)
   assert.match(sql, /p_operator_user_id\s*=\s*p_subject_user_id/)

@@ -12,7 +12,7 @@ export function localApiPlugin(projectRoot) {
         const requestUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`)
         const relativePath = decodeURIComponent(requestUrl.pathname).replace(/^\/+/, '')
         if (relativePath.includes('..')) return next()
-        const handlerPath = path.resolve(projectRoot, `${relativePath}.js`)
+        const handlerPath = path.resolve(projectRoot, 'api/[...path].js')
         if (!handlerPath.startsWith(path.resolve(projectRoot, 'api') + path.sep) || !fs.existsSync(handlerPath)) return next()
 
         try {

@@ -27,7 +27,7 @@ test('leaderboard ranks posted, settled mining awards and excludes reversed ledg
   const [sql, service, route, types] = await Promise.all([
     read('supabase/migrations/20260929130000_mining_reporting.sql'),
     read('api/_lib/mining.js'),
-    read('api/mining/leaderboard.js'),
+    read('server/routes/mining/leaderboard.js'),
     read('src/domain/mining/types.ts'),
   ])
   assert.match(sql, /wrs_mining_leaderboard\(p_period text\)/i)

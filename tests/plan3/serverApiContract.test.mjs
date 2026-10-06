@@ -9,20 +9,20 @@ const read = (path) => fs.readFileSync(new URL(path, root), 'utf8')
 const exists = (path) => fs.existsSync(new URL(path, root))
 
 const authEndpoints = [
-  'api/auth/session.js',
-  'api/auth/register.js',
-  'api/auth/login.js',
-  'api/auth/logout.js',
-  'api/auth/verify.js',
-  'api/auth/verification/start.js',
-  'api/auth/verification/resend.js',
-  'api/auth/password/forgot.js',
-  'api/auth/password/reset.js',
-  'api/auth/oauth/start.js',
-  'api/auth/oauth/callback.js',
-  'api/auth/mfa/enroll.js',
-  'api/auth/mfa/verify.js',
-  'api/auth/mfa/disable.js',
+  'server/routes/auth/session.js',
+  'server/routes/auth/register.js',
+  'server/routes/auth/login.js',
+  'server/routes/auth/logout.js',
+  'server/routes/auth/verify.js',
+  'server/routes/auth/verification/start.js',
+  'server/routes/auth/verification/resend.js',
+  'server/routes/auth/password/forgot.js',
+  'server/routes/auth/password/reset.js',
+  'server/routes/auth/oauth/start.js',
+  'server/routes/auth/oauth/callback.js',
+  'server/routes/auth/mfa/enroll.js',
+  'server/routes/auth/mfa/verify.js',
+  'server/routes/auth/mfa/disable.js',
 ]
 
 test('Plan 3 same-origin server endpoint surface is complete', () => {
@@ -96,10 +96,10 @@ test('registration/login/reset use distributed rate limiting', () => {
   assert.match(migration, /auth_rate_limit_buckets/)
   assert.match(migration, /wrs_consume_auth_rate_limit/)
   for (const path of [
-    'api/auth/register.js',
-    'api/auth/login.js',
-    'api/auth/password/forgot.js',
-    'api/auth/password/reset.js',
+    'server/routes/auth/register.js',
+    'server/routes/auth/login.js',
+    'server/routes/auth/password/forgot.js',
+    'server/routes/auth/password/reset.js',
   ]) {
     assert.match(read(path), /enforceRateLimit/, path)
   }
@@ -116,7 +116,7 @@ test('OTP attempts and MFA recovery codes use atomic database functions', () => 
 })
 
 test('verification resend requires a signed challenge rather than a user id alone', () => {
-  const source = read('api/auth/verification/resend.js')
+  const source = read('server/routes/auth/verification/resend.js')
   assert.match(source, /verifySignedToken/)
   assert.match(source, /challengeId/)
   assert.match(source, /userId/)
@@ -133,9 +133,9 @@ test('one-live challenge and MFA-factor invariants are database-enforced', () =>
 
 test('WRS session metadata is authoritative and revoked sessions cannot refresh back to life', () => {
   const session = read('api/_lib/session.js')
-  const logout = read('api/auth/logout.js')
-  const reset = read('api/auth/password/reset.js')
-  const verify = read('api/auth/verify.js')
+  const logout = read('server/routes/auth/logout.js')
+  const reset = read('server/routes/auth/password/reset.js')
+  const verify = read('server/routes/auth/verify.js')
   assert.match(session, /recordSessionMetadata/)
   assert.match(session, /metadata\.revoked_at/)
   assert.match(session, /revokeAllUserSessionMetadata/)
@@ -148,7 +148,7 @@ test('WRS session metadata is authoritative and revoked sessions cannot refresh 
 test('OAuth stays opt-in, clears transient state and uses PKCE state and nonce on the server', () => {
   const runtime = read('src/lib/runtimeConfig.js')
   const oauth = read('api/_lib/oauth.js')
-  const callback = read('api/auth/oauth/callback.js')
+  const callback = read('server/routes/auth/oauth/callback.js')
   assert.match(runtime, /VITE_WRS_OAUTH_ENABLED/)
   assert.match(oauth, /WRS_OAUTH_PROVIDERS/)
   assert.match(oauth, /code_challenge/)
