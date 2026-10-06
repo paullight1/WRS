@@ -1,9 +1,4 @@
-import {
-  enforceRateLimit,
-  issueMissingVerificationChallenges,
-  loadProfile,
-  recordSecurityEvent,
-} from '../../auth.js'
+import { enforceRateLimit, issueMissingVerificationChallenges, loadProfile, recordSecurityEvent } from '../../auth.js'
 import {
   appendCookies,
   assertSameOrigin,
@@ -14,7 +9,7 @@ import {
   requireMethod,
 } from '../../http.js'
 import { buildAppSession, recordSessionMetadata, sessionCookies } from '../../session.js'
-import { authPublic, serviceRpc } from '../../supabase.js'
+import { authPublic } from '../../supabase.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
@@ -54,14 +49,5 @@ export default functionHandler(async (request) => {
   const challenges =
     !session.emailVerified || !session.phoneVerified ? await issueMissingVerificationChallenges(user) : []
   await recordSecurityEvent(user.id, 'login.succeeded')
-  let dailyReward = null
-  if (session.emailVerified) {
-    try {
-      const { data } = await serviceRpc('wrs_award_member_milestones', { p_user_id: user.id })
-      dailyReward = data
-    } catch (error) {
-      console.error('Daily login XP award failed', { userId: user.id, message: error.message })
-    }
-  }
-  return appendCookies(json({ session, challenges, dailyReward }), sessionCookies(tokenResponse, rememberMe))
+  return appendCookies(json({ session, challenges }), sessionCookies(tokenResponse, rememberMe))
 })

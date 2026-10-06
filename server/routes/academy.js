@@ -1,13 +1,5 @@
-import {
-  appendCookies,
-  assertSameOrigin,
-  functionHandler,
-  HttpError,
-  json,
-  readJson,
-  requireMethod,
-} from '../http.js'
-import { academySnapshot, enrollAcademyCourse } from '../ecosystem.js'
+import { appendCookies, assertSameOrigin, functionHandler, HttpError, json, readJson, requireMethod } from '../http.js'
+import { academySnapshot, enrollAcademyCourse } from '../../api/_lib/ecosystem.js'
 import { requireSession } from '../session.js'
 
 export default functionHandler(async (request) => {

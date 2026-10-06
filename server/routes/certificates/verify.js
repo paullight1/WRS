@@ -1,4 +1,4 @@
-import { verifyAcademyCertificate } from '../../ecosystem.js'
+import { verifyAcademyCertificate } from '../../../api/_lib/ecosystem.js'
 import { functionHandler, HttpError, json, requireMethod } from '../../http.js'
 
 export default functionHandler(async (request) => {

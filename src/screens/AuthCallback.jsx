@@ -15,8 +15,7 @@ export default function AuthCallback() {
     const params = new URLSearchParams(window.location.hash.replace(/^#/, ''))
     const accessToken = params.get('access_token')
     const refreshToken = params.get('refresh_token')
-    const providerError =
-      params.get('error_description') || new URLSearchParams(window.location.search).get('error_description')
+    const providerError = params.get('error_description') || new URLSearchParams(window.location.search).get('error_description')
     if (providerError) {
       setError(providerError)
       return () => {

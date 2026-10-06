@@ -37,9 +37,7 @@ export default function Splash() {
       {/* ----------------------------------------------------- foreground */}
       <div className="relative flex min-h-screen flex-col justify-between px-margin-page pb-10 pt-14 text-center">
         <header className="flex flex-col items-center">
-          <h1 className="font-headline-lg text-headline-lg font-extrabold uppercase leading-tight tracking-tight text-on-surface sm:text-[34px]">
-            World Robotic <span className="text-primary">System</span>
-          </h1>
+          <img src="/wrs-logo-footer.png" alt="World Robotic System" className="h-auto w-[230px] max-w-full" />
           <p className="mt-2 text-body-md text-on-surface-variant">Own a Robot. Own the Future.</p>
         </header>
 

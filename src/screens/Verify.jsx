@@ -39,8 +39,8 @@ export default function Verify() {
       <div className="w-full max-w-sm">
         <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Check your email</h1>
         <p className="mb-6 mt-2 text-body-md text-on-surface-variant">
-          We sent a confirmation link to your email address. Open it to activate your WRS account. Phone verification is
-          not required.
+          We sent a confirmation link to your email address. Open it to activate your WRS account. Phone verification
+          is not required.
         </p>
         <Card className="space-y-5 p-card-padding">
           <label className="block text-label-sm text-on-surface-variant" htmlFor="confirmation-email">
@@ -54,16 +54,8 @@ export default function Verify() {
             placeholder="you@email.com"
             className="h-14 w-full rounded-xl border border-white/10 bg-black/30 px-4 text-body-md text-on-surface outline-none focus:border-tertiary"
           />
-          {message && (
-            <p role="status" className="text-label-sm text-tertiary">
-              {message}
-            </p>
-          )}
-          {error && (
-            <p role="alert" className="text-label-sm text-error">
-              {error}
-            </p>
-          )}
+          {message && <p role="status" className="text-label-sm text-tertiary">{message}</p>}
+          {error && <p role="alert" className="text-label-sm text-error">{error}</p>}
           <Button full size="lg" loading={loading} onClick={resend}>
             Resend confirmation email
           </Button>

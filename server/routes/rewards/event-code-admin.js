@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { createEventRewardCode } from '../../ecosystem.js'
+import { createEventRewardCode } from '../../../api/_lib/ecosystem.js'
 import { functionHandler, HttpError, json, readJson, requireMethod } from '../../http.js'
 import { requireInternalBearer } from '../../internalAuth.js'
 

@@ -1,7 +1,7 @@
 import { HttpError } from './http.js'
 import { serviceRest } from './supabase.js'
 
-const packages = new Set(['starter', 'builder', 'professional', 'enterprise', 'elite', 'visionary'])
+const packages = new Set(['free', 'starter', 'builder', 'professional', 'enterprise', 'elite', 'visionary'])
 const personalities = new Set(['Logical', 'Empathetic', 'Aggressive', 'Protective'])
 
 export function mapRobot(row) {

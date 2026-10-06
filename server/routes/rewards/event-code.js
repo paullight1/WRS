@@ -1,5 +1,5 @@
 import { enforceRateLimit } from '../../auth.js'
-import { redeemEventCode } from '../../ecosystem.js'
+import { redeemEventCode } from '../../../api/_lib/ecosystem.js'
 import {
   appendCookies,
   assertSameOrigin,

@@ -1,4 +1,4 @@
-import { assessAcademyEnrollment } from '../../ecosystem.js'
+import { assessAcademyEnrollment } from '../../../api/_lib/ecosystem.js'
 import { functionHandler, HttpError, json, readJson, requireMethod } from '../../http.js'
 import { requireInternalBearer } from '../../internalAuth.js'
 

@@ -7,7 +7,7 @@ import {
   readJson,
   requireMethod,
 } from '../../http.js'
-import { installMarketplaceItem } from '../../ecosystem.js'
+import { installMarketplaceItem } from '../../../api/_lib/ecosystem.js'
 import { requireSession } from '../../session.js'
 
 export default functionHandler(async (request) => {

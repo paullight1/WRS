@@ -19,7 +19,7 @@ const enabled = (value) =>
 
 export function parseRuntimeConfig(env = {}) {
   const hasPublicSupabase = Boolean(env.VITE_PUBLIC_SUPABASE_URL && env.VITE_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
-  const mode = String(env.VITE_WRS_MODE || 'staging')
+  const mode = String(env.VITE_WRS_MODE || (hasPublicSupabase ? 'staging' : 'demo'))
     .trim()
     .toLowerCase()
   if (!MODES.has(mode)) {

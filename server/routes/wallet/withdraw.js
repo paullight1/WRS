@@ -7,12 +7,7 @@ import {
   readJson,
   requireMethod,
 } from '../../http.js'
-import {
-  failWithdrawal,
-  markWithdrawalProviderPending,
-  payoutMethodForUser,
-  reserveWithdrawal,
-} from '../../finance.js'
+import { failWithdrawal, markWithdrawalProviderPending, payoutMethodForUser, reserveWithdrawal } from '../../finance.js'
 import { initiateTransfer } from '../../paystack.js'
 import { requireSession } from '../../session.js'
 

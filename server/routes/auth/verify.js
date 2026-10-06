@@ -8,12 +8,7 @@ import {
   readJson,
   requireMethod,
 } from '../../http.js'
-import {
-  buildAppSession,
-  recordSessionMetadata,
-  revokeAllUserSessionMetadata,
-  sessionCookies,
-} from '../../session.js'
+import { buildAppSession, recordSessionMetadata, revokeAllUserSessionMetadata, sessionCookies } from '../../session.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')

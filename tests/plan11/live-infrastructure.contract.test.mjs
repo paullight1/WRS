@@ -51,9 +51,9 @@ test('Phase 11.1 preflight fails closed for incomplete production infrastructure
 test('Phase 11.1 includes the complete ordered Supabase SQL pack', async () => {
   const migrationsUrl = new URL('../../supabase/migrations/', import.meta.url)
   const migrations = (await readdir(migrationsUrl)).filter((name) => name.endsWith('.sql')).sort()
-  assert.equal(migrations.length, 34, 'expected 34 ordered WRS migrations')
+  assert.equal(migrations.length, 30, 'expected 30 ordered WRS migrations')
   assert.equal(migrations[0], '20260821030000_plan3_identity.sql')
-  assert.equal(migrations.at(-1), '20261003182654_admin_operator_role_management.sql')
+  assert.equal(migrations.at(-1), '20260929130000_mining_reporting.sql')
 
   const guide = await text('supabase/MIGRATION_GUIDE.md')
   for (const migration of migrations) assert.match(guide, new RegExp(migration.replaceAll('.', '\\.')))
@@ -80,8 +80,8 @@ test('Phase 11.1 records connected-resource evidence and manual live handoff', a
   const evidence = await text('Docs/production-readiness/11-live-activation/PHASE-11.1-INFRASTRUCTURE.md')
   assert.match(evidence, /Supabase/i)
   assert.match(evidence, /Vercel/i)
-  assert.match(evidence, /STAGING DATABASE READY|MANUAL LIVE APPLICATION PENDING/i)
+  assert.match(evidence, /SQL\/REPOSITORY READY|MANUAL LIVE APPLICATION PENDING/i)
   assert.match(evidence, /NO-GO/i)
-  assert.match(evidence, /WRS Supabase organization/i)
+  assert.match(evidence, /crescivacapital/)
   assert.match(evidence, /zero projects|0 projects/i)
 })

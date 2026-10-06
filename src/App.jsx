@@ -2,13 +2,13 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute } from './components/auth/AuthProvider.jsx'
 import { NotifyProvider } from './components/notifications/Notify.jsx'
 import { RobotProvider } from './components/robot/RobotProvider.jsx'
+import { ThemeProvider } from './components/ThemeProvider.jsx'
 import { runtimeConfig } from './lib/runtimeConfig.js'
 import Landing from './screens/Landing.jsx'
 import Splash from './screens/Splash.jsx'
 import Login from './screens/Login.jsx'
 import Register from './screens/Register.jsx'
 import Verify from './screens/Verify.jsx'
-import AuthCallback from './screens/AuthCallback.jsx'
 import ForgotPassword from './screens/ForgotPassword.jsx'
 import ResetPassword from './screens/ResetPassword.jsx'
 import Onboarding from './screens/Onboarding.jsx'
@@ -25,7 +25,6 @@ import TrainingModule from './screens/TrainingModule.jsx'
 import DataContribution from './screens/DataContribution.jsx'
 import DataTask from './screens/DataTask.jsx'
 import DataQuality from './screens/DataQuality.jsx'
-import Deploy from './screens/Deploy.jsx'
 import DeploymentDetailsProduction from './screens/DeploymentDetailsProduction.jsx'
 import ActiveDeploymentProduction from './screens/ActiveDeploymentProduction.jsx'
 import MiningProduction from './screens/MiningProduction.jsx'
@@ -46,10 +45,13 @@ import SettingsProduction from './screens/SettingsProduction.jsx'
 import SecuritySettings from './screens/SecuritySettings.jsx'
 import SupportProduction from './screens/SupportProduction.jsx'
 import AccountDeletionRecoveryProduction from './screens/AccountDeletionRecoveryProduction.jsx'
+import AdminOperationsProduction from './screens/AdminOperationsProduction.jsx'
+import AuthCallback from './screens/AuthCallback.jsx'
 
 const authenticated = (element) => <ProtectedRoute policy="authenticated">{element}</ProtectedRoute>
 const verified = (element) => <ProtectedRoute requireVerified>{element}</ProtectedRoute>
 const kyc = (element) => <ProtectedRoute policy="kyc">{element}</ProtectedRoute>
+const operations = (element) => <ProtectedRoute policy="operations">{element}</ProtectedRoute>
 const accountRecovery = (element) => <ProtectedRoute policy="account-recovery">{element}</ProtectedRoute>
 
 const DeploymentDetailsScreen = DeploymentDetailsProduction
@@ -67,6 +69,7 @@ const SupportScreen = SupportProduction
 
 export default function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <RobotProvider>
         <NotifyProvider>
@@ -122,10 +125,12 @@ export default function App() {
             <Route path="/settings" element={authenticated(<SettingsScreen />)} />
             <Route path="/settings/security" element={authenticated(<SecuritySettings />)} />
             <Route path="/support" element={authenticated(<SupportScreen />)} />
+            <Route path="/admin/operations" element={operations(<AdminOperationsProduction />)} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </NotifyProvider>
       </RobotProvider>
     </AuthProvider>
+    </ThemeProvider>
   )
 }

@@ -1,4 +1,4 @@
-import { moderateCommunity } from '../../ecosystem.js'
+import { moderateCommunity } from '../../../api/_lib/ecosystem.js'
 import { functionHandler, HttpError, json, readJson, requireMethod } from '../../http.js'
 import { requireInternalBearer } from '../../internalAuth.js'
 
