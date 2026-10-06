@@ -113,12 +113,13 @@ export const browserMiningClient = {
   async snapshot(): Promise<MiningSnapshot> {
     return validateSnapshot(await request<unknown>('/api/mining'))
   },
-  async start(input: { robotId: string; idempotencyKey: string }): Promise<MiningSnapshot> {
+  async start(input: { robotId: string; worksiteId: string; idempotencyKey: string }): Promise<MiningSnapshot> {
     return validateSnapshot(
       await request<unknown>('/api/mining/start', {
         method: 'POST',
         body: JSON.stringify({
           robotId: input.robotId,
+          worksiteId: input.worksiteId,
           idempotencyKey: input.idempotencyKey,
         }),
       }),

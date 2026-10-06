@@ -4,7 +4,7 @@ import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
 import { useRobot } from '../components/robot/RobotProvider.jsx'
 import RobotSetupPanel from '../components/robot/RobotSetupPanel.jsx'
-import WelcomeModal, { consumeWelcome } from '../components/WelcomeModal.jsx'
+import WelcomeModal, { consumeWelcome, hasSeenOnboarding, markOnboardingSeen } from '../components/WelcomeModal.jsx'
 import Robot3D from '../components/robot3d/Robot3D.jsx'
 import StateView from '../components/states/StateView.jsx'
 import { ACCENTS, Badge, Button, Card, Icon, IconTile, SectionTitle } from '../components/ui.jsx'
@@ -315,10 +315,17 @@ export default function Home() {
   }, [miningSnapshot, refreshMining])
 
   useEffect(() => {
+    const userId = auth.session?.userId
+    if (auth.loading || !userId) return undefined
     queueMicrotask(() => {
-      if (consumeWelcome()) setWelcome(true)
+      if (consumeWelcome() || !hasSeenOnboarding(userId)) setWelcome(true)
     })
-  }, [])
+  }, [auth.loading, auth.session?.userId])
+
+  const dismissWelcome = useCallback(() => {
+    markOnboardingSeen(auth.session?.userId)
+    setWelcome(false)
+  }, [auth.session?.userId])
 
   const persist = (next) => {
     setIds(next)
@@ -343,7 +350,7 @@ export default function Home() {
           Daily login reward: +{location.state.dailyXpAward} XP
         </p>
       )}
-      <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
+      <WelcomeModal open={welcome} onClose={dismissWelcome} robotName={robotState.robot?.name} />
 
       {dailyActivityMessage && (
         <p role="status" aria-live="polite" className="rounded-xl bg-tertiary/10 px-4 py-3 text-body-sm text-tertiary">

@@ -8,19 +8,21 @@ export function validateMiningStartBody(body) {
     throw new HttpError(400, 'A mining start request is required.', 'mining-start-invalid')
   }
   const keys = Object.keys(body).sort()
-  const allowed = ['idempotencyKey', 'robotId']
+  const allowed = ['idempotencyKey', 'robotId', 'worksiteId']
   const idempotencyKey = typeof body.idempotencyKey === 'string' ? body.idempotencyKey.trim() : ''
   const robotId = typeof body.robotId === 'string' ? body.robotId.trim() : ''
+  const worksiteId = typeof body.worksiteId === 'string' ? body.worksiteId.trim() : ''
   if (
     keys.length !== allowed.length ||
     keys.some((key, index) => key !== allowed[index]) ||
     !UUID.test(robotId) ||
+    !UUID.test(worksiteId) ||
     idempotencyKey.length < 8 ||
     idempotencyKey.length > 200
   ) {
-    throw new HttpError(400, 'Send a robot and a valid idempotency key.', 'mining-start-invalid')
+    throw new HttpError(400, 'Choose a robot and worksite, and send a valid idempotency key.', 'mining-start-invalid')
   }
-  return { robotId, idempotencyKey }
+  return { robotId, worksiteId, idempotencyKey }
 }
 
 function miningSnapshotShape(data) {
@@ -97,9 +99,13 @@ export async function miningSnapshot(userId) {
   }
 }
 
-export async function startMiningSession(userId, { robotId, idempotencyKey }) {
+export async function startMiningSession(userId, { robotId, worksiteId, idempotencyKey }) {
   if (!UUID.test(String(userId || ''))) throw new HttpError(401, 'Authentication is required.', 'unauthenticated')
   const current = await miningSnapshot(userId)
+  const worksite = current.worksites.find((site) => site.worksiteId === worksiteId)
+  if (!worksite?.available || worksite.name.trim().toLowerCase() !== 'manufacturing') {
+    throw new HttpError(409, 'Manufacturing is the only available worksite right now.', 'worksite-locked')
+  }
   if (current.session) return current
   if (!current.eligibility.eligible) return current
   const robot = current.robots.find((item) => item.robotId === robotId)
@@ -107,7 +113,7 @@ export async function startMiningSession(userId, { robotId, idempotencyKey }) {
   await serviceRpc('wrs_start_mining_session', {
     p_user_id: userId,
     p_robot_id: robotId,
-    p_worksite_id: null,
+    p_worksite_id: worksiteId,
     p_idempotency_key: idempotencyKey,
   })
   return miningSnapshot(userId)

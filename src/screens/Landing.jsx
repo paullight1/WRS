@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 
 import Robot3D from '../components/robot3d/Robot3D.jsx'
-import RobotAvatar from '../components/RobotAvatar.jsx'
 import { Icon, ACCENTS } from '../components/ui.jsx'
 import SiteNav, { focusRing } from '../components/site/SiteNav.jsx'
 import SiteFooter from '../components/site/SiteFooter.jsx'
@@ -10,8 +9,8 @@ import Section, { SITE_WIDTH } from '../components/site/Section.jsx'
 import Reveal from '../components/site/Reveal.jsx'
 import CardArt from '../components/site/CardArt.jsx'
 import Faq from '../components/site/Faq.jsx'
-import { hero, steps } from '../components/site/content.js'
-import { packages, industries, dataTasks, trainingModules, palettes } from '../data/mock.js'
+import { audienceGroups, hero, steps, valuePillars } from '../components/site/content.js'
+import { industries, dataTasks, trainingModules, palettes } from '../data/mock.js'
 import { defaultRobotConfig } from '../data/robotParts.js'
 
 /* One rule for imagery on this page, after the icon-tile version read as noise:
@@ -22,7 +21,7 @@ import { defaultRobotConfig } from '../data/robotParts.js'
 /* Figures are counts of what the platform contains, computed from the same data
    the app renders — never performance or earnings claims. */
 const stats = [
-  { value: packages.length, label: 'Ownership tiers' },
+  { value: palettes.length, label: 'Robot palettes' },
   { value: industries.length, label: 'Deployment sectors' },
   { value: trainingModules.length, label: 'Training modules' },
   { value: dataTasks.length, label: 'Data task types' },
@@ -31,73 +30,134 @@ const stats = [
 /* Card art is tinted per column so the two grids share one colour rhythm. */
 const TASK_ACCENT = [ACCENTS.blue, ACCENTS.teal, ACCENTS.violet, ACCENTS.indigo, ACCENTS.orange, ACCENTS.green]
 
-/* One colour per tier, ascending. `tint` is vivid and only ever fills or draws
-   an edge; `ink` is the light variant and is the only one that carries text —
-   the vivid values are tuned for contrast against white, not against #111417. */
-const TIERS = [
-  { tint: '#2f6bff', ink: '#b8c3ff' },
-  { tint: '#8b2fd6', ink: '#ddb7ff' },
-  { tint: '#0f8fa0', ink: '#00dbe7' },
-  { tint: '#128b57', ink: '#3ddc97' },
-  { tint: '#b07d00', ink: '#f7c948' },
-  { tint: '#d81b7a', ink: '#ff9ec7' },
-]
-
-const ctaPrimary = `inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-primary-container px-7 text-label-md text-white transition-colors duration-fast hover:bg-[#2450e6] active:bg-[#1f47cc] ${focusRing}`
 const ctaGhost = `inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-white/15 px-7 text-label-md text-on-surface transition-colors duration-fast hover:bg-white/[.06] ${focusRing}`
+const ctaLight = `inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-[#ded4ec] px-7 text-label-md text-[#45218a] transition-colors duration-fast hover:bg-[#f1eafb] ${focusRing}`
 
 /** Label, one supporting line, one figure. No icon — the figure is the signal. */
-function DataRow({ title, sub, right }) {
+function DataRow({ title, sub, right, tone = 'dark' }) {
+  const light = tone === 'light'
   return (
-    <li className="flex items-baseline gap-4 border-b border-white/[.07] py-4">
+    <li className={`flex items-baseline gap-4 border-b py-4 ${light ? 'border-[#e8e1f1]' : 'border-white/[.07]'}`}>
       <span className="min-w-0 flex-1">
-        <span className="block text-title-sm text-on-surface">{title}</span>
-        <span className="mt-0.5 block text-body-sm text-on-surface-variant">{sub}</span>
+        <span className={`block text-title-sm ${light ? 'text-[#211b2d]' : 'text-on-surface'}`}>{title}</span>
+        <span className={`mt-0.5 block text-body-sm ${light ? 'text-[#655d72]' : 'text-on-surface-variant'}`}>
+          {sub}
+        </span>
       </span>
-      <span className="tnum shrink-0 font-mono text-data-sm text-outline">{right}</span>
+      <span className={`tnum shrink-0 font-mono text-data-sm ${light ? 'text-[#756e80]' : 'text-outline'}`}>
+        {right}
+      </span>
     </li>
   )
 }
 
 /** One feature deep-dive: a short claim on one side, a real product surface on the other. */
-function Feature({ eyebrow, title, body, children, flip = false }) {
+function Feature({ eyebrow, title, body, children, flip = false, tone = 'dark' }) {
+  const light = tone === 'light'
   return (
-    <div className="grid items-center gap-12 border-t border-white/[.07] py-20 lg:grid-cols-2 lg:gap-20 lg:py-28">
-      <Reveal className={flip ? 'lg:order-2' : undefined}>
-        <p className="mb-6 flex items-center gap-3 text-site-eyebrow text-on-surface-variant">
-          <span className="h-px w-8 bg-primary/60" />
-          {eyebrow}
-        </p>
-        <h3 className="max-w-[26ch] text-pretty font-display text-site-h2 text-on-surface">{title}</h3>
-        <p className="mt-6 max-w-[52ch] text-site-body text-on-surface-variant">{body}</p>
-      </Reveal>
-      <Reveal delay={80} className={flip ? 'lg:order-1' : undefined}>
-        {children}
-      </Reveal>
+    <div
+      className={`border-t py-16 first:border-t-0 sm:py-20 lg:py-28 ${light ? 'border-[#e8e1f1] bg-[#fbf9fe]' : 'border-white/[.07] bg-[#111417]'}`}
+    >
+      <div className="mx-auto grid w-full max-w-[1120px] items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-20">
+        <Reveal className={flip ? 'lg:order-2' : undefined}>
+          <p
+            className={`mb-6 flex items-center gap-3 text-site-eyebrow ${light ? 'text-[#746b82]' : 'text-on-surface-variant'}`}
+          >
+            <span className={`h-px w-8 ${light ? 'bg-[#8c5acb]' : 'bg-primary/60'}`} />
+            {eyebrow}
+          </p>
+          <h3
+            className={`max-w-[26ch] text-pretty font-display text-site-h2 ${light ? 'text-[#211b2d]' : 'text-on-surface'}`}
+          >
+            {title}
+          </h3>
+          <p className={`mt-6 max-w-[52ch] text-site-body ${light ? 'text-[#655d72]' : 'text-on-surface-variant'}`}>
+            {body}
+          </p>
+        </Reveal>
+        <Reveal delay={80} className={flip ? 'lg:order-1' : undefined}>
+          {children}
+        </Reveal>
+      </div>
     </div>
   )
 }
 
 /** Illustration above, then title, then one line. Used by both card grids. */
-function ArtCard({ art, accent, title, sub, meta, index }) {
+function ArtCard({ art, accent, title, sub, meta, index, tone = 'dark' }) {
+  const light = tone === 'light'
   return (
-    <div className="flex h-full flex-col bg-background/80 p-6 sm:p-7">
-      <div className="mb-7 overflow-hidden rounded-xl border border-white/[.07] bg-white/[.02] px-5 pt-5">
+    <div className={`flex h-full flex-col p-6 sm:p-7 ${light ? 'bg-white' : 'bg-[#111417]'}`}>
+      <div
+        className={`mb-7 overflow-hidden rounded-xl border px-5 pt-5 ${light ? 'border-[#ece6f3] bg-[#f8f5fc]' : 'border-white/[.07] bg-white/[.02]'}`}
+      >
         <CardArt name={art} accent={accent} />
       </div>
       <div className="flex items-baseline justify-between gap-4">
-        <h3 className="font-display text-site-h3 text-on-surface">{title}</h3>
-        {index != null && <span className="tnum font-mono text-data-sm text-outline">{index}</span>}
+        <h3 className={`font-display text-site-h3 ${light ? 'text-[#211b2d]' : 'text-on-surface'}`}>{title}</h3>
+        {index != null && (
+          <span className={`tnum font-mono text-data-sm ${light ? 'text-[#756e80]' : 'text-outline'}`}>{index}</span>
+        )}
       </div>
-      <p className="mt-2 text-body-md text-on-surface-variant">{sub}</p>
-      {meta && <p className="mt-4 text-label-sm text-outline">{meta}</p>}
+      <p className={`mt-2 text-body-md ${light ? 'text-[#655d72]' : 'text-on-surface-variant'}`}>{sub}</p>
+      {meta && <p className={`mt-4 text-label-sm ${light ? 'text-[#756e80]' : 'text-outline'}`}>{meta}</p>}
     </div>
+  )
+}
+
+function ClosingCta() {
+  const glyphs = 'WRSROBOTLEARNBUILDTRAINDEPLOYWORKREWARD'.split('')
+  return (
+    <section
+      onPointerMove={(event) => {
+        const bounds = event.currentTarget.getBoundingClientRect()
+        event.currentTarget.style.setProperty('--matrix-x', `${((event.clientX - bounds.left) / bounds.width) * 100}%`)
+        event.currentTarget.style.setProperty('--matrix-y', `${((event.clientY - bounds.top) / bounds.height) * 100}%`)
+      }}
+      onPointerLeave={(event) => {
+        event.currentTarget.style.setProperty('--matrix-x', '50%')
+        event.currentTarget.style.setProperty('--matrix-y', '50%')
+      }}
+      className="site-matrix relative isolate overflow-hidden bg-[#171224] px-5 py-20 text-center sm:py-24 lg:py-28"
+    >
+      <div
+        aria-hidden="true"
+        className="site-matrix-grid absolute inset-0 grid grid-cols-10 content-center overflow-hidden px-2 sm:px-10"
+      >
+        {Array.from({ length: 120 }, (_, i) => (
+          <span key={i} className="site-matrix-glyph" style={{ animationDelay: `${(i % 19) * -0.19}s` }}>
+            {glyphs[(i * 11 + Math.floor(i / 10)) % glyphs.length]}
+          </span>
+        ))}
+      </div>
+      <Reveal className="relative z-10 mx-auto max-w-[760px] rounded-[28px] border border-white/10 bg-[#171224]/70 px-6 py-10 shadow-[0_28px_90px_rgba(0,0,0,.25)] backdrop-blur-sm sm:px-12 sm:py-14">
+        <p className="mb-5 text-site-eyebrow text-[#c7b2ee]">Start building</p>
+        <h2 className="mx-auto max-w-[18ch] text-pretty font-display text-site-display text-white">
+          Build your robot.
+        </h2>
+        <p className="mx-auto mt-5 max-w-[44ch] text-pretty text-site-lead text-[#d1cbdc]">
+          Create a robot, teach it new skills, and follow its progress from one place.
+        </p>
+        <div className="mt-9 flex flex-wrap justify-center gap-3">
+          <Link
+            to="/register"
+            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-[#8052d1] px-7 text-label-md font-semibold text-white shadow-[0_10px_28px_rgba(110,64,190,.3)] transition-colors hover:bg-[#9167dd]"
+          >
+            Get Started
+            <Icon name="arrow_forward" className="text-[18px]" />
+          </Link>
+          <Link to="/login" className={ctaGhost}>
+            Sign in
+          </Link>
+        </div>
+      </Reveal>
+    </section>
   )
 }
 
 export default function Landing() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#111417]">
       <SiteBackdrop />
 
       <a
@@ -111,62 +171,107 @@ export default function Landing() {
 
       <main id="main">
         {/* ------------------------------------------------------------ hero */}
-        <section id="top" className="pb-16 pt-[124px] lg:pb-24 lg:pt-[152px]">
-          <div className={`${SITE_WIDTH} grid items-center gap-14 lg:grid-cols-[1.25fr_0.75fr] lg:gap-16`}>
+        <section
+          id="top"
+          className="relative isolate overflow-hidden bg-[#faf8fd] pb-14 pt-[100px] text-[#211b2d] sm:pt-[118px] lg:pb-20 lg:pt-[138px]"
+        >
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 lg:hidden">
+            <img
+              src="/robot-ai-ownership-hero.jpg"
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover object-[72%_center] opacity-40"
+              fetchPriority="high"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#faf8fd] via-[#faf8fd]/85 to-[#faf8fd]/30" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#faf8fd]/5 via-transparent to-[#faf8fd]/90" />
+          </div>
+          <div className={`${SITE_WIDTH} relative z-10 grid items-center gap-9 lg:grid-cols-[1fr_0.88fr] lg:gap-12`}>
             <Reveal>
-              <p className="mb-7 text-site-eyebrow text-on-surface-variant">Own → Train → Deploy → Earn</p>
+              <p className="mb-7 flex items-center gap-3 text-site-eyebrow text-[#746b82]">
+                <span className="h-px w-8 bg-[#8959c6]" />
+                Own <span className="text-[#a79ab8]">→</span> Train <span className="text-[#a79ab8]">→</span> Deploy{' '}
+                <span className="text-[#a79ab8]">→</span> Earn
+              </p>
 
-              <h1 className="max-w-[20ch] text-pretty font-display text-site-display text-on-surface">
+              <h1 className="max-w-[18ch] text-pretty font-display text-site-display text-[#211b2d]">
                 {hero.title.map((s, i) => (
-                  <span key={i} className={s.c}>
+                  <span key={i} className={i === 2 || i === 4 ? 'text-[#7441bf]' : i === 0 ? 'text-[#344fbd]' : ''}>
                     {s.t}
                   </span>
                 ))}
               </h1>
 
-              <p className="mt-6 max-w-[52ch] text-pretty text-site-lead text-on-surface-variant">{hero.lead}</p>
+              <p className="mt-6 max-w-[48ch] text-pretty text-site-lead text-[#625a70]">{hero.lead}</p>
 
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <Link to="/register" className={ctaPrimary}>
+                <Link
+                  to="/register"
+                  className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-[#6839bb] px-7 text-label-md text-white shadow-[0_10px_24px_rgba(104,57,187,.2)] transition-colors duration-fast hover:bg-[#51289d]"
+                >
                   Get Started
                   <Icon name="arrow_forward" className="text-[18px]" />
                 </Link>
-                <a href="#how" className={ctaGhost}>
+                <a href="#how" className={ctaLight}>
                   How it works
                 </a>
               </div>
             </Reveal>
 
-            <Reveal delay={120} className="flex flex-col items-center">
-              <Robot3D
-                size={440}
-                fill
-                interactive
-                config={defaultRobotConfig}
-                label="A World Robotic System robot — drag to rotate"
-                className="w-full"
-              />
-              <p className="mt-2 text-label-sm text-outline">Drag to rotate</p>
+            <Reveal delay={120} className="relative mx-auto hidden w-full max-w-[470px] lg:block">
+              <div className="overflow-hidden rounded-[28px] bg-[#eee8fa] shadow-[0_24px_64px_rgba(59,35,95,.12)]">
+                <img
+                  src="/robot-ai-ownership-hero.jpg"
+                  alt="A white and purple WRS robot in a bright, connected city workspace"
+                  className="aspect-[.94] w-full object-cover object-[61%_center] sm:aspect-[1.02] lg:aspect-[.88]"
+                  fetchPriority="high"
+                />
+              </div>
+              <div className="absolute bottom-4 left-4 rounded-xl border border-white/70 bg-white/90 px-4 py-3 shadow-lg backdrop-blur-sm sm:bottom-6 sm:left-6">
+                <p className="text-label-sm font-semibold text-[#332543]">Your robot. Your direction.</p>
+                <p className="mt-0.5 text-label-sm text-[#746b82]">Build it, teach it, put it to work.</p>
+              </div>
             </Reveal>
           </div>
         </section>
 
         {/* ----------------------------------------------------- trust strip */}
-        <div className="border-y border-white/[.07]">
+        <div className="border-y border-[#e9e2f1] bg-white">
           <div className={`${SITE_WIDTH} grid grid-cols-2 lg:grid-cols-4`}>
             {stats.map((s, i) => (
               <div
                 key={s.label}
-                className={`py-7 lg:py-9 ${i % 2 === 1 ? 'border-l border-white/[.07] pl-6' : ''} ${
-                  i >= 2 ? 'border-t border-white/[.07] lg:border-t-0' : ''
+                className={`py-7 lg:py-9 ${i % 2 === 1 ? 'border-l border-[#e9e2f1] pl-6' : ''} ${
+                  i >= 2 ? 'border-t border-[#e9e2f1] lg:border-t-0' : ''
                 } ${i > 0 ? 'lg:border-l lg:pl-8' : ''}`}
               >
-                <p className="tnum font-display text-site-h2 text-on-surface">{s.value}</p>
-                <p className="mt-1 text-body-sm text-on-surface-variant">{s.label}</p>
+                <p className="tnum font-display text-site-h2 text-[#3f2b59]">{s.value}</p>
+                <p className="mt-1 text-body-sm text-[#746b82]">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
+
+        {/* -------------------------------------------------------- why WRS */}
+        <Section
+          tone="dark"
+          eyebrow="Why WRS"
+          title="Own the intelligence behind the work."
+          lead="Create, train and deploy a robot, then follow its progress in one place."
+        >
+          <ul className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {valuePillars.map((pillar, i) => (
+              <Reveal as="li" key={pillar.title} delay={i * 35} className="h-full">
+                <div className="h-full rounded-2xl border border-white/[.07] bg-[#191e23] p-5">
+                  <span className="mb-7 grid h-11 w-11 place-items-center rounded-xl bg-[#7441bf]/15 text-[#b895ef]">
+                    <Icon name={pillar.icon} className="text-[22px]" />
+                  </span>
+                  <h3 className="font-display text-title-md text-on-surface">{pillar.title}</h3>
+                  <p className="mt-2 text-body-sm text-on-surface-variant">{pillar.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </ul>
+        </Section>
 
         {/* --------------------------------------------------- how it works */}
         <Section id="how" divide={false} eyebrow="How it works" title="One loop. Six steps.">
@@ -186,68 +291,92 @@ export default function Landing() {
         </Section>
 
         {/* ------------------------------------------------------- features */}
-        <div id="features" className="border-t border-white/[.07]">
-          <div className={SITE_WIDTH}>
-            <Feature
-              eyebrow="Customise"
-              title="It should look like yours, because it is."
-              body="Palette, face, parts and personality — changeable whenever you like."
-            >
-              {/* Side-by-side only from sm: at 375 the bust plus the palette
+        <div id="features" className="bg-[#111417]">
+          <Feature
+            tone="light"
+            eyebrow="Customise"
+            title="It should look like yours, because it is."
+            body="Palette, face, parts and personality — changeable whenever you like."
+          >
+            {/* Side-by-side only from sm: at 375 the bust plus the palette
                   list overflows the viewport. */}
-              <div className="grid items-center gap-6 sm:grid-cols-[auto_1fr] sm:gap-10">
-                <RobotAvatar size={180} eye={palettes[0].colors[1]} glow={false} className="mx-auto sm:mx-0" />
-                <ul className="border-t border-white/[.07]">
-                  {palettes.map((p) => (
-                    <li
-                      key={p.name}
-                      className="flex items-center justify-between gap-4 border-b border-white/[.07] py-3.5"
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="flex">
-                          {p.colors.map((c) => (
-                            <span
-                              key={c}
-                              className="-ml-1.5 h-6 w-6 rounded-full border border-white/15 first:ml-0"
-                              style={{ backgroundColor: c }}
-                            />
-                          ))}
-                        </span>
-                        <span className="text-title-sm text-on-surface">{p.name}</span>
+            <div className="grid items-center gap-5 sm:grid-cols-[minmax(180px,.85fr)_1fr] sm:gap-8">
+              <Robot3D
+                size={260}
+                fill
+                interactive
+                config={defaultRobotConfig}
+                label="A customisable WRS robot — drag to rotate"
+                className="mx-auto w-full max-w-[270px]"
+              />
+              <ul className="border-t border-[#e8e1f1]">
+                {palettes.map((p) => (
+                  <li key={p.name} className="flex items-center justify-between gap-4 border-b border-[#e8e1f1] py-3.5">
+                    <span className="flex items-center gap-3">
+                      <span className="flex">
+                        {p.colors.map((c) => (
+                          <span
+                            key={c}
+                            className="-ml-1.5 h-6 w-6 rounded-full border border-black/10 first:ml-0"
+                            style={{ backgroundColor: c }}
+                          />
+                        ))}
                       </span>
-                      <span className="shrink-0 text-label-sm text-outline">{p.state}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Feature>
-
-            <Feature
-              flip
-              eyebrow="Train"
-              title="Teaching it is the whole game."
-              body="Short modules you can finish on a phone. Every session moves a level you can see."
-            >
-              <ul className="border-t border-white/[.07]">
-                {trainingModules.map((m) => (
-                  <DataRow key={m.slug} title={m.title} sub={m.desc} right={`${m.progress}%`} />
+                      <span className="text-title-sm text-[#332543]">{p.name}</span>
+                    </span>
+                    <span className="shrink-0 text-label-sm text-[#756e80]">{p.state}</span>
+                  </li>
                 ))}
               </ul>
-            </Feature>
+            </div>
+          </Feature>
 
-            <Feature
-              eyebrow="Deploy"
-              title="Then you put it to work."
-              body="Pick a sector and watch the deployment run. Demand differs by sector and changes over time."
-            >
-              <ul className="border-t border-white/[.07]">
-                {industries.slice(0, 6).map((s) => (
-                  <DataRow key={s.name} title={s.name} sub={s.desc} right={s.demand} />
-                ))}
-              </ul>
-            </Feature>
-          </div>
+          <Feature
+            tone="dark"
+            flip
+            eyebrow="Train"
+            title="Teaching it is the whole game."
+            body="Short modules you can finish on a phone. Every session moves a level you can see."
+          >
+            <ul className="border-t border-white/[.07]">
+              {trainingModules.map((m) => (
+                <DataRow key={m.slug} title={m.title} sub={m.desc} right={`${m.progress}%`} />
+              ))}
+            </ul>
+          </Feature>
+
+          <Feature
+            tone="light"
+            eyebrow="Deploy"
+            title="Then you put it to work."
+            body="Pick a sector and watch the deployment run. Demand differs by sector and changes over time."
+          >
+            <ul className="border-t border-[#e8e1f1]">
+              {industries.slice(0, 6).map((s) => (
+                <DataRow key={s.name} title={s.name} sub={s.desc} right={s.demand} tone="light" />
+              ))}
+            </ul>
+          </Feature>
         </div>
+
+        {/* ---------------------------------------------------- audience fit */}
+        <Section
+          tone="light"
+          eyebrow="Built for different kinds of builders"
+          title="Start where you are. Grow from there."
+        >
+          <ul className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {audienceGroups.map((group, i) => (
+              <Reveal as="li" key={group.title} delay={i * 40} className="h-full">
+                <div className="h-full rounded-2xl border border-[#e8e1f1] bg-white p-5 shadow-[0_12px_32px_rgba(55,35,100,.05)]">
+                  <Icon name={group.icon} className="text-[28px] text-[#7441bf]" />
+                  <h3 className="mt-7 font-display text-title-md text-[#211b2d]">{group.title}</h3>
+                  <p className="mt-2 text-body-sm text-[#655d72]">{group.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </ul>
+        </Section>
 
         {/* ------------------------------------------------------ data grid */}
         <Section eyebrow="Contribute" title="Work your robot can do for the data it learns from.">
@@ -266,140 +395,13 @@ export default function Landing() {
           </ul>
         </Section>
 
-        {/* ------------------------------------------------------- packages */}
-        <Section
-          id="packages"
-          eyebrow="Packages"
-          title="Every tier buys capability, not a promised return."
-          lead="A package sets your robot's class and what it is allowed to do."
-        >
-          {/* On a phone this stays a list. Six tinted cards stacked is six
-              screens of scrolling for a comparison people make by scanning
-              names and prices — the cards only earn their space once they can
-              sit side by side. */}
-          <ul className="mt-10 border-t border-white/[.07] sm:hidden">
-            {packages.map((p, i) => {
-              const c = TIERS[i % TIERS.length]
-              return (
-                <Reveal as="li" key={p.slug} delay={i * 30}>
-                  <Link
-                    to={`/packages/${p.slug}`}
-                    className={`flex items-center gap-3.5 border-b border-white/[.07] py-4 ${focusRing}`}
-                  >
-                    <span className="h-9 w-1 shrink-0 rounded-full" style={{ backgroundColor: c.tint }} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-title-sm" style={{ color: c.ink }}>
-                        {p.name}
-                      </span>
-                      <span className="mt-0.5 block truncate text-body-sm text-on-surface-variant">{p.robotClass}</span>
-                    </span>
-                    <span className="tnum shrink-0 font-mono text-data-md text-on-surface">${p.price}</span>
-                    <Icon name="chevron_right" className="shrink-0 text-outline" />
-                  </Link>
-                </Reveal>
-              )
-            })}
-          </ul>
-
-          <ul className="mt-12 hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
-            {packages.map((p, i) => {
-              const c = TIERS[i % TIERS.length]
-              return (
-                <Reveal as="li" key={p.slug} delay={i * 40} className="h-full">
-                  <Link
-                    to={`/packages/${p.slug}`}
-                    className={`group flex h-full flex-col rounded-2xl border p-6 transition-colors duration-fast ${focusRing}`}
-                    style={{ backgroundColor: `${c.tint}14`, borderColor: `${c.tint}4d` }}
-                  >
-                    <span className="flex items-baseline justify-between gap-3">
-                      <span className="font-display text-site-h3" style={{ color: c.ink }}>
-                        {p.name}
-                      </span>
-                      <span className="tnum font-mono text-data-sm text-outline">{String(i + 1).padStart(2, '0')}</span>
-                    </span>
-
-                    <span className="mt-4 flex items-baseline gap-1.5">
-                      <span className="tnum font-display text-site-h2 text-on-surface">${p.price}</span>
-                      <span className="text-label-sm text-on-surface-variant">one-off</span>
-                    </span>
-
-                    <span
-                      className="mt-4 w-fit rounded-md px-2 py-1 text-label-sm"
-                      style={{ backgroundColor: `${c.tint}2e`, color: c.ink }}
-                    >
-                      {p.robotClass}
-                    </span>
-
-                    <span className="mt-4 text-body-md text-on-surface-variant">{p.bestFor}</span>
-
-                    <span className="mt-5 block h-px w-full" style={{ backgroundColor: `${c.tint}3d` }} />
-
-                    <ul className="mt-4 space-y-2">
-                      {p.features.slice(0, 3).map((f) => (
-                        <li key={f} className="flex items-start gap-2.5 text-body-sm text-on-surface-variant">
-                          <span
-                            className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full"
-                            style={{ backgroundColor: c.ink }}
-                          />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <span
-                      className="mt-auto flex items-center gap-1.5 pt-6 text-label-md transition-transform duration-fast group-hover:translate-x-0.5"
-                      style={{ color: c.ink }}
-                    >
-                      View package
-                      <Icon name="arrow_forward" className="text-[17px]" />
-                    </span>
-                  </Link>
-                </Reveal>
-              )
-            })}
-          </ul>
-          <Reveal delay={80}>
-            <p className="mt-7 max-w-[64ch] text-body-sm text-outline">
-              Prices are one-off package costs. Nothing here is an offer of investment, and no earnings are guaranteed.
-            </p>
-            <Link
-              to="/packages"
-              className={`mt-6 inline-flex items-center gap-2 rounded-lg text-label-md text-primary hover:underline ${focusRing}`}
-            >
-              Compare all packages
-              <Icon name="arrow_forward" className="text-[18px]" />
-            </Link>
-          </Reveal>
-        </Section>
-
         {/* ------------------------------------------------------------ FAQ */}
-        <Section id="faq" eyebrow="Questions" title="Worth knowing before you start.">
+        <Section id="faq" tone="dark" eyebrow="Questions" title="Worth knowing before you start.">
           <Faq />
         </Section>
 
         {/* --------------------------------------------------- closing CTA */}
-        <Section divide className="text-center">
-          <Reveal>
-            <div className="mx-auto mb-8 w-fit">
-              <RobotAvatar size={96} eye="#00dbe7" glow={false} />
-            </div>
-            <h2 className="mx-auto max-w-[18ch] text-pretty font-display text-site-display text-on-surface">
-              Build your robot.
-            </h2>
-            <p className="mx-auto mt-5 max-w-[44ch] text-pretty text-site-lead text-on-surface-variant">
-              Six steps, and you have a working robot before you spend anything.
-            </p>
-            <div className="mt-9 flex flex-wrap justify-center gap-3">
-              <Link to="/register" className={ctaPrimary}>
-                Get Started
-                <Icon name="arrow_forward" className="text-[18px]" />
-              </Link>
-              <Link to="/login" className={ctaGhost}>
-                Sign in
-              </Link>
-            </div>
-          </Reveal>
-        </Section>
+        <ClosingCta />
       </main>
 
       <SiteFooter />

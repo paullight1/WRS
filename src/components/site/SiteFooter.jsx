@@ -8,12 +8,12 @@ import { footerLinks } from './content.js'
    old columns held was either already in the sticky nav or behind a login. */
 export default function SiteFooter() {
   return (
-    <footer className="border-t border-white/[.07] py-9 sm:py-12 lg:py-16">
+    <footer className="border-t border-[#e8e1f1] bg-white py-9 text-[#211b2d] sm:py-12 lg:py-16">
       <div className={SITE_WIDTH}>
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
           <div className="max-w-[40ch]">
-            <Wordmark />
-            <p className="mt-2.5 text-body-sm text-on-surface-variant sm:text-body-md">
+            <Wordmark className="w-[148px]" />
+            <p className="mt-2.5 text-body-sm text-[#655d72] sm:text-body-md">
               Own a robot, make it more capable, and see what that ownership is producing.
             </p>
           </div>
@@ -24,7 +24,7 @@ export default function SiteFooter() {
                 <li key={l.label}>
                   <Link
                     to={l.to}
-                    className={`rounded-lg text-body-sm text-on-surface-variant transition-colors duration-fast hover:text-on-surface sm:text-body-md ${focusRing}`}
+                    className={`rounded-lg text-body-sm text-[#655d72] transition-colors duration-fast hover:text-[#45218a] sm:text-body-md ${focusRing}`}
                   >
                     {l.label}
                   </Link>
@@ -34,9 +34,9 @@ export default function SiteFooter() {
           </nav>
         </div>
 
-        <div className="mt-8 flex flex-col gap-1.5 border-t border-white/[.07] pt-5 sm:mt-12 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-7">
-          <p className="text-label-sm text-outline">© {new Date().getFullYear()} World Robotic System.</p>
-          <p className="text-label-sm text-outline">© World Robotic System</p>
+        <div className="mt-8 flex flex-col gap-1.5 border-t border-[#eee9f5] pt-5 sm:mt-12 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-7">
+          <p className="text-label-sm text-[#756e80]">© {new Date().getFullYear()} World Robotic System.</p>
+          <p className="text-label-sm text-[#756e80]">© World Robotic System</p>
         </div>
       </div>
     </footer>

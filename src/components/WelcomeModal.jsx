@@ -2,14 +2,30 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Icon } from './ui.jsx'
 import StateArt from './states/StateArt.jsx'
-import { robot } from '../data/mock.js'
 
-/* Shown once, the first time a new owner reaches Home after building their
-   robot. It names the robot and points at exactly one next action — the moment
-   is worth marking, but the screen behind it is where the work happens. */
+/* One-time getting-started dialog for each account's first visit to Home. */
 export const WELCOME_FLAG = 'wrs.welcome.pending'
+const ONBOARDING_SEEN_PREFIX = 'wrs.onboarding.seen.'
 
-/** Called at the end of onboarding; Home picks this up on its next render. */
+export function hasSeenOnboarding(userId) {
+  if (!userId) return true
+  try {
+    return localStorage.getItem(`${ONBOARDING_SEEN_PREFIX}${userId}`) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function markOnboardingSeen(userId) {
+  if (!userId) return
+  try {
+    localStorage.setItem(`${ONBOARDING_SEEN_PREFIX}${userId}`, '1')
+  } catch {
+    /* private mode — onboarding can be shown again next visit */
+  }
+}
+
+/** Preserve the welcome dialog when robot setup finishes before Home mounts. */
 export function armWelcome() {
   try {
     localStorage.setItem(WELCOME_FLAG, '1')
@@ -29,12 +45,12 @@ export function consumeWelcome() {
 }
 
 const NEXT = [
-  { icon: 'model_training', label: 'Train it', desc: 'Teach voice, language and movement' },
-  { icon: 'dataset', label: 'Contribute data', desc: 'Short tasks that raise its quality score' },
-  { icon: 'rocket_launch', label: 'Deploy it', desc: 'Send it to work in a sector' },
+  { icon: 'smart_toy', label: 'Your robot', desc: 'View its setup and capabilities', to: '/robot' },
+  { icon: 'model_training', label: 'Train', desc: 'Teach it through training activities', to: '/training' },
+  { icon: 'paid', label: 'Mine RoboCoin', desc: 'Choose a robot and start a mining cycle', to: '/deploy' },
 ]
 
-export default function WelcomeModal({ open, onClose }) {
+export default function WelcomeModal({ open, onClose, robotName }) {
   const panel = useRef(null)
   const restoreTo = useRef(null)
 
@@ -94,30 +110,37 @@ export default function WelcomeModal({ open, onClose }) {
       >
         <div className="flex flex-col items-center text-center">
           <StateArt kind="welcome" size={140} />
-          <p className="mt-3 text-label-md text-tertiary">Your robot is ready</p>
+          <p className="mt-3 text-label-md text-tertiary">A quick guide to your workspace</p>
           <h2 id="welcome-title" className="mt-1 font-headline-lg text-headline-lg text-on-surface">
-            Meet {robot.name}
+            Welcome to WRS
           </h2>
           <p className="mt-2 text-body-md text-on-surface-variant">
-            {robot.unit} · {robot.robotClass}. It is yours — everything from here makes it more capable.
+            {robotName ? `${robotName} is ready. ` : ''}Build capability with training, then put your robot to work mining.
           </p>
         </div>
 
         <ul className="mt-6 space-y-1">
           {NEXT.map((n) => (
-            <li key={n.label} className="flex items-center gap-3 rounded-xl bg-white/[.04] px-3.5 py-3">
-              <Icon name={n.icon} className="shrink-0 text-[20px] text-primary" fill />
-              <span className="min-w-0">
-                <span className="block text-title-sm text-on-surface">{n.label}</span>
-                <span className="mt-0.5 block text-body-sm text-on-surface-variant">{n.desc}</span>
-              </span>
+            <li key={n.label}>
+              <Link
+                to={n.to}
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-xl bg-white/[.04] px-3.5 py-3 transition-colors hover:bg-white/[.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+              >
+                <Icon name={n.icon} className="shrink-0 text-[20px] text-primary" fill />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-title-sm text-on-surface">{n.label}</span>
+                  <span className="mt-0.5 block text-body-sm text-on-surface-variant">{n.desc}</span>
+                </span>
+                <Icon name="arrow_forward" className="shrink-0 text-[18px] text-on-surface-variant" />
+              </Link>
             </li>
           ))}
         </ul>
 
         <div className="mt-6 space-y-2">
-          <Button to="/training" full size="lg" trailingIcon="arrow_forward" onClick={onClose}>
-            Start training
+          <Button to={robotName ? '/robot' : '/onboarding'} full size="lg" trailingIcon="arrow_forward" onClick={onClose}>
+            {robotName ? 'View my robot' : 'Create my robot'}
           </Button>
           <Button variant="ghost" full size="lg" onClick={onClose}>
             Look around first

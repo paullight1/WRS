@@ -53,12 +53,20 @@ function robotSlotProgress(value) {
   }
 }
 
+function defaultWorksiteId(snapshot) {
+  return (
+    snapshot?.worksites?.find((site) => site.available && site.name.trim().toLowerCase() === 'manufacturing')?.worksiteId ||
+    ''
+  )
+}
+
 export default function MiningProduction() {
   const [searchParams] = useSearchParams()
   const requestedTab = searchParams.get('tab')
   const [tab, setTab] = useState(() => (pageTabs.includes(requestedTab) ? requestedTab : 'Available'))
   const [snapshot, setSnapshot] = useState(null)
   const [selectedRobotId, setSelectedRobotId] = useState('')
+  const [selectedWorksiteId, setSelectedWorksiteId] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [starting, setStarting] = useState(false)
@@ -78,6 +86,11 @@ export default function MiningProduction() {
       try {
         const next = await browserMiningClient.snapshot()
         setSnapshot(next)
+        setSelectedWorksiteId((current) =>
+          next.worksites.some((site) => site.available && site.worksiteId === current)
+            ? current
+            : defaultWorksiteId(next),
+        )
         setSelectedRobotId((current) => {
           if (next.session && next.robots.some((robot) => robot.robotId === next.session.robotId))
             return next.session.robotId
@@ -133,6 +146,9 @@ export default function MiningProduction() {
   )
   const currentSession = snapshot?.session || null
   const currentRobot = snapshot?.robots.find((robot) => robot.robotId === selectedRobotId)
+  const startingWorksite = snapshot?.worksites.find(
+    (site) => site.worksiteId === selectedWorksiteId && site.name.trim().toLowerCase() === 'manufacturing',
+  )
   const slotProgress = robotSlotProgress(snapshot?.robotSlotProgress)
   const configuredRate = snapshot?.rateBreakdown?.estimatedAtomicPerHour
   const configuredScale = snapshot?.rateBreakdown?.atomicUnitScale
@@ -147,6 +163,7 @@ export default function MiningProduction() {
     snapshot?.eligibility?.eligible &&
     snapshot.issuanceEnabled &&
     selectedRobotId &&
+    startingWorksite?.available &&
     currentRobot?.unlocked &&
     !currentSession &&
     !starting,
@@ -158,6 +175,7 @@ export default function MiningProduction() {
     try {
       const next = await browserMiningClient.start({
         robotId: selectedRobotId,
+        worksiteId: selectedWorksiteId,
         idempotencyKey: `mining-cycle:${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`,
       })
       setSnapshot(next)
@@ -268,25 +286,66 @@ export default function MiningProduction() {
           </section>
 
           <section aria-labelledby="mining-worksite-previews">
-            <SectionTitle action="9 industries">
-              <span id="mining-worksite-previews">Robots at work</span>
+            <SectionTitle action={startingWorksite ? '1 available · 8 locked' : 'Setup pending'}>
+              <span id="mining-worksite-previews">Choose your worksite</span>
             </SectionTitle>
             <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3">
               {Object.entries(worksites).map(([key, site]) => (
-                <Card key={key} className="w-[min(72vw,15rem)] shrink-0 snap-start overflow-hidden p-0">
-                  <div className="relative h-28 overflow-hidden">
-                    <WorksitePoster site={site} />
-                    <span className="absolute right-2 top-2 rounded-full border border-white/15 bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white/80 backdrop-blur">
-                      Preview
-                    </span>
-                  </div>
-                  <div className="p-3">
-                    <h3 className="truncate text-title font-semibold text-on-surface">{site.name}</h3>
-                    <p className="mt-1 min-h-10 text-label-sm text-on-surface-variant">{site.task}</p>
-                  </div>
-                </Card>
+                (() => {
+                  const serverSite = snapshot.worksites.find(
+                    (choice) => choice.name.trim().toLowerCase() === site.name.toLowerCase(),
+                  )
+                  const isStartingWorksite = key === 'manufacturing' && serverSite?.available
+                  const isActiveWorksite = Boolean(currentSession?.worksiteId && serverSite?.worksiteId === currentSession.worksiteId)
+                  const isSelected = !currentSession && serverSite?.worksiteId === selectedWorksiteId
+                  const locked = !isStartingWorksite && !isActiveWorksite
+                  const disabled = locked || Boolean(currentSession) || !serverSite?.available
+                  const badge = locked
+                    ? 'Locked'
+                    : isActiveWorksite
+                      ? 'Active cycle'
+                      : currentSession
+                        ? 'Cycle running'
+                        : isSelected
+                          ? 'Selected'
+                          : 'Select'
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      aria-pressed={isSelected}
+                      aria-label={`${site.name}${locked ? ', locked' : isActiveWorksite ? ', active cycle' : ', starting worksite'}`}
+                      disabled={disabled}
+                      onClick={() => setSelectedWorksiteId(serverSite.worksiteId)}
+                      className={`group w-[min(72vw,15rem)] shrink-0 snap-start overflow-hidden rounded-2xl border text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
+                        isSelected || isActiveWorksite
+                          ? 'border-primary/70 bg-primary-container/15'
+                          : locked || currentSession
+                            ? 'cursor-not-allowed border-white/8 bg-surface-container/50 opacity-55'
+                            : 'border-white/10 bg-surface-container hover:border-white/25'
+                      }`}
+                    >
+                      <div className="relative h-28 overflow-hidden">
+                        <WorksitePoster site={site} />
+                        <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/65 px-2 py-1 text-[11px] font-medium text-white/90 backdrop-blur">
+                          {locked ? <Icon name="lock" className="text-sm" /> : null}
+                          {badge}
+                        </span>
+                      </div>
+                      <div className="p-3">
+                        <h3 className="truncate text-title font-semibold text-on-surface">{site.name}</h3>
+                        <p className="mt-1 min-h-10 text-label-sm text-on-surface-variant">{site.task}</p>
+                      </div>
+                    </button>
+                  )
+                })()
               ))}
             </div>
+            <p className="-mt-2 text-label-sm text-on-surface-variant">
+              {startingWorksite
+                ? 'Manufacturing is your starting worksite. More industries will unlock later.'
+                : 'Manufacturing is not available yet. Mining setup needs to be completed first.'}
+            </p>
           </section>
 
           {hasConfiguredRate && (
@@ -433,10 +492,12 @@ export default function MiningProduction() {
           <StateView
             kind="empty"
             title="No settled awards yet"
-            desc="Settled mining awards from members who opted into public rankings will appear here. Choose a public alias in Community to join the leaderboard."
+            desc="Mining awards will appear here after a cycle settles. Add a public alias to join the rankings."
+            size={104}
+            className="!px-4 !py-5"
             action={
               <Button to="/community" variant="tonal">
-                Choose public alias
+                Set public alias
               </Button>
             }
           />
