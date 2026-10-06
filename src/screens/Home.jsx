@@ -45,10 +45,10 @@ function formatXp(value) {
   return `${value.toLocaleString()} XP`
 }
 
-function formatRbc(balance) {
+function formatRbc(balance, pendingAtomic = 0n) {
   if (balance?.availableAtomic === null || balance?.atomicScale === null) return null
   try {
-    const amount = atomicUnitsToDecimal(balance.availableAtomic, balance.atomicScale)
+    const amount = atomicUnitsToDecimal((BigInt(balance.availableAtomic) + pendingAtomic).toString(), balance.atomicScale)
     const [whole, fraction = ''] = amount.split('.')
     const groupedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     const minimumFraction = fraction.padEnd(2, '0')
@@ -56,6 +56,22 @@ function formatRbc(balance) {
   } catch {
     return null
   }
+}
+
+function accruedMiningAtomic(session, now) {
+  if (!session || !['active', 'ended'].includes(session.status)) return 0n
+  const startedAt = Date.parse(session.startedAt)
+  const endsAt = Date.parse(session.endsAt)
+  const rate = session.rule?.rateAtomicPerHour
+  if (!Number.isFinite(startedAt) || !Number.isFinite(endsAt) || !/^\d+$/.test(String(rate ?? ''))) return 0n
+
+  const elapsedMilliseconds = Math.max(0, Math.min(now, endsAt) - startedAt)
+  let accrued = (BigInt(rate) * BigInt(Math.floor(elapsedMilliseconds))) / 3_600_000n
+  const sessionCap = session.rule?.perSessionCapAtomic
+  if (typeof sessionCap === 'string' && /^\d+$/.test(sessionCap)) {
+    accrued = accrued < BigInt(sessionCap) ? accrued : BigInt(sessionCap)
+  }
+  return accrued
 }
 
 function formatDailyMiningRate(snapshot) {
@@ -90,7 +106,7 @@ const BALANCE_STATE_COPY = {
   empty: 'No verified balance',
 }
 
-function SummaryCard({ title, value, loading, state, icon }) {
+function SummaryCard({ title, value, loading, state, icon, note }) {
   const message = BALANCE_STATE_COPY[state] || BALANCE_STATE_COPY.unavailable
   return (
     <Card className="min-w-0 p-4">
@@ -104,6 +120,7 @@ function SummaryCard({ title, value, loading, state, icon }) {
       >
         {loading ? 'Loading…' : (value ?? message)}
       </p>
+      {note && !loading && <p className="mt-1 text-label-sm text-on-surface-variant">{note}</p>}
     </Card>
   )
 }
@@ -178,6 +195,7 @@ export default function Home() {
   const [editing, setEditing] = useState(false)
   const [refreshCount, setRefreshCount] = useState(0)
   const [miningSnapshot, setMiningSnapshot] = useState(null)
+  const [miningNow, setMiningNow] = useState(() => Date.now())
   const [miningRefreshing, setMiningRefreshing] = useState(false)
   const [dailyActivityMessage, setDailyActivityMessage] = useState('')
   const settledCycleRefresh = useRef(null)
@@ -190,6 +208,9 @@ export default function Home() {
     xpState: null,
     rbcState: null,
   })
+  const pendingMiningAtomic = accruedMiningAtomic(miningSnapshot?.session, miningNow)
+  const displayedRbc = miningSnapshot ? formatRbc(miningSnapshot.balance, pendingMiningAtomic) : summary.rbc
+  const hasPendingMining = ['active', 'ended'].includes(miningSnapshot?.session?.status)
 
   useEffect(() => {
     let active = true
@@ -297,6 +318,16 @@ export default function Home() {
       setMiningRefreshing(false)
     }
   }, [])
+
+  useEffect(() => {
+    const session = miningSnapshot?.session
+    if (!session || !['active', 'ended'].includes(session.status)) return undefined
+    const serverOffset = (Date.parse(miningSnapshot.serverNow) || Date.now()) - Date.now()
+    const tick = () => setMiningNow(Date.now() + serverOffset)
+    tick()
+    const clock = window.setInterval(tick, 1000)
+    return () => window.clearInterval(clock)
+  }, [miningSnapshot, refreshMining])
 
   useEffect(() => {
     const session = miningSnapshot?.session
@@ -466,8 +497,9 @@ export default function Home() {
           title="RoboCoin balance"
           icon="paid"
           loading={summary.loading}
-          value={summary.rbc}
+          value={displayedRbc}
           state={summary.rbcState}
+          note={hasPendingMining ? 'Includes estimated earnings; award settles at cycle end' : undefined}
         />
       </section>
       {!runtimeConfig.isDemo &&
