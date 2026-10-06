@@ -1,71 +1,19 @@
-# Phase 11.1 — Production Infrastructure
+# Phase 11.1 — Dedicated staging/production infrastructure
 
 ## Goal
 
-Prepare isolated WRS staging/production infrastructure contracts and a complete Supabase SQL handoff without reusing unrelated products or requiring live provisioning during repository hardening.
+Provision WRS-owned staging and production services with isolated credentials and synthetic staging data.
 
-## Repository work completed
+## Exit gate
 
-- Created `prod/plan-11-activation` from the certified Plans 5–10 head.
-- Created draft PR #7 with base `prod/plans-05-10`.
-- Added `.env.live.example` as the canonical live environment-name manifest.
-- Added `scripts/validate-live-env.mjs` with fail-closed checks for runtime authority, all seven production service flags, Supabase authority, Paystack environment keys, private storage and internal worker/operator credentials.
-- Added behavior tests proving incomplete infrastructure fails, complete synthetic staging passes and a production environment cannot use a Paystack sandbox key.
-- Added the complete ordered Supabase migration/verification handoff under `supabase/`.
+Dedicated WRS Supabase staging/production projects and the correct WRS Vercel team/project are accessible; secrets are environment-scoped; migrations apply cleanly; staging contains no production customer data.
 
-## Supabase SQL handoff
+## Current evidence
 
-The repository now contains **25 ordered migration files** documented in `supabase/MIGRATION_GUIDE.md`.
+**Status: STAGING DATABASE READY — PRODUCTION INFRASTRUCTURE PENDING — NO-GO.**
 
-The final activation migration is:
+The evidence recorded 33 SQL migrations applied to the new WRS staging project `zaujrbcvgargyabebjyj` in `eu-central-1` on PostgreSQL 17.11, with the read-only post-migration check passing. The repository now has a 34th migration for audited operator-role management; this work did not apply it to any Supabase project. Reconcile and apply that migration on the exact staging candidate before considering production. The separate WRS development project remains on PostgreSQL 17.6 with 31 applied migrations and is not used as staging or production.
 
-`20260825010000_plan11_storage_activation.sql`
+The WRS Supabase organization is on the Free plan and now has its two active free projects (development and staging). Free projects may pause after inactivity and do not include automatic backups. Production requires a paid plan; Supabase Pro starts at $25/month before any additional compute or usage charges ([current pricing](https://supabase.com/pricing), [free-project limits](https://supabase.com/docs/guides/platform/billing-on-supabase)).
 
-It bootstraps/locks down the `wrs-private-data` private Supabase Storage bucket in a real Supabase project. It remains portable in generic PostgreSQL CI by skipping only the managed Storage insert when `storage.buckets` is unavailable; the real Supabase post-migration verification still fails if Storage/bucket configuration is missing.
-
-Read-only live verification queries are indexed in `supabase/verification/README.md`.
-
-## Connected-resource discovery
-
-### Supabase
-
-Connected organization discovered during the audit: `crescivacapital` (`tegnlcoyogetgcyiwnaj`).
-
-Connected project:
-
-- `cresciva Project` (`fqragjhmunphhdnmvpgs`) — unrelated to WRS and deliberately **not reused**.
-
-No WRS project was provisioned. Per the current handoff decision, the migrations will be applied manually later to dedicated WRS projects.
-
-### Vercel
-
-Connected team during discovery: `nwosupaul3-gmailcom's projects` (`team_0m722looHPylaECSCKh2f6oa`). Project discovery returned **0 projects**.
-
-No Vercel project was provisioned or reused. Deployment/environment configuration remains a later manual/live step.
-
-## Review and improvements
-
-- Rejected reuse of Cresciva infrastructure to prevent cross-product data/secret contamination.
-- Isolated Plan 11 Git history from the large Plans 5–10 PR.
-- Added explicit Paystack test/live-key separation.
-- Required distinct high-entropy credentials for scanner, privacy deletion, deployment operations, ecosystem operations, academy assessment, community attendance/moderation, referral qualification and account-deletion workers.
-- Added an exact migration-order guide, forward-only rollback policy and read-only post-install verification SQL.
-- Existing Plans 3–9 PostgreSQL regression gates continue to apply the Plan 11 migration directory so migration portability/regressions are caught before handoff.
-
-## Classification
-
-**SQL/REPOSITORY READY — MANUAL LIVE APPLICATION PENDING.**
-
-Current live-production decision: **NO-GO** until the manual/live evidence below is completed.
-
-Phase 11.1 is complete for the requested repository/SQL scope. You can later create dedicated WRS staging/production Supabase projects, apply all 25 migrations in timestamp order and run the verification SQL without redesigning the schema.
-
-The following remain live/manual evidence rather than unfinished repository work:
-
-1. create/select dedicated WRS staging and production Supabase projects;
-2. apply the migration pack and verification SQL to those projects;
-3. connect/create the WRS Vercel environments;
-4. configure real environment-specific credentials;
-5. pass the staging live preflight/API/browser evidence.
-
-Those items still prevent final production GO, but they do **not** block continuing the Plan 11 repository-preparation loop.
+Vercel activation remains an external blocker: the current connected Vercel team returns zero projects. Production deployment, environment-scoped secrets, production database provisioning, and rollback evidence remain pending.
