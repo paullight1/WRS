@@ -1,7 +1,16 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 /** @type {import('tailwindcss').Config} */
+const rootDir = path.dirname(fileURLToPath(import.meta.url))
 export default {
   darkMode: 'class',
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: [
+    path.join(rootDir, 'index.html'),
+    path.join(rootDir, 'src/**/*.{js,jsx}'),
+    path.join(rootDir, 'admin/index.html'),
+    path.join(rootDir, 'admin/src/**/*.{js,jsx}'),
+  ],
   theme: {
     extend: {
       colors: {

@@ -1,16 +1,19 @@
-import { clearOAuthCookie, completeOAuth } from '../../../server/oauth.js'
+import { clearOAuthCookie, completeOAuth, oauthErrorTarget } from '../../../server/oauth.js'
 import { appendCookies, redirect } from '../../../server/http.js'
+import { corsResponse, preflightResponse } from '../../../api/_lib/origins.js'
 
 export default {
   async fetch(request) {
-    const origin = new URL(request.url).origin
+    if (request.method === 'OPTIONS') return corsResponse(request, preflightResponse(request))
     try {
       const result = await completeOAuth(request)
-      return appendCookies(redirect(`${origin}/home`), result.cookies)
+      return corsResponse(request, appendCookies(redirect(result.redirectTo), result.cookies))
     } catch (error) {
       console.error('OAuth callback rejected', error)
       const reason = encodeURIComponent(error?.code || 'oauth-failed')
-      return appendCookies(redirect(`${origin}/login?error=${reason}`), [clearOAuthCookie()])
+      const target = new URL(oauthErrorTarget(request))
+      target.searchParams.set('error', reason)
+      return corsResponse(request, appendCookies(redirect(target.toString()), [clearOAuthCookie()]))
     }
   },
 }

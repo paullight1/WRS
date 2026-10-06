@@ -139,8 +139,8 @@ export function AuthProvider({ children }) {
         if (runtimeConfig.isDemo) return Promise.resolve({ ok: true })
         return browserAuthClient.resetPassword(token, password)
       },
-      async beginOAuth(provider) {
-        const result = await browserAuthClient.beginOAuth(provider)
+      async beginOAuth(provider, returnTo) {
+        const result = await browserAuthClient.beginOAuth(provider, returnTo)
         window.location.assign(result.authorizationUrl)
       },
       enrollMfa() {

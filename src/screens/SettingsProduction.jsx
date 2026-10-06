@@ -4,8 +4,17 @@ import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
 import StateView from '../components/states/StateView.jsx'
 import { hasRecentMfa } from '../domain/auth/policy.ts'
-import { Button, Card, Field, SectionTitle } from '../components/ui.jsx'
+import { Button, Card, Field, SectionTitle, List, Row } from '../components/ui.jsx'
 import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
+
+import { browserDataClient } from '../infrastructure/data/browserDataClient.ts'
+import PreferencePicker from '../components/settings/PreferencePicker.jsx'
+import {
+  countryOptions,
+  languageOptions,
+  currencyOptions,
+  timezoneOptions,
+} from '../components/settings/preferenceOptions.js'
 
 function settingsFrom(snapshot) {
   return (
@@ -32,6 +41,7 @@ export default function SettingsProduction() {
   const [error, setError] = useState('')
   const [deletionReason, setDeletionReason] = useState('')
   const [mfaCode, setMfaCode] = useState('')
+  const [country, setCountry] = useState('')
 
   useEffect(() => {
     let active = true
@@ -40,6 +50,7 @@ export default function SettingsProduction() {
       .then((next) => {
         if (!active) return
         setSnapshot(next)
+        setCountry(next.profile?.countryCode || '')
         setSettings(settingsFrom(next))
       })
       .catch((reason) => {
@@ -113,33 +124,45 @@ export default function SettingsProduction() {
   const recentMfa = auth.session ? hasRecentMfa(auth.session) : false
   return (
     <AppShell title="Settings" subtitle="Persistent account preferences">
+      {message && (
+        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
+          {message}
+        </p>
+      )}
       <section>
         <SectionTitle>Preferences</SectionTitle>
         <Card className="space-y-4 p-card-padding">
-          <Field
+          <PreferencePicker
             label="Language"
             value={settings.language}
-            onChange={(event) => setSettings((current) => ({ ...current, language: event.target.value }))}
-            placeholder="en"
+            options={languageOptions}
+            disabled={Boolean(busy)}
+            onChange={(language) => setSettings((current) => ({ ...current, language }))}
           />
-          <Field
+          <p className="text-label-sm text-outline">
+            Preferred language for your account. The application currently displays in English.
+          </p>
+          <PreferencePicker
             label="Currency"
             value={settings.currency}
-            onChange={(event) =>
-              setSettings((current) => ({ ...current, currency: event.target.value.toUpperCase().slice(0, 3) }))
-            }
-            placeholder="USD"
+            options={currencyOptions}
+            disabled={Boolean(busy)}
+            onChange={(currency) => setSettings((current) => ({ ...current, currency }))}
           />
-          <Field
+          <p className="text-label-sm text-outline">
+            Display preference. XP and RoboCoin units stay the same; checkout uses the currency shown by the provider.
+          </p>
+          <PreferencePicker
             label="Timezone"
             value={settings.timezone}
-            onChange={(event) => setSettings((current) => ({ ...current, timezone: event.target.value }))}
-            placeholder="Africa/Lagos"
+            options={timezoneOptions}
+            disabled={Boolean(busy)}
+            onChange={(timezone) => setSettings((current) => ({ ...current, timezone }))}
           />
           {[
             ['notificationsEnabled', 'Product notifications'],
             ['marketingEnabled', 'Marketing messages'],
-            ['biometricLoginEnabled', 'Biometric login preference'],
+            ['biometricLoginEnabled', 'Biometric login preference (device support required)'],
             ['safetyNotificationsEnabled', 'Safety notifications'],
           ].map(([key, label]) => (
             <label
@@ -154,10 +177,126 @@ export default function SettingsProduction() {
               />
             </label>
           ))}
-          <Button full loading={busy === 'save'} onClick={save}>
-            Save settings
+          <Button full loading={busy === 'save'} disabled={Boolean(busy)} onClick={save}>
+            Save preferences
           </Button>
         </Card>
+      </section>
+
+      <section>
+        <SectionTitle>Account &amp; region</SectionTitle>
+        <Card className="space-y-3 p-card-padding">
+          <PreferencePicker
+            label="Country"
+            value={country}
+            options={countryOptions}
+            disabled={Boolean(busy)}
+            onChange={setCountry}
+          />
+          <Button
+            full
+            variant="ghost"
+            disabled={!country || country === snapshot?.profile?.countryCode || Boolean(busy)}
+            loading={busy === 'country'}
+            onClick={async () => {
+              setBusy('country')
+              setMessage('')
+              try {
+                const profile = snapshot.profile
+                await browserAccountClient.updateProfile({
+                  fullName: profile.fullName,
+                  email: profile.email,
+                  phone: profile.phone,
+                  countryCode: country,
+                })
+                const next = await browserAccountClient.snapshot()
+                setSnapshot(next)
+                setCountry(next.profile?.countryCode || '')
+                setMessage('Country saved to your profile.')
+              } catch (reason) {
+                setMessage(reason instanceof Error ? reason.message : 'Country update failed.')
+              } finally {
+                setBusy('')
+              }
+            }}
+          >
+            Save country
+          </Button>
+          <p className="text-label-sm text-outline">
+            Country is part of your account profile. Complete your name and international phone number in Personal
+            details before saving.
+          </p>
+        </Card>
+        <List className="mt-3">
+          <Row icon="person" title="Personal details" subtitle="Name, email, phone and verification" to="/profile" />
+          <Row icon="lock" title="Password recovery" subtitle="Request a secure password reset" to="/forgot-password" />
+        </List>
+      </section>
+      <section>
+        <SectionTitle>Robot &amp; community</SectionTitle>
+        <List>
+          <Row icon="smart_toy" title="My robot" subtitle="Robot identity and configuration" to="/robot" />
+          <Row icon="tune" title="Customise robot" subtitle="Voice and personality" to="/robot/customize" />
+          <Row
+            icon="public"
+            title="Public community profile"
+            subtitle="Manage your public alias and leaderboard visibility"
+            to="/community"
+          />
+          <Row
+            icon="notifications"
+            title="Notifications"
+            subtitle="Read and manage account updates"
+            to="/notifications"
+          />
+        </List>
+      </section>
+      <section>
+        <SectionTitle>Privacy &amp; help</SectionTitle>
+        <List>
+          <Row
+            icon="dataset"
+            title="Data contributions"
+            subtitle="Manage contributions and purpose-specific consent"
+            to="/data"
+          />
+          <Row
+            icon="download"
+            title="Download my data"
+            subtitle="Export contribution and consent records"
+            right={
+              <Button
+                size="sm"
+                variant="ghost"
+                loading={busy === 'export'}
+                disabled={Boolean(busy)}
+                onClick={async () => {
+                  setBusy('export')
+                  setMessage('')
+                  try {
+                    const result = await browserDataClient.exportData()
+                    const url = URL.createObjectURL(
+                      new Blob([JSON.stringify(result.manifest, null, 2)], { type: 'application/json' }),
+                    )
+                    const anchor = document.createElement('a')
+                    anchor.href = url
+                    anchor.download = `wrs-data-export-${result.requestId}.json`
+                    anchor.click()
+                    URL.revokeObjectURL(url)
+                    setMessage('Your data export is ready.')
+                  } catch (reason) {
+                    setMessage(reason instanceof Error ? reason.message : 'Data export failed.')
+                  } finally {
+                    setBusy('')
+                  }
+                }}
+              >
+                Export
+              </Button>
+            }
+          />
+          <Row icon="help" title="Support" subtitle="Help articles and your support tickets" to="/support" />
+        </List>
       </section>
 
       <section>
@@ -206,11 +345,6 @@ export default function SettingsProduction() {
           )}
         </Card>
       </section>
-      {message && (
-        <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
-          {message}
-        </p>
-      )}
     </AppShell>
   )
 }

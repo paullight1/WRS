@@ -6,7 +6,7 @@ import { Card } from '../ui/card.jsx'
 import { activityPresets, decimalToAtomic, minerLevelPresets } from '../../domain/mining/rewardPolicy.ts'
 import { browserAccountClient } from '../../infrastructure/account/browserAccountClient.ts'
 
-export default function RewardRulesEditor({ snapshot, onReload, recentMfa }) {
+export default function RewardRulesEditor({ snapshot, onReload, recentMfa, securitySettingsHref = '/settings/security' }) {
   const [activities, setActivities] = useState(() =>
     activityPresets.map((rule) => ({ ...rule, rbc: '', status: 'active' })),
   )
@@ -284,9 +284,7 @@ export default function RewardRulesEditor({ snapshot, onReload, recentMfa }) {
             <p className="text-body-sm text-outline">
               Confirm your authenticator before saving or activating reward settings.
             </p>
-            <Button to="/settings/security" variant="secondary">
-              Set up authenticator
-            </Button>
+            <Button asChild variant="secondary"><a href={securitySettingsHref}>Set up authenticator</a></Button>
           </div>
         )}
         <Button full disabled={!recentMfa || busy} loading={busy} onClick={save}>

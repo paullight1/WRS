@@ -1,5 +1,6 @@
 import { validateJsonEnvelope } from '../api/_lib/security.js'
 import { requestTelemetry } from '../api/_lib/telemetry.js'
+import { assertAllowedMutationOrigin, corsResponse, preflightResponse } from '../api/_lib/origins.js'
 
 export class HttpError extends Error {
   constructor(status, message, code = 'request-failed') {
@@ -51,20 +52,10 @@ export function requireMethod(request, allowed) {
 }
 
 export function assertSameOrigin(request) {
-  if (request.method === 'GET' || request.method === 'HEAD' || request.method === 'OPTIONS') return
-  const fetchSite = request.headers.get('sec-fetch-site')
-  if (fetchSite === 'cross-site') throw new HttpError(403, 'Cross-site request rejected.', 'csrf')
-  const origin = request.headers.get('origin')
-  if (!origin) return
-  const requestUrl = new URL(request.url)
-  let originUrl
   try {
-    originUrl = new URL(origin)
-  } catch {
-    throw new HttpError(403, 'Invalid request origin.', 'csrf')
-  }
-  if (originUrl.host !== requestUrl.host || originUrl.protocol !== requestUrl.protocol) {
-    throw new HttpError(403, 'Cross-origin request rejected.', 'csrf')
+    assertAllowedMutationOrigin(request)
+  } catch (error) {
+    throw new HttpError(error.status || 403, error.message || 'Cross-origin request rejected.', error.code || 'csrf')
   }
 }
 
@@ -106,6 +97,7 @@ export function functionHandler(handler) {
     async fetch(request) {
       const telemetry = requestTelemetry(request)
       telemetry.info('api.request.started', { method: request.method })
+      if (request.method === 'OPTIONS') return corsResponse(request, preflightResponse(request))
       try {
         const response = await handler(request)
         response.headers.set('x-request-id', telemetry.requestId)
@@ -114,7 +106,7 @@ export function functionHandler(handler) {
           status: response.status,
           durationMs: telemetry.durationMs(),
         })
-        return response
+        return corsResponse(request, response)
       } catch (error) {
         if (error instanceof HttpError) {
           telemetry.warn('api.request.rejected', {
@@ -123,18 +115,18 @@ export function functionHandler(handler) {
             code: error.code,
             durationMs: telemetry.durationMs(),
           })
-          return json({ message: error.message, code: error.code }, error.status, {
+          return corsResponse(request, json({ message: error.message, code: error.code }, error.status, {
             'x-request-id': telemetry.requestId,
-          })
+          }))
         }
         telemetry.error('api.request.failed', error, {
           method: request.method,
           status: 500,
           durationMs: telemetry.durationMs(),
         })
-        return json({ message: 'The service could not complete the request.' }, 500, {
+        return corsResponse(request, json({ message: 'The service could not complete the request.' }, 500, {
           'x-request-id': telemetry.requestId,
-        })
+        }))
       }
     },
   }

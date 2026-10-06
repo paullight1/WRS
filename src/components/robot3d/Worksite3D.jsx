@@ -35,14 +35,21 @@ function prefersReducedMotion() {
  * @param config   the robot to put in the scene; defaults to the stock unit.
  * @param height   frame height in px. Width is always the container's.
  */
-export default function Worksite3D({ industry, config = defaultRobotConfig, height = 208, className = '', label }) {
+export default function Worksite3D({
+  industry,
+  config = defaultRobotConfig,
+  height = 208,
+  className = '',
+  label,
+  paused = false,
+}) {
   const host = useRef(null)
   const [onScreen, setOnScreen] = useState(true)
   const [pageVisible, setPageVisible] = useState(true)
 
   const key = worksiteKey(industry)
   const site = worksiteFor(industry)
-  const reduced = prefersReducedMotion()
+  const reduced = prefersReducedMotion() || paused
   const use3D = supportsWebGL()
 
   // A worksite is a much heavier scene than the bust, so parking the render

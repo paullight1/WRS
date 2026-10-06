@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import MiningCyclePanel from '../components/mining/MiningCyclePanel.jsx'
 import StateView from '../components/states/StateView.jsx'
 import { Badge, Button, Card, CoinMark, Icon, SectionTitle, Tabs } from '../components/ui.jsx'
+import WorksitePoster from '../components/robot3d/WorksitePoster.jsx'
+import { worksites } from '../data/worksites.js'
 import { atomicRateToDecimal, atomicUnitsToDecimal } from '../domain/mining/metrics.ts'
 import { browserMiningClient } from '../infrastructure/mining/browserMiningClient.ts'
 
@@ -51,7 +54,9 @@ function robotSlotProgress(value) {
 }
 
 export default function MiningProduction() {
-  const [tab, setTab] = useState('Available')
+  const [searchParams] = useSearchParams()
+  const requestedTab = searchParams.get('tab')
+  const [tab, setTab] = useState(() => (pageTabs.includes(requestedTab) ? requestedTab : 'Available'))
   const [snapshot, setSnapshot] = useState(null)
   const [selectedRobotId, setSelectedRobotId] = useState('')
   const [loading, setLoading] = useState(true)
@@ -65,25 +70,30 @@ export default function MiningProduction() {
   const [leaderboardLoading, setLeaderboardLoading] = useState(false)
   const [leaderboardError, setLeaderboardError] = useState('')
 
-  const loadSnapshot = useCallback(async ({ quiet = false } = {}) => {
-    if (quiet) setRefreshing(true)
-    else setLoading(true)
-    setError('')
-    try {
-      const next = await browserMiningClient.snapshot()
-      setSnapshot(next)
-      setSelectedRobotId((current) => {
-        if (next.robots.some((robot) => robot.robotId === current && robot.unlocked)) return current
-        return next.robots.find((robot) => robot.unlocked)?.robotId || ''
-      })
-      if (next.session) setTab('Active')
-    } catch (reason) {
-      setError(errorMessage(reason, 'Mining data could not be loaded.'))
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [])
+  const loadSnapshot = useCallback(
+    async ({ quiet = false } = {}) => {
+      if (quiet) setRefreshing(true)
+      else setLoading(true)
+      setError('')
+      try {
+        const next = await browserMiningClient.snapshot()
+        setSnapshot(next)
+        setSelectedRobotId((current) => {
+          if (next.session && next.robots.some((robot) => robot.robotId === next.session.robotId))
+            return next.session.robotId
+          if (next.robots.some((robot) => robot.robotId === current && robot.unlocked)) return current
+          return next.robots.find((robot) => robot.unlocked)?.robotId || ''
+        })
+        if (next.session && requestedTab !== 'Leaderboard') setTab('Active')
+      } catch (reason) {
+        setError(errorMessage(reason, 'Mining data could not be loaded.'))
+      } finally {
+        setLoading(false)
+        setRefreshing(false)
+      }
+    },
+    [requestedTab],
+  )
 
   useEffect(() => {
     let active = true
@@ -177,68 +187,36 @@ export default function MiningProduction() {
     if (tab === 'Available') {
       return (
         <div className="space-y-6">
-          {(snapshot.level?.name || Number.isInteger(snapshot.level?.multiplierBps)) && (
-            <div className="flex items-center justify-between gap-3 text-body-sm text-on-surface-variant">
-              {snapshot.level.name && <span>{snapshot.level.name}</span>}
-              {Number.isInteger(snapshot.level.multiplierBps) && (
-                <span>Mining power · {snapshot.level.multiplierBps / 10000}×</span>
-              )}
-            </div>
-          )}
           <section>
-            <SectionTitle action={`${snapshot.robots.filter((robot) => robot.unlocked).length} unlocked`}>
+            <SectionTitle action={`${snapshot.robots.filter((robot) => robot.unlocked).length} unlocked · 1 per cycle`}>
               Choose your robot
             </SectionTitle>
-            <Card className="mb-4 border-primary/20 bg-primary-container/10 p-4">
-              <div className="flex items-start gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-container/20 text-primary">
-                  <Icon name={slotProgress?.unlocked ? 'lock_open' : 'lock'} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-title font-semibold text-on-surface">Unlock more robots</h3>
-                    {slotProgress && (
-                      <Badge t={slotProgress.unlocked ? 'tertiary' : 'outline'}>
-                        {slotProgress.unlocked ? 'Unlocked' : `${Math.floor(slotProgress.percent)}%`}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="mt-1 text-body-sm text-on-surface-variant">
-                    {slotProgress
-                      ? `Earn ${slotProgress.threshold.toLocaleString()} RBC from settled mining rewards to open every additional robot slot. Spending RBC will not reduce this progress.`
-                      : 'Robot slot progress will appear when mining rewards are available.'}
-                  </p>
-                  {slotProgress && (
-                    <>
-                      <div className="mt-3 flex items-center justify-between gap-3 text-label-sm text-on-surface-variant">
-                        <span>Lifetime mined</span>
-                        <span className="tnum font-semibold text-on-surface">
-                          {slotProgress.earned.toLocaleString(undefined, { maximumFractionDigits: 2 })} /{' '}
-                          {slotProgress.threshold.toLocaleString()} RBC
-                        </span>
-                      </div>
-                      <div
-                        role="progressbar"
-                        aria-label="Progress to unlock additional robot slots"
-                        aria-valuemin={0}
-                        aria-valuemax={slotProgress.threshold}
-                        aria-valuenow={Math.min(slotProgress.earned, slotProgress.threshold)}
-                        className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high"
-                      >
-                        <div
-                          className="h-full rounded-full bg-tertiary transition-[width] duration-500"
-                          style={{ width: `${slotProgress.percent}%` }}
-                        />
-                      </div>
-                    </>
-                  )}
+            {slotProgress && !slotProgress.unlocked && (
+              <div className="mb-4 rounded-xl border border-white/10 px-3 py-3">
+                <div className="flex items-center justify-between gap-3 text-label-sm text-on-surface-variant">
+                  <span>More robots at {slotProgress.threshold.toLocaleString()} mined RBC</span>
+                  <span className="tnum shrink-0">
+                    {slotProgress.earned.toLocaleString(undefined, { maximumFractionDigits: 2 })} /{' '}
+                    {slotProgress.threshold.toLocaleString()}
+                  </span>
+                </div>
+                <div
+                  role="progressbar"
+                  aria-label="Robot unlock progress"
+                  aria-valuemin={0}
+                  aria-valuemax={slotProgress.threshold}
+                  aria-valuenow={Math.min(slotProgress.earned, slotProgress.threshold)}
+                  className="mt-2 h-1 overflow-hidden rounded-full bg-white/10"
+                >
+                  <div className="h-full bg-tertiary" style={{ width: `${slotProgress.percent}%` }} />
                 </div>
               </div>
-            </Card>
+            )}
             {snapshot.robots.length ? (
               <div className="space-y-2">
                 {snapshot.robots.map((robot) => {
                   const locked = !robot.unlocked
+                  const assigned = currentSession?.robotId === robot.robotId
                   const disabled = locked || Boolean(currentSession)
                   return (
                     <button
@@ -249,7 +227,10 @@ export default function MiningProduction() {
                       aria-label={`${robot.name}${locked ? `, locked: ${robot.unlockRequirement}` : ''}`}
                       disabled={disabled}
                       onClick={() => setSelectedRobotId(robot.robotId)}
-                      className={choiceButtonClass(selectedRobotId === robot.robotId, disabled)}
+                      className={choiceButtonClass(
+                        selectedRobotId === robot.robotId,
+                        locked || (Boolean(currentSession) && !assigned),
+                      )}
                     >
                       <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-container/20 text-primary">
                         <Icon name="smart_toy" />
@@ -257,11 +238,21 @@ export default function MiningProduction() {
                       <span className="min-w-0 flex-1">
                         <span className="block text-title font-semibold text-on-surface">{robot.name}</span>
                         <span className="mt-0.5 block text-body-sm text-on-surface-variant">
-                          {locked ? robot.unlockRequirement : 'Ready to mine for 24 hours'}
+                          {locked
+                            ? robot.unlockRequirement
+                            : assigned
+                              ? 'Assigned to your current mining cycle'
+                              : 'Ready to mine for 24 hours'}
                         </span>
                       </span>
                       <Badge t={locked ? 'outline' : selectedRobotId === robot.robotId ? 'tertiary' : 'outline'}>
-                        {locked ? 'Locked' : selectedRobotId === robot.robotId ? 'Selected' : 'Available'}
+                        {locked
+                          ? 'Locked'
+                          : assigned
+                            ? 'Mining'
+                            : selectedRobotId === robot.robotId
+                              ? 'Selected'
+                              : 'Available'}
                       </Badge>
                     </button>
                   )
@@ -276,13 +267,38 @@ export default function MiningProduction() {
             )}
           </section>
 
+          <section aria-labelledby="mining-worksite-previews">
+            <SectionTitle action="9 industries">
+              <span id="mining-worksite-previews">Robots at work</span>
+            </SectionTitle>
+            <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3">
+              {Object.entries(worksites).map(([key, site]) => (
+                <Card key={key} className="w-[min(72vw,15rem)] shrink-0 snap-start overflow-hidden p-0">
+                  <div className="relative h-28 overflow-hidden">
+                    <WorksitePoster site={site} />
+                    <span className="absolute right-2 top-2 rounded-full border border-white/15 bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white/80 backdrop-blur">
+                      Preview
+                    </span>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="truncate text-title font-semibold text-on-surface">{site.name}</h3>
+                    <p className="mt-1 min-h-10 text-label-sm text-on-surface-variant">{site.task}</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+
           {hasConfiguredRate && (
             <Card className="flex items-center gap-3 p-4">
               <CoinMark size={38} />
               <div>
                 <p className="text-label-sm text-on-surface-variant">Configured mining rate</p>
                 <p className="tnum text-title font-semibold text-on-surface">
-                  {atomicRateToDecimal(configuredRate, configuredScale)} RBC per hour
+                  {atomicRateToDecimal(configuredRate, configuredScale)
+                    .replace(/(\.\d*?)0+$/, '$1')
+                    .replace(/\.$/, '')}{' '}
+                  RBC per hour
                 </p>
               </div>
             </Card>
@@ -303,9 +319,15 @@ export default function MiningProduction() {
               {actionError}
             </p>
           )}
-          <Button full size="lg" loading={starting} disabled={!canStart} icon="play_arrow" onClick={start}>
-            Start mining
-          </Button>
+          {currentSession ? (
+            <Button full size="lg" icon="arrow_forward" onClick={() => setTab('Active')}>
+              View active cycle
+            </Button>
+          ) : snapshot.issuanceEnabled ? (
+            <Button full size="lg" loading={starting} disabled={!canStart} icon="play_arrow" onClick={start}>
+              Start mining
+            </Button>
+          ) : null}
         </div>
       )
     }
@@ -351,7 +373,17 @@ export default function MiningProduction() {
                 ))}
               </div>
             ) : (
-              <p className="text-body-sm text-on-surface-variant">Settled cycles will appear here.</p>
+              <StateView
+                kind="empty"
+                size={92}
+                title="No completed cycles yet"
+                desc={
+                  currentSession
+                    ? 'Your first RoboCoin award is recorded after this 24-hour cycle settles.'
+                    : 'Completed mining cycles will appear here after settlement.'
+                }
+                className="px-4 py-6"
+              />
             )}
           </section>
         </div>
@@ -401,18 +433,20 @@ export default function MiningProduction() {
           <StateView
             kind="empty"
             title="No settled awards yet"
-            desc="No settled mining awards are available for this period."
+            desc="Settled mining awards from members who opted into public rankings will appear here. Choose a public alias in Community to join the leaderboard."
+            action={
+              <Button to="/community" variant="tonal">
+                Choose public alias
+              </Button>
+            }
           />
         )}
-        <p className="text-label-sm text-on-surface-variant">
-          Rankings include settled awards shared by members using a public handle.
-        </p>
       </div>
     )
   }
 
   return (
-    <AppShell title="Mining" subtitle="Earn RoboCoin through verified robot work" wide>
+    <AppShell title="Mining" subtitle="Earn RoboCoin with your robot" wide>
       <Tabs items={pageTabs} value={tab} onChange={setTab} />
       {content()}
     </AppShell>

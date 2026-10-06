@@ -116,7 +116,7 @@ export default function WorksitePoster({ site, className = '' }) {
         <rect x="0" y="158" width="320" height="2" fill={site.accent} opacity="0.5" />
       </svg>
 
-      <div className="absolute inset-x-0 bottom-2 flex justify-center">
+      <div className="absolute inset-x-0 bottom-2 flex justify-center motion-safe:animate-float">
         <RobotAvatar size={96} eye={site.glow} glow={false} />
       </div>
     </div>

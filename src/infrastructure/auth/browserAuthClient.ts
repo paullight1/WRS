@@ -1,16 +1,21 @@
+import { apiUrl } from '../http/apiUrl'
 import type { AuthSession, OAuthProvider, RegistrationInput, VerificationKind } from '../../domain/auth/types'
 
 type Json = Record<string, unknown>
 type VerificationChallengeSummary = { id: string; kind: VerificationKind }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     ...init,
     credentials: 'include',
     headers: { 'content-type': 'application/json', ...(init.headers || {}) },
   })
   const body = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(typeof body?.message === 'string' ? body.message : 'Authentication request failed.')
+  if (!response.ok) {
+    const error = new Error(typeof body?.message === 'string' ? body.message : 'Authentication request failed.')
+    if (typeof body?.code === 'string') Object.assign(error, { code: body.code })
+    throw error
+  }
   return body as T
 }
 
@@ -32,7 +37,11 @@ export const browserAuthClient = {
       body: JSON.stringify({ email }),
     }),
   login: (identifier: string, password: string, rememberMe: boolean) =>
-    request<{ session: AuthSession; challenges: VerificationChallengeSummary[] }>('/api/auth/login', {
+    request<{
+      session: AuthSession
+      challenges: VerificationChallengeSummary[]
+      dailyReward: { status?: string; xp?: number } | null
+    }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ identifier, password, rememberMe }),
     }),
@@ -56,10 +65,10 @@ export const browserAuthClient = {
     request<Json>('/api/auth/password/forgot', { method: 'POST', body: JSON.stringify({ identifier }) }),
   resetPassword: (token: string, password: string) =>
     request<Json>('/api/auth/password/reset', { method: 'POST', body: JSON.stringify({ token, password }) }),
-  beginOAuth: (provider: OAuthProvider) =>
+  beginOAuth: (provider: OAuthProvider, returnTo?: string) =>
     request<{ authorizationUrl: string }>('/api/auth/oauth/start', {
       method: 'POST',
-      body: JSON.stringify({ provider }),
+      body: JSON.stringify({ provider, returnTo }),
     }),
   enrollMfa: () =>
     request<{ enrollmentId: string; provisioningUri: string; recoveryCodes: string[] }>('/api/auth/mfa/enroll', {

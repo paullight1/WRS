@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { hmac, randomToken, sha256, signedToken, verifySignedToken } from './crypto.js'
 import { HttpError } from './http.js'
+import { consumeLocalRateLimit } from './localRateLimit.js'
 import { authPublic, authSecret, serviceRest, serviceRpc } from './supabase.js'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -16,6 +17,8 @@ function challengeSecret() {
 
 function rateLimitSecret() {
   const secret = process.env.WRS_RATE_LIMIT_SECRET || process.env.WRS_SERVER_SIGNING_SECRET
+  if (!secret && process.env.WRS_LOCAL_RATE_LIMIT_FALLBACK === 'true' && process.env.NODE_ENV !== 'production')
+    return null
   if (!secret) throw new HttpError(503, 'Rate limiting is not configured.', 'rate-limit-unavailable')
   return secret
 }
@@ -70,18 +73,28 @@ export function validateRegistration(input) {
     password,
     termsVersion,
     privacyVersion,
-    referralCode: String(input?.referralCode || '').trim() || null,
+    referralCode:
+      String(input?.referralCode || '')
+        .trim()
+        .toUpperCase() || null,
   }
 }
 
 export async function enforceRateLimit(request, action, subject, limit, windowSeconds) {
+  const secret = rateLimitSecret()
+  if (!secret) {
+    if (!consumeLocalRateLimit(request, action, subject, limit, windowSeconds)) {
+      throw new HttpError(429, 'Too many attempts. Try again later.', 'rate-limited')
+    }
+    return
+  }
   const forwarded = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
   const ip = forwarded.split(',')[0].trim()
   const digest = hmac(
     `${action}|${String(subject || '')
       .trim()
       .toLowerCase()}|${ip}`,
-    rateLimitSecret(),
+    secret,
   )
   const { data } = await serviceRpc('wrs_consume_auth_rate_limit', {
     p_action: action,
@@ -294,6 +307,16 @@ async function supersedeOpenChallenges(userId, kind) {
 }
 
 export async function createPendingAccount(registration) {
+  if (registration.referralCode) {
+    if (!/^[A-Z0-9]{8,24}$/.test(registration.referralCode))
+      throw new HttpError(400, 'Enter a valid referral code.', 'invalid-referral-code')
+    const { data: referrers } = await serviceRest(
+      `/rest/v1/referral_profiles?code=eq.${encodeURIComponent(registration.referralCode)}&status=eq.active&select=user_id&limit=1`,
+    )
+    if (!Array.isArray(referrers) || !referrers.length)
+      throw new HttpError(400, 'Referral code is not active or does not exist.', 'invalid-referral-code')
+  }
+
   let authUser = null
   try {
     const { data } = await authSecret('/auth/v1/admin/users', {
@@ -326,6 +349,13 @@ export async function createPendingAccount(registration) {
     })
 
     const emailChallenge = await issueVerificationChallenge(authUser.id, 'email', registration.email)
+    if (registration.referralCode) {
+      await serviceRpc('wrs_accept_referral', {
+        p_referred_user_id: authUser.id,
+        p_referral_code: registration.referralCode,
+      })
+    }
+
     await recordSecurityEvent(authUser.id, 'account.registered')
     return { userId: authUser.id, challenges: [emailChallenge] }
   } catch (error) {

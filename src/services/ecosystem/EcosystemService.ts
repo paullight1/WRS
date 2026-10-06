@@ -14,6 +14,22 @@ export type MarketplaceCatalogItem = {
 }
 
 export type RewardSnapshot = {
+  authoritative: true
+  miningActive: boolean
+  dashboard: {
+    totalXp: number
+    activityXp: number
+    referralXp: number
+    referrals: { total: number; pending: number; qualified: number }
+    history: Array<{
+      id: string
+      source: string
+      amount: string
+      currency: 'XP' | 'RBC'
+      atomicScale: number
+      createdAt: string
+    }>
+  }
   xp: number
   rbc: { availableAtomic: string | null; atomicScale: number | null }
   level: { level: number; name: string; multiplierBps: number; totalXp: number }

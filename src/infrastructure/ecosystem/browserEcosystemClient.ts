@@ -39,7 +39,38 @@ const repository: EcosystemRepository = {
   review: (itemId, rating, reviewText) =>
     request<Json>('/api/marketplace/review', { method: 'POST', body: JSON.stringify({ itemId, rating, reviewText }) }),
   async rewards() {
-    return request<RewardSnapshot>('/api/rewards')
+    const result = await request<RewardSnapshot>('/api/rewards')
+    const validCount = (value: unknown) => Number.isSafeInteger(value) && Number(value) >= 0
+    if (
+      result?.authoritative !== true ||
+      !validCount(result.xp) ||
+      !result.dashboard ||
+      !validCount(result.dashboard.totalXp) ||
+      !validCount(result.dashboard.activityXp) ||
+      !validCount(result.dashboard.referralXp) ||
+      !result.dashboard.referrals ||
+      !Object.values(result.dashboard.referrals).every(validCount) ||
+      !Array.isArray(result.activities) ||
+      !Array.isArray(result.levels) ||
+      !result.rbc ||
+      !Array.isArray(result.dashboard.history) ||
+      !result.dashboard.history.every(
+        (award) =>
+          typeof award.id === 'string' &&
+          typeof award.source === 'string' &&
+          typeof award.amount === 'string' &&
+          /^-?\d+$/.test(award.amount) &&
+          ['XP', 'RBC'].includes(award.currency) &&
+          Number.isInteger(award.atomicScale) &&
+          award.atomicScale >= 0 &&
+          award.atomicScale <= 12 &&
+          typeof award.createdAt === 'string' &&
+          Number.isFinite(Date.parse(award.createdAt)),
+      )
+    ) {
+      throw new Error('Rewards service returned an invalid response. Please retry.')
+    }
+    return result
   },
   redeemEventCode: (code) =>
     request<Json>('/api/rewards/event-code', { method: 'POST', body: JSON.stringify({ code }) }),

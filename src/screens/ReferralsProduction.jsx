@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
+import RewardArt from '../components/rewards/RewardArt.jsx'
 import StateView from '../components/states/StateView.jsx'
 import { Badge, Button, Card, Field, SectionTitle } from '../components/ui.jsx'
 import { browserEcosystemClient } from '../infrastructure/ecosystem/browserEcosystemClient.ts'
 
 export default function ReferralsProduction() {
   const [snapshot, setSnapshot] = useState(null)
+  const [rewards, setRewards] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [inviteCode, setInviteCode] = useState('')
@@ -48,14 +50,23 @@ export default function ReferralsProduction() {
     }
   }
 
-  const refresh = async () => setSnapshot(await browserEcosystemClient.referrals())
+  const refresh = async () => {
+    const [referrals, rewardData] = await Promise.all([
+      browserEcosystemClient.referrals(),
+      browserEcosystemClient.rewards(),
+    ])
+    setSnapshot(referrals)
+    setRewards(rewardData)
+  }
 
   useEffect(() => {
     let active = true
-    browserEcosystemClient
-      .referrals()
-      .then((next) => {
-        if (active) setSnapshot(next)
+    Promise.all([browserEcosystemClient.referrals(), browserEcosystemClient.rewards()])
+      .then(([next, rewardData]) => {
+        if (active) {
+          setSnapshot(next)
+          setRewards(rewardData)
+        }
       })
       .catch((reason) => {
         if (active) setError(reason instanceof Error ? reason.message : 'Referral service is unavailable.')
@@ -88,7 +99,7 @@ export default function ReferralsProduction() {
   const relationships = snapshot?.relationships || []
 
   return (
-    <AppShell title="Referrals" subtitle="Verified qualification only">
+    <AppShell title="Referrals" subtitle="Invite friends. Earn XP.">
       {loading && (
         <StateView
           kind="loading"
@@ -99,6 +110,33 @@ export default function ReferralsProduction() {
       {!loading && error && <StateView kind="error" title="Referrals unavailable" desc={error} />}
       {!loading && !error && snapshot && (
         <>
+          {rewards && (
+            <Card className="border-primary/25 bg-primary-container/10 p-4">
+              <div className="flex items-center gap-3">
+                <RewardArt kind="referral" className="h-20 w-24 shrink-0" />
+                <div>
+                  <h2 className="text-title font-semibold">Your referral rewards</h2>
+                  <p className="mt-1 text-body-sm text-on-surface-variant">
+                    {rewards.activities.find((activity) => activity.source === 'referral')?.xp
+                      ? `Earn ${rewards.activities.find((activity) => activity.source === 'referral').xp} XP per eligible referral award.`
+                      : 'Referral XP rewards are paused.'}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-3 border-t border-white/10 pt-3">
+                {[
+                  [rewards.dashboard.referralXp, 'XP earned'],
+                  [rewards.dashboard.referrals.qualified, 'Qualified'],
+                  [rewards.dashboard.referrals.pending, 'Pending'],
+                ].map(([value, label]) => (
+                  <div key={label}>
+                    <p className="tnum text-title font-bold">{value.toLocaleString()}</p>
+                    <p className="text-label-sm text-on-surface-variant">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
           <Card className="p-card-padding">
             <p className="text-label-sm text-outline">Your referral code</p>
             <p className="mt-2 font-data text-data-lg text-on-surface">{snapshot.code}</p>
@@ -110,6 +148,15 @@ export default function ReferralsProduction() {
                 Share invite
               </Button>
             </div>
+            <Button
+              full
+              variant="tonal"
+              className="mt-2"
+              icon="link"
+              onClick={() => copyInvite(referralLink, 'Referral link')}
+            >
+              Copy invite link
+            </Button>
             <p className="mt-2 text-body-sm text-on-surface-variant">
               Your invite opens signup with this code filled in. Rewards are earned only by qualified referrals, after
               account verification, paid package activation and the server review window.

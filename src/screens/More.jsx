@@ -7,17 +7,6 @@ import { Icon, List, Row, SectionTitle } from '../components/ui.jsx'
 import { packageDefinition } from '../domain/robot/packages.ts'
 import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
 
-const operatorRoles = new Set([
-  'admin',
-  'support_operator',
-  'kyc_operator',
-  'finance_operator',
-  'data_operator',
-  'deployment_operator',
-  'risk_operator',
-  'reward_operator',
-])
-
 export default function More() {
   const auth = useAuth()
   const robotState = useRobot()
@@ -48,7 +37,6 @@ export default function More() {
         ? 'Loading profile'
         : 'Profile unavailable'
   const packageLabel = robotState.robot ? packageDefinition(robotState.robot.packageSlug).name : 'No active robot'
-  const canOperate = !auth.isDemo && (auth.session?.roles || []).some((role) => operatorRoles.has(role))
 
   const groups = [
     {
@@ -107,17 +95,6 @@ export default function More() {
         { icon: 'person', t: 'outline', title: 'Profile', to: '/profile' },
         { icon: 'settings', t: 'outline', title: 'Settings', to: '/settings' },
         { icon: 'help_outline', t: 'outline', title: 'Support', to: '/support' },
-        ...(canOperate
-          ? [
-              {
-                icon: 'admin_panel_settings',
-                t: 'secondary',
-                title: 'Operations',
-                subtitle: 'Role-scoped production operations',
-                to: '/admin/operations',
-              },
-            ]
-          : []),
       ],
     },
   ]

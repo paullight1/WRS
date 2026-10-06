@@ -81,12 +81,16 @@ export async function reviewMarketplaceItem(userId, itemId, rating, reviewText) 
 }
 
 export async function rewardSnapshot(userId) {
-  const [mining, { data: policy }] = await Promise.all([
+  const [mining, { data: policy }, { data: dashboard }] = await Promise.all([
     miningSnapshot(userId),
     serviceRpc('wrs_member_reward_policy', { p_user_id: userId }),
+    serviceRpc('wrs_member_reward_dashboard', { p_user_id: userId }),
   ])
   return {
-    xp: mining.level?.totalXp || 0,
+    authoritative: true,
+    xp: dashboard.totalXp,
+    dashboard,
+    miningActive: Boolean(mining.session),
     rbc: mining.balance,
     level: mining.level,
     issuanceEnabled: mining.issuanceEnabled,
@@ -101,6 +105,14 @@ export function eventCodeHash(code) {
 }
 
 export async function redeemEventCode(userId, code) {
+  const { data: policy } = await serviceRpc('wrs_member_reward_policy', { p_user_id: userId })
+  if (!policy?.activities?.some((activity) => activity.source === 'community' && activity.xp > 0)) {
+    throw new HttpError(
+      409,
+      'Event XP rewards are not active yet. Your code has not been used.',
+      'event-rewards-paused',
+    )
+  }
   const { data } = await serviceRpc('wrs_redeem_event_code', {
     p_user_id: userId,
     p_code_hash: eventCodeHash(code),
@@ -250,7 +262,7 @@ export async function referralSnapshot(userId) {
 }
 
 export async function acceptReferral(userId, code) {
-  const { data } = await serviceRpc('wrs_accept_referral', { p_referred_user_id: userId, p_code: code })
+  const { data } = await serviceRpc('wrs_accept_referral', { p_referred_user_id: userId, p_referral_code: code })
   return data
 }
 

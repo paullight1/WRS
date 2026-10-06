@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import AppShell from '../components/AppShell.jsx'
-import OperatorAccessPanel from '../components/admin/OperatorAccessPanel.jsx'
-import { useAuth } from '../components/auth/AuthProvider.jsx'
-import RewardRulesEditor from '../components/mining/RewardRulesEditor.jsx'
-import StateView from '../components/states/StateView.jsx'
-import { hasRecentMfa } from '../domain/auth/policy.ts'
-import { Icon, SectionTitle } from '../components/ui.jsx'
-import { Badge } from '../components/ui/badge.jsx'
-import { Button } from '../components/ui/button.jsx'
-import { Card, CardContent } from '../components/ui/card.jsx'
-import { Input } from '../components/ui/input.jsx'
-import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
+import { useSearchParams } from 'react-router-dom'
+import AdminShell from '../components/AdminShell.jsx'
+import SupplyProgress from '../components/SupplyProgress.jsx'
+import AdminHint from '../components/AdminHint.jsx'
+import OperatorAccessPanel from '../../../src/components/admin/OperatorAccessPanel.jsx'
+import { useAuth } from '../../../src/components/auth/AuthProvider.jsx'
+import RewardRulesEditor from '../../../src/components/mining/RewardRulesEditor.jsx'
+import StateView from '../../../src/components/states/StateView.jsx'
+import { hasRecentMfa } from '../../../src/domain/auth/policy.ts'
+import { Icon, SectionTitle } from '../../../src/components/ui.jsx'
+import { Badge } from '../../../src/components/ui/badge.jsx'
+import { Button } from '../../../src/components/ui/button.jsx'
+import { Card, CardContent } from '../../../src/components/ui/card.jsx'
+import { Input } from '../../../src/components/ui/input.jsx'
+import { browserAccountClient } from '../../../src/infrastructure/account/browserAccountClient.ts'
+import { securitySettingsUrl } from '../lib/externalRoutes.js'
 
 const roleScopes = {
-  support_operator: ['overview', 'users', 'support'],
+  support_operator: ['overview', 'support'],
   kyc_operator: ['overview', 'users'],
   finance_operator: ['overview', 'finance'],
   data_operator: ['overview', 'data'],
@@ -31,6 +35,49 @@ const scopeActions = {
   risk: ['referral.qualify', 'community.moderate'],
 }
 
+function actionsForScope(scope, roles) {
+  if (roles.includes('admin')) return scopeActions[scope] || []
+  if (scope === 'users') return roles.includes('kyc_operator') ? ['kyc.set'] : []
+  if (scope === 'support') return roles.includes('support_operator') ? ['support.update'] : []
+  if (scope === 'finance') return roles.includes('finance_operator') ? ['deployment.settle'] : []
+  if (scope === 'deployments') return roles.includes('deployment_operator') ? ['deployment.match'] : []
+  if (scope === 'data') return roles.includes('data_operator') ? ['data.review', 'data.task.review'] : []
+  if (scope === 'risk') return roles.includes('risk_operator') ? ['referral.qualify', 'community.moderate'] : []
+  return []
+}
+
+function actionTargetFields(action, record) {
+  const row = record?.row
+  if (!row) return {}
+  const reference = row.id || ''
+  switch (action) {
+    case 'user.suspend':
+    case 'user.restore':
+    case 'kyc.set': return record.group === 'users' ? { userId: row.user_id || reference } : {}
+    case 'support.update': return record.group === 'support' ? { ticketId: row.ticket_id || reference } : {}
+    case 'deployment.match': return record.group === 'deploymentRequests' ? { requestId: reference } : {}
+    case 'deployment.settle': return record.group === 'settlements' ? { deploymentId: reference } : {}
+    case 'data.review': return record.group === 'submissions' ? { submissionId: row.submission_id || reference } : {}
+    case 'data.task.review': return record.group === 'taskResponses' ? { responseId: row.response_id || reference } : {}
+    case 'referral.qualify': return record.group === 'referrals' ? { relationshipId: row.relationship_id || reference } : {}
+    case 'community.moderate': return record.group === 'moderation' ? { targetType: row.target_type || '', targetId: row.target_id || reference } : {}
+    default: return {}
+  }
+}
+
+const ACTION_TARGETS = {
+  'user.suspend': ['userId'], 'user.restore': ['userId'], 'kyc.set': ['userId'],
+  'support.update': ['ticketId'], 'deployment.match': ['requestId'], 'deployment.settle': ['deploymentId'],
+  'data.review': ['submissionId'], 'data.task.review': ['responseId'], 'referral.qualify': ['relationshipId'],
+  'community.moderate': ['targetType', 'targetId'],
+}
+const ACTION_RECORD_GROUPS = {
+  'user.suspend': 'users', 'user.restore': 'users', 'kyc.set': 'users',
+  'support.update': 'support', 'deployment.match': 'deploymentRequests', 'deployment.settle': 'settlements',
+  'data.review': 'submissions', 'data.task.review': 'taskResponses', 'referral.qualify': 'referrals',
+  'community.moderate': 'moderation',
+}
+
 const actionInputDefaults = {
   'kyc.set': { kycStatus: 'pending' },
   'support.update': { status: 'in_progress', priority: 'normal' },
@@ -39,7 +86,7 @@ const actionInputDefaults = {
 
 const scopeDetails = {
   overview: ['dashboard', 'Operations overview', 'A live view of the work your role can access.'],
-  users: ['group', 'User accounts', 'Review account status and identity records.'],
+  users: ['group', 'Users & KYC', 'Review account status and identity records.'],
   support: ['support_agent', 'Support queue', 'Work member requests and service tickets.'],
   finance: ['account_balance', 'Finance operations', 'Review settlement records and payment operations.'],
   deployments: ['rocket_launch', 'Deployments', 'Inspect deployment requests and active deployments.'],
@@ -47,6 +94,23 @@ const scopeDetails = {
   risk: ['shield', 'Trust and safety', 'Review referrals and community moderation activity.'],
   rewards: ['workspace_premium', 'Reward policy', 'Manage XP progression and mining issuance rules.'],
   access: ['admin_panel_settings', 'Operator access', 'Grant scoped access to verified operator accounts.'],
+}
+
+const overviewMetricLabels = {
+  kyc_pending: ['KYC awaiting review', 'Pending identity checks'],
+  support_open: ['Open support cases', 'Open, active, and waiting on members'],
+  withdrawals_in_progress: ['Withdrawals in progress', 'Reserved or awaiting provider'],
+  deployment_requests: ['Deployment requests', 'Awaiting a match'],
+  data_submissions_review: ['Data review queue', 'Submissions and training responses'],
+  data_deletions_due: ['Data deletions due', 'Eligible requests waiting for processing'],
+  referrals_pending: ['Referrals pending', 'Awaiting trust and safety review'],
+  reward_policy: ['Reward policy', 'Current issuance state'],
+}
+
+const rewardPolicyLabels = {
+  active_enabled: 'Issuance on',
+  active_disabled: 'Issuance off',
+  disabled: 'No active rule',
 }
 
 function AdminField({ label, hint, className = '', id, ...props }) {
@@ -79,7 +143,7 @@ function rowsFrom(snapshot) {
 }
 
 function primaryLabel(row) {
-  return row.task_slug || row.subject || row.action || row.status || row.id || row.user_id || row.target_id || 'Record'
+  return row.task_slug || row.subject || row.action || row.package_slug || row.id || row.user_id || row.target_id || row.status || 'Record'
 }
 
 function secondaryLabel(row) {
@@ -98,21 +162,37 @@ function secondaryLabel(row) {
   return values.join(' · ')
 }
 
-export default function AdminOperationsProduction() {
+export default function Operations() {
   const auth = useAuth()
   const scopes = useMemo(() => scopesForRoles(auth.session?.roles || []), [auth.session?.roles])
-  const [scope, setScope] = useState(() => scopes[0] || 'overview')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [scope, setScope] = useState(() => searchParams.get('scope') || 'overview')
   const activeScope = scopes.includes(scope) ? scope : scopes[0] || 'overview'
+  const actions = actionsForScope(activeScope, auth.session?.roles || [])
+  useEffect(() => {
+    const requested = searchParams.get('scope')
+    if (requested && scopes.includes(requested) && requested !== scope) setScope(requested)
+    else if (scopes.length && (!scopes.includes(scope) || requested !== scope)) {
+      setScope(scopes[0])
+      setSearchParams({ scope: scopes[0] }, { replace: true })
+    }
+  }, [searchParams, scopes, scope, setSearchParams])
   const [snapshot, setSnapshot] = useState(null)
+  const [refreshedAt, setRefreshedAt] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState('')
   const [message, setMessage] = useState('')
+  const [recordFilter, setRecordFilter] = useState('')
+  const [page, setPage] = useState(1)
+  const [selectedRecord, setSelectedRecord] = useState(null)
   const [mfaCode, setMfaCode] = useState('')
   const [form, setForm] = useState({ scope: '', action: '', reason: '', input: {} })
+  useEffect(() => { setSelectedRecord(null); setPage(1) }, [activeScope])
   const formIsCurrent = form.scope === activeScope
-  const action = formIsCurrent ? form.action : scopeActions[activeScope]?.[0] || ''
+  const action = formIsCurrent && actions.includes(form.action) ? form.action : actions[0] || ''
   const reason = formIsCurrent ? form.reason : ''
-  const input = formIsCurrent ? form.input : {}
+  const input = { ...(formIsCurrent ? form.input : {}), ...actionTargetFields(action, selectedRecord) }
+  const actionTargetReady = selectedRecord?.group === ACTION_RECORD_GROUPS[action] && (ACTION_TARGETS[action] || []).every((key) => Boolean(input[key]))
   const updateInput = (key, value) =>
     setForm((current) => {
       const currentForm = current.scope === activeScope ? current : { scope: activeScope, action, reason, input: {} }
@@ -130,6 +210,7 @@ export default function AdminOperationsProduction() {
     try {
       const result = await browserAccountClient.operations(nextScope)
       setSnapshot(result)
+      if (nextScope === 'overview') setRefreshedAt(result.summary?.generatedAt || '')
     } catch (error) {
       setSnapshot(null)
       setMessage(error instanceof Error ? error.message : 'Operations data is unavailable.')
@@ -158,7 +239,7 @@ export default function AdminOperationsProduction() {
   }
 
   const submitAction = async () => {
-    if (!action) return
+    if (!action || selectedRecord?.group !== ACTION_RECORD_GROUPS[action] || !actionTargetReady) return
     const actionInput = { ...actionInputDefaults[action], ...input }
     setBusy('action')
     setMessage('')
@@ -179,91 +260,90 @@ export default function AdminOperationsProduction() {
 
   if (!scopes.length) {
     return (
-      <AppShell title="Operations" avatar={false}>
+      <AdminShell title="Operations">
         <StateView kind="locked" title="Operator role required" desc="This account has no WRS operations role." />
-      </AppShell>
+      </AdminShell>
     )
   }
 
   const records = rowsFrom(snapshot)
+  const overviewMetrics = (snapshot?.summary?.metrics || []).filter((metric) => scopes.includes(metric.scope))
+  const visibleRecords = records.filter(({ group, row }) => `${group} ${primaryLabel(row)} ${secondaryLabel(row)} ${row.status || ''}`.toLowerCase().includes(recordFilter.toLowerCase()))
+  const pageCount = Math.max(1, Math.ceil(visibleRecords.length / 10))
+  const pageRecords = visibleRecords.slice((page - 1) * 10, page * 10)
   const recentMfa = auth.session ? hasRecentMfa(auth.session) : false
-  const actions = scopeActions[activeScope] || []
   const currentDetails = scopeDetails[activeScope] || scopeDetails.overview
-  const label = (item) => scopeDetails[item]?.[1] || item
 
   return (
-    <AppShell title="Operations" subtitle="Secure WRS control room" avatar={false} wide>
+    <AdminShell title={currentDetails[1]} subtitle="Secure WRS control room">
       <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-2xl border border-white/[.08] bg-surface-container-low px-5 py-6 sm:px-7">
-          <div className="pointer-events-none absolute -right-12 -top-24 h-64 w-64 rounded-full bg-primary-container/10 blur-3xl" />
-          <div className="relative flex flex-wrap items-start justify-between gap-5">
-            <div className="max-w-2xl">
-              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.14em] text-outline">
-                <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                Operator workspace
+        {activeScope === 'overview' && (
+          <section className="admin-overview" aria-label="Operations summary">
+            <div className="admin-overview-heading">
+              <div>
+                <h2>At a glance</h2>
               </div>
-              <h1 className="font-display text-2xl font-semibold tracking-tight text-on-surface sm:text-3xl">
-                Operations control
-              </h1>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
-                Review live records and perform audited actions within your assigned access.
-              </p>
+              <div className="admin-overview-tools">
+                <Badge variant={recentMfa ? 'success' : 'warning'}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${recentMfa ? 'bg-success' : 'bg-[#f7c948]'}`} />
+                  {recentMfa ? 'MFA verified' : 'MFA needed for changes'}
+                </Badge>
+                <span className="admin-overview-updated">
+                  {refreshedAt ? `Updated ${new Date(refreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Not yet refreshed'}
+                </span>
+                <Button variant="outline" disabled={loading} onClick={() => load('overview')}>
+                  {loading ? 'Refreshing…' : 'Refresh'}
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2 rounded-lg border border-white/[.08] bg-background/60 px-3 py-2 text-xs font-medium text-on-surface-variant">
-              <Icon name="verified_user" className="text-[17px] text-tertiary" />
-              {recentMfa ? 'Session verified' : 'MFA review required'}
-            </div>
-          </div>
-          <div className="relative mt-6 grid grid-cols-2 gap-2 border-t border-white/[.08] pt-4 sm:grid-cols-3 sm:gap-5">
-            <div>
-              <p className="font-data text-lg font-semibold text-on-surface">{scopes.length}</p>
-              <p className="text-xs text-outline">Permitted scopes</p>
-            </div>
-            <div>
-              <p className="font-data text-lg font-semibold text-on-surface">{auth.session?.roles?.length || 0}</p>
-              <p className="text-xs text-outline">Assigned roles</p>
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <p className="font-data text-lg font-semibold text-on-surface">{loading ? '—' : records.length}</p>
-              <p className="text-xs text-outline">Records in this view</p>
-            </div>
-          </div>
-        </section>
 
-        <div className="grid gap-5 lg:grid-cols-[224px_minmax(0,1fr)] lg:items-start">
-          <nav
-            aria-label="Operations scopes"
-            className="-mx-5 flex gap-1 overflow-x-auto px-5 pb-1 lg:mx-0 lg:block lg:space-y-1 lg:overflow-visible lg:rounded-xl lg:border lg:border-white/[.08] lg:bg-surface-container-low lg:p-2"
-          >
-            <p className="hidden px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[.12em] text-outline lg:block">
-              Workspace
-            </p>
-            {scopes.map((item) => {
-              const detail = scopeDetails[item] || [null, item, '']
-              return (
-                <button
-                  key={item}
-                  type="button"
-                  aria-current={activeScope === item ? 'page' : undefined}
-                  onClick={() => setScope(item)}
-                  className={`group flex min-h-10 shrink-0 items-center gap-2.5 rounded-lg px-3 text-sm font-medium capitalize transition-colors lg:w-full ${
-                    activeScope === item
-                      ? 'bg-primary-container/15 text-primary'
-                      : 'text-on-surface-variant hover:bg-white/[.05] hover:text-on-surface'
-                  }`}
-                >
-                  <Icon name={detail[0]} className="text-[18px]" />
-                  <span className="lg:hidden">{item}</span>
-                  <span className="hidden lg:inline">{label(item)}</span>
-                  {activeScope === item && (
-                    <span className="ml-auto hidden h-1.5 w-1.5 rounded-full bg-primary lg:block" />
-                  )}
-                </button>
-              )
-            })}
-          </nav>
+            {scopes.includes('rewards') && <SupplyProgress issuance={snapshot?.summary?.issuance} loading={loading} onOpen={() => setSearchParams({ scope: 'rewards' })} />}
+            <div className="admin-queue-heading"><div className="admin-section-title"><h3>Review queues</h3><AdminHint label="How to use these queues">Select a card to open its records. Counts show work waiting for review, not all historical records. Zero means no pending work; unavailable means the count could not be loaded. Sensitive changes may require authenticator verification.</AdminHint></div><span>{overviewMetrics.filter((metric) => typeof metric.value === 'number' && metric.value > 0).length} queues need attention</span></div>
+            {message && !snapshot ? (
+              <div className="admin-overview-error" role="alert">
+                <span>{message}</span>
+                <Button variant="outline" onClick={() => load('overview')}>Retry</Button>
+              </div>
+            ) : loading && !snapshot ? (
+              <div className="admin-metric-grid" aria-label="Loading operations metrics">
+                {Array.from({ length: 6 }, (_, index) => <div className="admin-metric-skeleton" key={index} />)}
+              </div>
+            ) : overviewMetrics.length ? (
+              <div className="admin-metric-grid">
+                {overviewMetrics.map((metric) => {
+                  const [label, hint] = overviewMetricLabels[metric.key] || ['Operations metric', 'Open its queue for details']
+                  const value = metric.status === 'unavailable'
+                    ? 'Unavailable'
+                    : typeof metric.value === 'number'
+                      ? metric.value.toLocaleString()
+                      : rewardPolicyLabels[metric.value] || 'Unavailable'
+                  return (
+                    <button
+                      type="button"
+                      className={`admin-metric-card ${metric.severity === 'attention' && metric.value > 0 ? 'is-attention' : ''}`}
+                      key={metric.key}
+                      onClick={() => {
+                        if (scopes.includes(metric.scope)) setSearchParams({ scope: metric.scope })
+                      }}
+                      aria-label={`${label}: ${value}. Open ${scopeDetails[metric.scope]?.[1] || metric.scope}.`}
+                    >
+                      <span className="admin-metric-label">{label}</span>
+                      <strong className={metric.status === 'unavailable' ? 'is-unavailable' : ''}>{value}</strong>
+                      <span className="admin-metric-hint">{metric.status === 'unavailable' ? 'Could not load this count' : hint}</span>
+                      <span className="admin-metric-link" aria-hidden="true"><Icon name="arrow_forward" className="text-[15px]" /></span>
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="admin-metric-empty">
+                {loading ? 'Refreshing available queues…' : 'No overview queues are assigned to this operator.'}
+              </div>
+            )}
+          </section>
+        )}
 
-          <div className="min-w-0 space-y-5">
+        {activeScope !== 'overview' && <div className="min-w-0 space-y-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <p className="mb-1 text-xs font-medium uppercase tracking-[.12em] text-outline">Current scope</p>
@@ -308,7 +388,7 @@ export default function AdminOperationsProduction() {
                     </div>
                   ) : (
                     <Button asChild variant="outline">
-                      <a href="/settings/security">Set up MFA</a>
+                      <a href={securitySettingsUrl}>Set up MFA</a>
                     </Button>
                   )}
                 </CardContent>
@@ -316,7 +396,7 @@ export default function AdminOperationsProduction() {
             )}
 
             {activeScope === 'rewards' && (
-              <RewardRulesEditor snapshot={snapshot} onReload={() => load(activeScope)} recentMfa={recentMfa} />
+              <RewardRulesEditor snapshot={snapshot} onReload={() => load(activeScope)} recentMfa={recentMfa} securitySettingsHref={securitySettingsUrl} />
             )}
 
             {activeScope === 'access' && auth.session?.roles?.includes('admin') && (
@@ -327,7 +407,7 @@ export default function AdminOperationsProduction() {
               <section className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="text-sm font-semibold text-on-surface">Operational records</h3>
-                  <span className="text-xs text-outline">{loading ? 'Refreshing…' : `${records.length} records`}</span>
+                  <div className="admin-record-toolbar"><Input aria-label="Filter records" placeholder="Search current records" value={recordFilter} onChange={(event) => { setRecordFilter(event.target.value); setPage(1) }} /><Button variant="outline" disabled={loading} onClick={() => load(activeScope)}>Refresh</Button><span className="text-xs text-outline">{loading ? 'Refreshing…' : `${visibleRecords.length} of ${records.length} records`}</span></div>
                 </div>
                 {loading ? (
                   <StateView
@@ -340,46 +420,31 @@ export default function AdminOperationsProduction() {
                 ) : (
                   <Card>
                     <CardContent className="space-y-0 pt-1 sm:pt-1">
-                      {records.length ? (
-                        records.map(({ group, row }, index) => (
-                          <details
-                            key={`${group}-${row.id || row.user_id || index}`}
-                            className="group border-b border-white/[.07] last:border-0"
-                          >
-                            <summary className="flex cursor-pointer list-none items-center gap-3 py-4 marker:hidden">
-                              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/[.045] text-on-surface-variant">
-                                <Icon name={scopeDetails[activeScope]?.[0] || 'database'} className="text-[18px]" />
-                              </span>
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate text-sm font-medium text-on-surface">
-                                  {String(primaryLabel(row))}
-                                </span>
-                                <span className="mt-0.5 block truncate text-xs text-outline">
-                                  {group}
-                                  {secondaryLabel(row) ? ` · ${secondaryLabel(row)}` : ''}
-                                </span>
-                              </span>
-                              {row.status && (
-                                <Badge
-                                  variant={
-                                    ['completed', 'resolved', 'active', 'verified'].includes(row.status)
-                                      ? 'success'
-                                      : 'secondary'
-                                  }
-                                >
-                                  {row.status}
-                                </Badge>
-                              )}
-                              <Icon
-                                name="expand_more"
-                                className="text-[18px] text-outline transition-transform group-open:rotate-180"
-                              />
-                            </summary>
-                            <pre className="mb-4 max-h-64 overflow-auto rounded-lg border border-white/[.06] bg-background p-3 text-xs leading-5 text-on-surface-variant">
-                              {JSON.stringify(row, null, 2)}
-                            </pre>
-                          </details>
-                        ))
+                      {visibleRecords.length ? (
+                        <div className="admin-table-wrap"><table className="admin-record-table"><thead><tr><th>Record</th><th>Category</th><th>Status</th><th>Updated</th><th><span className="sr-only">Record actions</span></th></tr></thead><tbody>
+                          {pageRecords.map(({ group, row }, index) => {
+                            const recordId = `${group}-${row.id || row.user_id || row.ticket_id || index}`
+                            const expanded = selectedRecord?.recordId === recordId
+                            const updated = row.updated_at || row.created_at
+                            const state = row.status || row.kyc_status
+                            return <tr key={recordId} className={expanded ? 'is-selected' : ''}>
+                              <td><strong>{String(primaryLabel(row))}</strong><small>{group}</small></td>
+                              <td>{String(row.category || row.data_category || row.priority || row.target_type || '—')}</td>
+                              <td>{state ? <Badge variant={['completed', 'resolved', 'active', 'verified'].includes(String(state).toLowerCase()) ? 'success' : 'secondary'}>{String(state)}</Badge> : '—'}</td>
+                              <td>{updated ? new Date(updated).toLocaleDateString() : '—'}</td>
+                              <td><Button variant="outline" onClick={() => setSelectedRecord(expanded ? null : { recordId, group, row })}>{expanded ? 'Close' : 'Details'}</Button></td>
+                            </tr>
+                          })}
+                        </tbody></table>
+                        {selectedRecord && <section className="admin-selected-record" aria-label="Selected record details"><div><span>Selected record</span><strong>{String(primaryLabel(selectedRecord.row))}</strong></div><div className="admin-selected-fields">{[
+                          ['Reference', selectedRecord.row.id || selectedRecord.row.ticket_id || selectedRecord.row.request_id || selectedRecord.row.deployment_id],
+                          ['Status', selectedRecord.row.status || selectedRecord.row.kyc_status],
+                          ['Category', selectedRecord.row.category || selectedRecord.row.data_category || selectedRecord.row.target_type],
+                          ['Priority', selectedRecord.row.priority],
+                          ['Updated', selectedRecord.row.updated_at || selectedRecord.row.created_at],
+                        ].filter(([, value]) => value !== undefined && value !== null && value !== '').map(([name, value]) => <div key={name}><small>{name}</small><strong title={String(value)}>{String(value)}</strong></div>)}</div></section>}
+                        <div className="admin-pagination"><span>Showing {visibleRecords.length ? (page - 1) * 10 + 1 : 0}–{Math.min(page * 10, visibleRecords.length)} of {visibleRecords.length} records</span><div><Button variant="outline" disabled={page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>Previous</Button><span>Page {page} of {pageCount}</span><Button variant="outline" disabled={page >= pageCount} onClick={() => setPage((current) => Math.min(pageCount, current + 1))}>Next</Button></div></div>
+                        </div>
                       ) : (
                         <div className="py-9 text-center">
                           <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-white/[.04] text-outline">
@@ -394,13 +459,14 @@ export default function AdminOperationsProduction() {
                 )}
               </section>
             )}
-          </div>
-        </div>
+          </div>}
       </div>
 
       {actions.length > 0 && (
         <section>
           <SectionTitle>Operator action</SectionTitle>
+          {!selectedRecord && <p className="mb-3 rounded-lg border border-outline/15 p-3 text-body-sm text-on-surface-variant">Select a record above to use it as the audited action target.</p>}
+          {selectedRecord && !actionTargetReady && <p className="mb-3 rounded-lg border border-outline/15 p-3 text-body-sm text-on-surface-variant">This record does not include the target fields required for this action. Choose a compatible record.</p>}
           <Card className="space-y-4 p-card-padding">
             <label className="block text-label-md text-on-surface-variant">
               Action
@@ -423,6 +489,7 @@ export default function AdminOperationsProduction() {
               <Field
                 label="User ID"
                 value={input.userId || ''}
+                readOnly
                 onChange={(event) => updateInput('userId', event.target.value)}
               />
             )}
@@ -445,8 +512,9 @@ export default function AdminOperationsProduction() {
             {action === 'support.update' && (
               <>
                 <Field
-                  label="Ticket ID"
-                  value={input.ticketId || ''}
+                label="Ticket ID"
+                value={input.ticketId || ''}
+                readOnly
                   onChange={(event) => updateInput('ticketId', event.target.value)}
                 />
                 <label className="block text-label-md text-on-surface-variant">
@@ -488,6 +556,7 @@ export default function AdminOperationsProduction() {
               <Field
                 label="Deployment request ID"
                 value={input.requestId || ''}
+                readOnly
                 onChange={(event) => updateInput('requestId', event.target.value)}
               />
             )}
@@ -495,14 +564,16 @@ export default function AdminOperationsProduction() {
               <Field
                 label="Deployment ID"
                 value={input.deploymentId || ''}
+                readOnly
                 onChange={(event) => updateInput('deploymentId', event.target.value)}
               />
             )}
             {action === 'data.review' && (
               <>
                 <Field
-                  label="Submission ID"
-                  value={input.submissionId || ''}
+                label="Submission ID"
+                value={input.submissionId || ''}
+                readOnly
                   onChange={(event) => updateInput('submissionId', event.target.value)}
                 />
                 {[
@@ -531,8 +602,9 @@ export default function AdminOperationsProduction() {
             {action === 'data.task.review' && (
               <>
                 <Field
-                  label="Training response ID"
-                  value={input.responseId || ''}
+                label="Training response ID"
+                value={input.responseId || ''}
+                readOnly
                   onChange={(event) => updateInput('responseId', event.target.value)}
                 />
                 <label className="block text-label-md text-on-surface-variant">
@@ -563,6 +635,7 @@ export default function AdminOperationsProduction() {
               <Field
                 label="Referral relationship ID"
                 value={input.relationshipId || ''}
+                readOnly
                 onChange={(event) => updateInput('relationshipId', event.target.value)}
               />
             )}
@@ -571,11 +644,13 @@ export default function AdminOperationsProduction() {
                 <Field
                   label="Target type"
                   value={input.targetType || ''}
+                  readOnly
                   onChange={(event) => updateInput('targetType', event.target.value)}
                 />
                 <Field
                   label="Target ID"
                   value={input.targetId || ''}
+                  readOnly
                   onChange={(event) => updateInput('targetId', event.target.value)}
                 />
                 <Field
@@ -584,6 +659,13 @@ export default function AdminOperationsProduction() {
                   onChange={(event) => updateInput('moderationAction', event.target.value)}
                 />
               </>
+            )}
+
+            {!auth.session?.mfaEnabled && ['user.suspend', 'user.restore', 'kyc.set', 'deployment.settle'].includes(action) && (
+              <div className="space-y-2 rounded-xl border border-tertiary/25 p-3">
+                <p className="text-body-sm text-on-surface-variant">Enable an authenticator before running this sensitive action.</p>
+                <Button asChild variant="outline"><a href={securitySettingsUrl}>Set up MFA</a></Button>
+              </div>
             )}
 
             <Field
@@ -612,7 +694,7 @@ export default function AdminOperationsProduction() {
             <Button
               full
               loading={busy === 'action'}
-              disabled={!action || reason.trim().length < 3}
+              disabled={!action || !actionTargetReady || reason.trim().length < 3}
               onClick={submitAction}
             >
               Execute audited action
@@ -630,6 +712,6 @@ export default function AdminOperationsProduction() {
           {message}
         </p>
       )}
-    </AppShell>
+    </AdminShell>
   )
 }

@@ -39,6 +39,17 @@ export function Button({
 }) {
   const Comp = asChild ? Slot : to ? Link : 'button'
   const resolvedVariant = variant === 'primary' ? 'default' : variant === 'danger' ? 'destructive' : variant
+  if (asChild) {
+    return (
+      <Slot
+        className={cn(buttonVariants({ variant: resolvedVariant, size }), full && 'w-full', className)}
+        aria-busy={loading || undefined}
+        {...props}
+      >
+        {children}
+      </Slot>
+    )
+  }
   return (
     <Comp
       className={cn(buttonVariants({ variant: resolvedVariant, size }), full && 'w-full', className)}

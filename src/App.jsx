@@ -46,12 +46,10 @@ import SettingsProduction from './screens/SettingsProduction.jsx'
 import SecuritySettings from './screens/SecuritySettings.jsx'
 import SupportProduction from './screens/SupportProduction.jsx'
 import AccountDeletionRecoveryProduction from './screens/AccountDeletionRecoveryProduction.jsx'
-import AdminOperationsProduction from './screens/AdminOperationsProduction.jsx'
 
 const authenticated = (element) => <ProtectedRoute policy="authenticated">{element}</ProtectedRoute>
 const verified = (element) => <ProtectedRoute requireVerified>{element}</ProtectedRoute>
 const kyc = (element) => <ProtectedRoute policy="kyc">{element}</ProtectedRoute>
-const operations = (element) => <ProtectedRoute policy="operations">{element}</ProtectedRoute>
 const accountRecovery = (element) => <ProtectedRoute policy="account-recovery">{element}</ProtectedRoute>
 
 const DeploymentDetailsScreen = DeploymentDetailsProduction
@@ -124,7 +122,6 @@ export default function App() {
             <Route path="/settings" element={authenticated(<SettingsScreen />)} />
             <Route path="/settings/security" element={authenticated(<SecuritySettings />)} />
             <Route path="/support" element={authenticated(<SupportScreen />)} />
-            <Route path="/admin/operations" element={operations(<AdminOperationsProduction />)} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </NotifyProvider>

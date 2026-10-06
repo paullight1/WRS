@@ -1,6 +1,10 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const rootDir = path.dirname(fileURLToPath(import.meta.url))
 export default {
   plugins: {
-    tailwindcss: {},
+    tailwindcss: { config: path.join(rootDir, 'tailwind.config.js') },
     autoprefixer: {},
   },
 }

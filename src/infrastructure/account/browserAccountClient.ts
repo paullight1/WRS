@@ -1,3 +1,4 @@
+import { apiUrl } from '../http/apiUrl'
 import {
   AccountService,
   type AccountRepository,
@@ -10,7 +11,7 @@ import type { AccountSettings } from '../../domain/account/settings'
 type Json = Record<string, unknown>
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     ...init,
     credentials: 'include',
     headers: { 'content-type': 'application/json', ...(init.headers || {}) },

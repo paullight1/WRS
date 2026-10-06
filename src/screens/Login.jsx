@@ -46,7 +46,10 @@ export default function Login() {
         })
         return
       }
-      nav(location.state?.from || '/home', { replace: true })
+      nav(location.state?.from || '/home', {
+        replace: true,
+        state: result.dailyReward?.status === 'awarded' ? { dailyXpAward: result.dailyReward.xp } : null,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.')
     } finally {

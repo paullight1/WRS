@@ -26,7 +26,7 @@ const required = [
   'src/screens/ProfileProduction.jsx',
   'src/screens/SettingsProduction.jsx',
   'src/screens/SupportProduction.jsx',
-  'src/screens/AdminOperationsProduction.jsx',
+  'admin/src/screens/Operations.jsx',
   'src/screens/AccountDeletionRecoveryProduction.jsx',
   'supabase/migrations/20260822090000_plan9_account_operations.sql',
   'tests/database/plan9-invariants.sql',
@@ -119,9 +119,11 @@ test('least-privilege operations routes require operator roles, server permissio
   assert.match(policy, /support_operator/)
   assert.match(policy, /finance_operator/)
   const app = read('src/App.jsx')
-  assert.match(app, /policy="operations"|operations\(/)
-  assert.match(app, /\/admin\/operations/)
-  assert.match(read('src/screens/More.jsx'), /\/admin\/operations/)
+  assert.doesNotMatch(app, /\/admin\/operations/)
+  const adminApp = read('admin/src/App.jsx')
+  assert.match(adminApp, /<Operations \/>/)
+  assert.match(read('admin/src/auth/AdminRoute.jsx'), /authorizeSession/)
+  assert.doesNotMatch(read('src/screens/More.jsx'), /\/admin\/operations/)
 })
 
 test('production profile, settings and support screens are isolated from mock data and use the account client', () => {
@@ -129,7 +131,7 @@ test('production profile, settings and support screens are isolated from mock da
     'src/screens/ProfileProduction.jsx',
     'src/screens/SettingsProduction.jsx',
     'src/screens/SupportProduction.jsx',
-    'src/screens/AdminOperationsProduction.jsx',
+    'admin/src/screens/Operations.jsx',
   ]) {
     const source = read(path)
     assert.match(source, /browserAccountClient/, path)

@@ -12,6 +12,6 @@ export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
   assertSameOrigin(request)
   const body = await readJson(request)
-  const result = await beginOAuth(request, body.provider)
+  const result = await beginOAuth(request, body.provider, body.returnTo)
   return appendCookies(json({ authorizationUrl: result.authorizationUrl }), [result.cookie])
 })

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
 import { useRobot } from '../components/robot/RobotProvider.jsx'
@@ -17,9 +17,9 @@ import { runtimeConfig } from '../lib/runtimeConfig.js'
 import { packageDefinition } from '../domain/robot/packages.ts'
 
 const CATALOGUE = [
-  { id: 'training', to: '/training', icon: 'model_training', label: 'Train', c: ACCENTS.indigo },
+  { id: 'events', to: '/community', icon: 'event', label: 'Events', c: ACCENTS.indigo },
   { id: 'data', to: '/data', icon: 'dataset', label: 'Add data', c: ACCENTS.teal },
-  { id: 'deploy', to: '/deploy', icon: 'rocket_launch', label: 'Deploy', c: ACCENTS.violet },
+  { id: 'referrals', to: '/referrals', icon: 'group_add', label: 'Referrals', c: ACCENTS.violet },
   { id: 'market', to: '/marketplace', icon: 'storefront', label: 'Market', c: ACCENTS.blue },
   { id: 'wallet', to: '/wallet', icon: 'account_balance_wallet', label: 'Wallet', c: ACCENTS.green },
   { id: 'rewards', to: '/rewards', icon: 'workspace_premium', label: 'Rewards', c: ACCENTS.amber },
@@ -31,7 +31,7 @@ const CATALOGUE = [
   { id: 'support', to: '/support', icon: 'help_outline', label: 'Support', c: ACCENTS.slate },
 ]
 
-const DEFAULT_IDS = ['training', 'data', 'deploy', 'market', 'wallet', 'rewards', 'passport', 'customize']
+const DEFAULT_IDS = ['events', 'data', 'referrals', 'market', 'wallet', 'rewards', 'passport', 'customize']
 const MAX_SHORTCUTS = 12
 const STORE_KEY = 'wrs.shortcuts'
 
@@ -160,7 +160,8 @@ const loadShortcuts = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY))
     if (Array.isArray(saved) && saved.length) {
-      return saved.filter((id) => CATALOGUE.some((item) => item.id === id))
+      const migrated = saved.map((id) => (id === 'training' ? 'events' : id === 'deploy' ? 'referrals' : id))
+      return [...new Set(migrated)].filter((id) => CATALOGUE.some((item) => item.id === id))
     }
   } catch {
     // Use deterministic defaults when local preferences are unavailable.
@@ -169,6 +170,7 @@ const loadShortcuts = () => {
 }
 
 export default function Home() {
+  const location = useLocation()
   const auth = useAuth()
   const robotState = useRobot()
   const [welcome, setWelcome] = useState(false)
@@ -333,6 +335,14 @@ export default function Home() {
 
   return (
     <AppShell title={greeting(summary.name)} brand lightTopBackdrop>
+      {location.state?.dailyXpAward > 0 && (
+        <p
+          role="status"
+          className="rounded-xl border border-tertiary/25 bg-tertiary/10 px-4 py-3 text-body-sm font-semibold text-on-surface"
+        >
+          Daily login reward: +{location.state.dailyXpAward} XP
+        </p>
+      )}
       <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
 
       {dailyActivityMessage && (
@@ -367,25 +377,44 @@ export default function Home() {
                   </div>
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-[#b7e5d0] bg-[#e6f6ee] px-2.5 py-1 text-label-sm font-medium capitalize text-[#176b4c]">
                     <span className="h-1.5 w-1.5 rounded-full bg-[#1d9a68]" />
-                    {robotState.robot.lifecycle}
+                    {miningSnapshot?.session?.status === 'active' ? 'Mining' : robotState.robot.lifecycle}
                   </span>
                 </div>
-                <Button to="/deploy" size="sm" className="mt-4" icon="bolt">
-                  Start mining
-                </Button>
+                {!miningSnapshot?.session &&
+                miningSnapshot?.issuanceEnabled &&
+                miningSnapshot?.eligibility?.eligible ? (
+                  <Button to="/deploy" className="mt-4 font-bold" icon="bolt">
+                    Start mining
+                  </Button>
+                ) : !miningSnapshot?.session ? (
+                  <p className="mt-3 text-label-sm text-on-surface-variant">
+                    {summary.loading ? 'Checking mining…' : 'Mining unavailable'}
+                  </p>
+                ) : null}
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[#303747] bg-[#171b25] px-4 py-3.5">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[.07] text-[#f1c75b]">
-                <Icon name="paid" className="text-[22px]" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-label-sm text-[#b5bdcf]">24-hour mining rate</p>
-                <p className="tnum mt-0.5 break-words font-data text-title font-bold text-white" aria-live="polite">
-                  {summary.loading ? 'Loading rate…' : formatDailyMiningRate(miningSnapshot) || 'Rate unavailable'}
-                </p>
+            {miningSnapshot?.session && miningSnapshot.session.status !== 'settled' ? (
+              <MiningCyclePanel
+                compact
+                session={miningSnapshot.session}
+                robotName={robotState.robot.name}
+                serverNow={miningSnapshot.serverNow}
+                onRefresh={refreshMining}
+                refreshing={miningRefreshing}
+              />
+            ) : (
+              <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[#303747] bg-[#171b25] px-4 py-3.5">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[.07] text-[#f1c75b]">
+                  <Icon name="paid" className="text-[22px]" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-label-sm text-[#b5bdcf]">24-hour mining rate</p>
+                  <p className="tnum mt-0.5 break-words font-data text-title font-bold text-white" aria-live="polite">
+                    {summary.loading ? 'Loading rate…' : formatDailyMiningRate(miningSnapshot) || 'Rate unavailable'}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </Card>
         </section>
       )}
@@ -404,16 +433,7 @@ export default function Home() {
               robotName={robotName(session)}
               worksiteName={worksiteName(session)}
             />
-          ) : session ? (
-            <MiningCyclePanel
-              session={session}
-              robotName={robotName(session)}
-              worksiteName={worksiteName(session)}
-              serverNow={miningSnapshot.serverNow}
-              onRefresh={refreshMining}
-              refreshing={miningRefreshing}
-            />
-          ) : latestSettled ? (
+          ) : session ? null : latestSettled ? (
             <SettledMiningReport
               session={latestSettled}
               robotName={robotName(latestSettled)}

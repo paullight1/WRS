@@ -116,7 +116,9 @@ export function CoinMark({ size = 24, className = '' }) {
       className={`grid shrink-0 place-items-center rounded-full border border-[#f7c948]/45 bg-[#f7c948]/15 text-[#f7c948] ${className}`}
       style={{ width: size, height: size }}
     >
-      <Icon name="paid" fill size={Math.round(size * 0.64)} />
+      <span aria-hidden="true" className="font-bold leading-none" style={{ fontSize: Math.round(size * 0.54) }}>
+        W
+      </span>
     </span>
   )
 }

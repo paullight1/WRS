@@ -4,6 +4,7 @@ import { HttpError, parseCookies, serializeCookie } from './http.js'
 import { loadProfile, recordSecurityEvent } from './auth.js'
 import { buildAppSession, recordSessionMetadata, sessionCookies } from './session.js'
 import { authPublic, serviceRest, supabaseBaseUrl } from './supabase.js'
+import { configuredWebOrigins } from '../api/_lib/origins.js'
 
 const OAUTH_COOKIE = 'wrs_oauth'
 const OAUTH_TTL_MS = 10 * 60_000
@@ -27,6 +28,39 @@ export function clearOAuthCookie() {
   })
 }
 
+export function resolveOAuthReturnTo(request, returnTo) {
+  const requestOrigin = new URL(request.url).origin
+  if (returnTo === undefined || returnTo === null || returnTo === '') return `${requestOrigin}/home`
+
+  let target
+  try {
+    target = new URL(String(returnTo))
+  } catch {
+    throw new HttpError(400, 'OAuth return target must be an absolute URL.', 'oauth-return-invalid')
+  }
+  if (
+    !['http:', 'https:'].includes(target.protocol) ||
+    target.username ||
+    target.password ||
+    target.hash ||
+    (target.origin !== requestOrigin && !configuredWebOrigins().has(target.origin))
+  ) {
+    throw new HttpError(400, 'OAuth return origin is not allowed.', 'oauth-return-origin')
+  }
+  return target.toString()
+}
+
+export function oauthErrorTarget(request) {
+  const origin = new URL(request.url).origin
+  try {
+    const payload = verifySignedToken(parseCookies(request)[OAUTH_COOKIE], secret())
+    if (payload?.returnTo) return resolveOAuthReturnTo(request, payload.returnTo)
+  } catch {
+    // Invalid or expired state falls back to the established root login route.
+  }
+  return `${origin}/login`
+}
+
 function allowedProviders() {
   return new Set(
     String(process.env.WRS_OAUTH_PROVIDERS || '')
@@ -36,13 +70,15 @@ function allowedProviders() {
   )
 }
 
-export async function beginOAuth(request, provider) {
+export async function beginOAuth(request, provider, returnTo) {
   const normalized = String(provider || '')
     .trim()
     .toLowerCase()
   if (!['google', 'apple'].includes(normalized) || !allowedProviders().has(normalized)) {
     throw new HttpError(404, 'This OAuth provider is not enabled.', 'oauth-disabled')
   }
+
+  const redirectTo = resolveOAuthReturnTo(request, returnTo)
 
   const state = randomToken(32)
   const nonce = randomToken(32)
@@ -68,7 +104,7 @@ export async function beginOAuth(request, provider) {
 
   const cookie = serializeCookie(
     OAUTH_COOKIE,
-    signedToken({ v: 1, rowId, provider: normalized, state, nonce, verifier, exp: expiresAt.getTime() }, secret()),
+    signedToken({ v: 1, rowId, provider: normalized, state, nonce, verifier, returnTo: redirectTo, exp: expiresAt.getTime() }, secret()),
     { secure: secureCookie(), sameSite: 'Lax', maxAge: Math.floor(OAUTH_TTL_MS / 1000) },
   )
   const url = new URL(`${supabaseBaseUrl()}/auth/v1/authorize`)
@@ -78,7 +114,7 @@ export async function beginOAuth(request, provider) {
   url.searchParams.set('code_challenge_method', 's256')
   url.searchParams.set('state', state)
   url.searchParams.set('nonce', nonce)
-  return { authorizationUrl: url.toString(), cookie }
+  return { authorizationUrl: url.toString(), cookie, redirectTo }
 }
 
 async function consumeState(rowId) {
@@ -148,5 +184,9 @@ export async function completeOAuth(request) {
   const session = await buildAppSession(tokenResponse.user, tokenResponse.access_token)
   if (!session) throw new HttpError(401, 'Unable to establish a revocable WRS session.', 'invalid-session')
   await recordSecurityEvent(session.userId, 'oauth.login.succeeded', { provider: payload.provider })
-  return { session, cookies: [...sessionCookies(tokenResponse, true), clearOAuthCookie()] }
+  return {
+    session,
+    cookies: [...sessionCookies(tokenResponse, true), clearOAuthCookie()],
+    redirectTo: resolveOAuthReturnTo(request, payload.returnTo),
+  }
 }

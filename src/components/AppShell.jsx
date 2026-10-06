@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider.jsx'
-import { Icon } from './ui.jsx'
+import { CoinMark, Icon } from './ui.jsx'
 import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
 import { runtimeConfig } from '../lib/runtimeConfig.js'
 
@@ -132,7 +132,11 @@ export function BottomNav() {
                       isActive ? 'bg-primary-container/30' : ''
                     }`}
                   >
-                    <Icon name={item.icon} fill={isActive} className="text-[22px]" />
+                    {item.to === '/deploy' ? (
+                      <CoinMark size={24} />
+                    ) : (
+                      <Icon name={item.icon} fill={isActive} className="text-[22px]" />
+                    )}
                   </span>
                   <span className={`text-[11px] leading-tight ${isActive ? 'font-semibold' : ''}`}>{item.label}</span>
                 </>

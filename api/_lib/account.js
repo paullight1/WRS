@@ -292,6 +292,135 @@ async function recentRows(path) {
   return Array.isArray(data) ? data : []
 }
 
+async function exactCount(path) {
+  const { response } = await serviceRest(path, {
+    headers: { Prefer: 'count=exact', Range: '0-0' },
+  })
+  const contentRange = response.headers.get('content-range') || ''
+  const total = Number(contentRange.slice(contentRange.lastIndexOf('/') + 1))
+  if (!contentRange.includes('/') || !Number.isSafeInteger(total) || total < 0) {
+    throw new HttpError(502, 'An operations metric count is unavailable.', 'operations-count-unavailable')
+  }
+  return total
+}
+
+async function operatorHasPermission(userId, permission) {
+  const { data } = await serviceRpc('wrs_operator_has_permission', {
+    p_user_id: userId,
+    p_permission: permission,
+  })
+  return data === true
+}
+
+const overviewMetricQueries = [
+  {
+    key: 'kyc_pending',
+    permission: 'operations.kyc',
+    scope: 'users',
+    query: () => exactCount('/rest/v1/user_profiles?kyc_status=eq.pending&select=user_id'),
+  },
+  {
+    key: 'support_open',
+    permission: 'operations.support',
+    scope: 'support',
+    severity: 'attention',
+    query: () => exactCount('/rest/v1/support_tickets?status=in.(open,in_progress,waiting_user)&select=id'),
+  },
+  {
+    key: 'withdrawals_in_progress',
+    permission: 'operations.finance',
+    scope: 'finance',
+    query: () => exactCount('/rest/v1/withdrawals?status=in.(reserved,provider_pending)&select=id'),
+  },
+  {
+    key: 'deployment_requests',
+    permission: 'operations.deployment',
+    scope: 'deployments',
+    query: () => exactCount('/rest/v1/deployment_requests?status=eq.requested&select=id'),
+  },
+  {
+    key: 'data_submissions_review',
+    permission: 'operations.data',
+    scope: 'data',
+    query: async () => {
+      const [submissions, taskResponses] = await Promise.all([
+        exactCount('/rest/v1/data_submissions?status=in.(submitted,processing,review)&select=id'),
+        exactCount('/rest/v1/data_task_responses?status=in.(submitted,review)&select=id'),
+      ])
+      return submissions + taskResponses
+    },
+  },
+  {
+    key: 'data_deletions_due',
+    permission: 'operations.data',
+    scope: 'data',
+    severity: 'attention',
+    query: () => {
+      const now = encodeURIComponent(new Date().toISOString())
+      return exactCount(`/rest/v1/data_deletion_requests?status=in.(requested,failed)&eligible_at=lte.${now}&select=id`)
+    },
+  },
+  {
+    key: 'referrals_pending',
+    permission: 'operations.risk',
+    scope: 'risk',
+    query: () => exactCount('/rest/v1/referral_relationships?status=eq.pending&select=id'),
+  },
+]
+
+export async function operationsOverviewSummary(operatorUserId) {
+  const permitted = await Promise.all(
+    overviewMetricQueries.map(async (metric) => ({
+      metric,
+      allowed: await operatorHasPermission(operatorUserId, metric.permission),
+    })),
+  )
+
+  const metrics = await Promise.all(
+    permitted
+      .filter(({ allowed }) => allowed)
+      .map(async ({ metric }) => {
+        try {
+          return {
+            key: metric.key,
+            value: await metric.query(),
+            status: 'ready',
+            scope: metric.scope,
+            ...(metric.severity ? { severity: metric.severity } : {}),
+          }
+        } catch {
+          return {
+            key: metric.key,
+            value: null,
+            status: 'unavailable',
+            scope: metric.scope,
+            ...(metric.severity ? { severity: metric.severity } : {}),
+          }
+        }
+      }),
+  )
+
+  let issuance = null
+  if (await operatorHasPermission(operatorUserId, 'operations.rewards')) {
+    try {
+      const { data } = await serviceRpc('wrs_mining_operations_snapshot', { p_operator_user_id: operatorUserId })
+      issuance = { ...data.issuance, status: 'ready' }
+      const activeRule = (data.rules || []).find((rule) => rule.status === 'active')
+      metrics.push({
+        key: 'reward_policy',
+        value: activeRule ? (issuance.enabled ? 'active_enabled' : 'active_disabled') : 'disabled',
+        status: 'ready',
+        scope: 'rewards',
+      })
+    } catch {
+      issuance = { status: 'unavailable' }
+      metrics.push({ key: 'reward_policy', value: null, status: 'unavailable', scope: 'rewards' })
+    }
+  }
+
+  return { generatedAt: new Date().toISOString(), metrics, issuance }
+}
+
 export async function operationsSnapshot(scope = 'overview') {
   const safeScope = String(scope || 'overview')
   if (safeScope === 'users') {
@@ -316,10 +445,16 @@ export async function operationsSnapshot(scope = 'overview') {
       payments: await recentRows(
         '/rest/v1/payment_intents?select=id,user_id,package_slug,amount_minor,currency,status,created_at,updated_at&order=created_at.desc&limit=100',
       ),
+      settlements: await recentRows(
+        '/rest/v1/deployments?status=eq.completed&select=id,status,completed_at,updated_at&order=completed_at.desc&limit=100',
+      ),
     }
   }
   if (safeScope === 'deployments') {
     return {
+      deploymentRequests: await recentRows(
+        '/rest/v1/deployment_requests?status=eq.requested&select=id,status,requested_at,matched_at&order=requested_at.desc&limit=100',
+      ),
       deployments: await recentRows(
         '/rest/v1/deployments?select=id,user_id,robot_id,opportunity_id,status,version,created_at,updated_at&order=updated_at.desc&limit=100',
       ),
@@ -344,21 +479,11 @@ export async function operationsSnapshot(scope = 'overview') {
         '/rest/v1/referral_relationships?select=id,referrer_user_id,referred_user_id,status,eligible_at,qualified_at,created_at&order=created_at.desc&limit=100',
       ),
       moderation: await recentRows(
-        '/rest/v1/community_moderation_actions?select=id,target_type,target_id,action,reason,operator_reference,occurred_at&order=occurred_at.desc&limit=100',
+        '/rest/v1/community_moderation_actions?select=id,target_type,target_id,action,reason,operator_reference,created_at&order=created_at.desc&limit=100',
       ),
     }
   }
-  return {
-    accountDeletions: await recentRows(
-      '/rest/v1/account_deletion_requests?select=id,user_id,status,eligible_at,attempt_count,requested_at&order=requested_at.desc&limit=50',
-    ),
-    support: await recentRows(
-      '/rest/v1/support_tickets?select=id,user_id,category,status,priority,updated_at&order=updated_at.desc&limit=50',
-    ),
-    audit: await recentRows(
-      '/rest/v1/operations_audit_events?select=id,operator_user_id,permission_slug,action,target_type,target_id,reason,occurred_at&order=occurred_at.desc&limit=50',
-    ),
-  }
+  return {}
 }
 
 export async function recordOperationsAction(
