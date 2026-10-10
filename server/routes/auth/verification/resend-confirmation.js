@@ -11,10 +11,20 @@ export default functionHandler(async (request) => {
     .toLowerCase()
   if (!email) throw new HttpError(400, 'Email address is required.', 'invalid-email')
   await enforceRateLimit(request, 'verification-resend', email, 3, 15 * 60)
-  await authPublic('/auth/v1/resend', {
-    method: 'POST',
-    body: { type: 'signup', email, redirect_to: new URL('/auth/callback', request.url).toString() },
-    errorMessage: 'Unable to resend the confirmation email.',
-  }).catch(() => undefined)
+  try {
+    await authPublic('/auth/v1/resend', {
+      method: 'POST',
+      body: { type: 'signup', email, redirect_to: new URL('/auth/callback', request.url).toString() },
+      errorMessage: 'Unable to resend the confirmation email.',
+    })
+  } catch {
+    // Keep the response independent of whether an account exists, while making
+    // actual delivery/provider failures visible instead of claiming success.
+    throw new HttpError(
+      503,
+      'We could not send a confirmation email right now. Please try again later.',
+      'confirmation-email-unavailable',
+    )
+  }
   return json({ message: 'A new confirmation email has been sent.' })
 })
