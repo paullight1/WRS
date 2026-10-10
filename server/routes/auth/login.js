@@ -10,6 +10,7 @@ import {
 } from '../../http.js'
 import { buildAppSession, recordSessionMetadata, sessionCookies } from '../../session.js'
 import { authPublic } from '../../supabase.js'
+import { syncConfirmedEmailProfile } from './confirmedEmailProfile.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
@@ -43,6 +44,7 @@ export default functionHandler(async (request) => {
   if (!user?.id || !(await loadProfile(user.id))) {
     throw new HttpError(403, 'This account is not provisioned for WRS.', 'profile-required')
   }
+  await syncConfirmedEmailProfile(user)
   await recordSessionMetadata(user.id, tokenResponse.access_token, rememberMe)
   const session = await buildAppSession(user, tokenResponse.access_token)
   if (!session) throw new HttpError(401, 'Unable to establish a revocable WRS session.', 'invalid-session')

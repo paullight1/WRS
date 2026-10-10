@@ -10,6 +10,7 @@ import {
   requireMethod,
 } from '../../../api/_lib/http.js'
 import { buildAppSession, recordSessionMetadata, sessionCookies } from '../../../api/_lib/session.js'
+import { syncConfirmedEmailProfile } from './confirmedEmailProfile.js'
 
 export default functionHandler(async (request) => {
   requireMethod(request, 'POST')
@@ -49,11 +50,7 @@ export default functionHandler(async (request) => {
       },
     })
   }
-  await serviceRest(`/rest/v1/user_profiles?user_id=eq.${encodeURIComponent(user.id)}`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
-    body: { email_verified_at: now, status: 'active', updated_at: now },
-  })
+  await syncConfirmedEmailProfile(user)
   await recordSessionMetadata(user.id, accessToken, true)
   const session = await buildAppSession(user, accessToken)
   if (!session) throw new HttpError(401, 'Unable to establish your WRS session.', 'invalid-session')
