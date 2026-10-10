@@ -89,8 +89,13 @@ export default function Register() {
     privacyAccepted: true,
   })
   const [error, setError] = useState('')
+  const [registrationConflict, setRegistrationConflict] = useState(false)
   const [loading, setLoading] = useState(false)
-  const set = (key) => (event) => setForm((value) => ({ ...value, [key]: event.target.value }))
+  const set = (key) => (event) => {
+    setForm((value) => ({ ...value, [key]: event.target.value }))
+    setError('')
+    setRegistrationConflict(false)
+  }
 
   const continueStep = () => {
     const current = questionSteps[step - 1]
@@ -118,11 +123,16 @@ export default function Register() {
     if (!checked.valid) return setError(checked.issues[0]?.message || 'Check your details.')
     setLoading(true)
     setError('')
+    setRegistrationConflict(false)
     try {
       const result = await auth.register(input)
       nav('/verify', { state: { email: result.email } })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed.')
+      if (err?.code === 'registration-conflict') {
+        setRegistrationConflict(true)
+      } else {
+        setError(err instanceof Error ? err.message : 'Registration failed.')
+      }
     } finally {
       setLoading(false)
     }
@@ -230,21 +240,49 @@ export default function Register() {
                 <span>I accept the Terms of Service version {TERMS_VERSION}.</span>
               </label>
             </div>
-            {error && (
+            {registrationConflict ? (
+              <div
+                role="alert"
+                className="mt-5 rounded-2xl border border-[#d9c9ee] bg-[#f8f5fd] p-4 text-left"
+              >
+                <h3 className="text-[16px] font-bold text-[#34224c]">This email already has an account</h3>
+                <p className="mt-1 text-[14px] font-medium leading-5 text-[#665c74]">
+                  Sign in with this email or reset your password to get back into your account.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <Link
+                    to="/login"
+                    state={{ email: form.email }}
+                    className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#6336aa] px-4 text-[15px] font-bold text-white transition-colors hover:bg-[#51298f]"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/forgot-password"
+                    state={{ email: form.email }}
+                    className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#d9c9ee] bg-white px-4 text-[15px] font-bold text-[#56338d] transition-colors hover:bg-[#f3eef9]"
+                  >
+                    Reset password
+                  </Link>
+                </div>
+              </div>
+            ) : error ? (
               <p role="alert" className="mt-4 text-label-md font-semibold text-[#b12c4a]">
                 {error}
               </p>
+            ) : null}
+            {!registrationConflict && (
+              <Button
+                full
+                size="lg"
+                loading={loading}
+                onClick={submit}
+                className="mt-6 min-h-[58px] rounded-2xl text-[17px] font-bold"
+                style={{ backgroundColor: '#6336aa' }}
+              >
+                Create Account
+              </Button>
             )}
-            <Button
-              full
-              size="lg"
-              loading={loading}
-              onClick={submit}
-              className="mt-6 min-h-[58px] rounded-2xl text-[17px] font-bold"
-              style={{ backgroundColor: '#6336aa' }}
-            >
-              Create Account
-            </Button>
           </div>
         )}
         <p className="mt-6 text-center text-[15px] font-semibold text-[#5e536e]">

@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
 import AuthLayout from '../components/auth/AuthLayout.jsx'
 import { Button, Field } from '../components/ui.jsx'
 
 export default function ForgotPassword() {
   const auth = useAuth()
-  const [identifier, setIdentifier] = useState('')
+  const location = useLocation()
+  const [identifier, setIdentifier] = useState(location.state?.email || '')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 

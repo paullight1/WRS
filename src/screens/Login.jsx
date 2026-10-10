@@ -21,7 +21,7 @@ export default function Login() {
   const nav = useNavigate()
   const location = useLocation()
   const auth = useAuth()
-  const [identifier, setIdentifier] = useState('')
+  const [identifier, setIdentifier] = useState(location.state?.email || '')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(true)

@@ -3,6 +3,18 @@ import type { AuthSession, OAuthProvider, RegistrationInput, VerificationKind } 
 type Json = Record<string, unknown>
 type VerificationChallengeSummary = { id: string; kind: VerificationKind }
 
+class AuthRequestError extends Error {
+  code: string
+  status: number
+
+  constructor(message: string, code: string, status: number) {
+    super(message)
+    this.name = 'AuthRequestError'
+    this.code = code
+    this.status = status
+  }
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -10,7 +22,13 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers: { 'content-type': 'application/json', ...(init.headers || {}) },
   })
   const body = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(typeof body?.message === 'string' ? body.message : 'Authentication request failed.')
+  if (!response.ok) {
+    throw new AuthRequestError(
+      typeof body?.message === 'string' ? body.message : 'Authentication request failed.',
+      typeof body?.code === 'string' ? body.code : 'request-failed',
+      response.status,
+    )
+  }
   return body as T
 }
 
