@@ -409,6 +409,13 @@ export async function createPendingAccount(registration, emailRedirectTo) {
       )
       throw new HttpError(502, `Supabase rejected the account profile: ${detail}`, 'profile-setup-failed')
     }
+    if (error instanceof HttpError && (error.status === 409 || error.upstreamStatus === 409)) {
+      throw new HttpError(
+        409,
+        'We could not finish creating the account. If you already have an account, sign in or reset your password. Otherwise, try again in a few minutes.',
+        'registration-conflict',
+      )
+    }
     if (error instanceof HttpError && error.status >= 500) throw error
     if (error instanceof HttpError && error.status === 400) throw error
     throw new HttpError(503, 'Unable to create the account right now.', 'registration-unavailable')
