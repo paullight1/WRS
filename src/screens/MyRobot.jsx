@@ -31,6 +31,25 @@ export default function MyRobot() {
   const configuration = robotState.configuration
   const definition = packageDefinition(robot.packageSlug)
   const capabilities = definition.capabilities
+  const capabilityLabels = {
+    'robot.core': 'Robot controls',
+    'training.basic': 'Learn new skills',
+    'data.basic': 'Help with data tasks',
+    'marketplace.basic': 'Explore the marketplace',
+    'deployment.standard': 'Work in a chosen field',
+    'deployment.regulated': 'Support regulated work',
+    'voice.custom': 'Use a custom voice',
+    'tuning.advanced': 'Advanced settings',
+    'analytics.advanced': 'Advanced progress reports',
+    'robot.elite-modules': 'Elite skills',
+    'robot.visionary-modules': 'Visionary skills',
+  }
+  const voiceName = (id) => {
+    if (id === 'standard-en') return 'English'
+    if (id === 'standard-yo') return 'Yoruba'
+    if (String(id).toLowerCase().includes('custom')) return 'Custom voice'
+    return 'Standard voice'
+  }
 
   return (
     <AppShell
@@ -57,14 +76,13 @@ export default function MyRobot() {
             <div className="mt-3 flex flex-wrap justify-center gap-2">
               <Badge t="tertiary">{robot.lifecycle}</Badge>
               <Badge t="primary">{definition.name}</Badge>
-              <Badge t="outline">ID {robot.id}</Badge>
             </div>
           </div>
         </Card>
       </section>
 
       <div className="surface flex gap-1 rounded-2xl p-1">
-        {['Overview', 'Configuration', 'Capabilities', 'Services'].map((item) => (
+        {['Overview', 'Settings', 'Skills', 'More'].map((item) => (
           <button
             type="button"
             key={item}
@@ -79,21 +97,17 @@ export default function MyRobot() {
       {tab === 'Overview' && (
         <>
           <section>
-            <SectionTitle>Authoritative identity</SectionTitle>
-            <Card className="divide-y divide-white/8">
-              {[
-                ['Owner user ID', robot.ownerUserId],
-                ['Lifecycle', robot.lifecycle],
-                ['Active package', definition.name],
-                ['Requested package', robot.requestedPackageSlug],
-                ['Activation', new Date(robot.activationDate).toLocaleDateString()],
-                ['Public verification ID', robot.publicVerificationId],
-              ].map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between gap-4 px-5 py-3.5">
-                  <span className="text-body-md text-on-surface-variant">{key}</span>
-                  <span className="max-w-[58%] break-all text-right text-label-md text-on-surface">{value}</span>
-                </div>
-              ))}
+            <SectionTitle>What your robot can do</SectionTitle>
+            <Card className="p-4 sm:p-5">
+              <p className="text-body-md leading-relaxed text-on-surface-variant">
+                Your {definition.robotClass.toLowerCase()} can learn through training and help with data tasks. You can
+                change how it looks and sounds at any time.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Badge t="tertiary">Training</Badge>
+                <Badge t="primary">Data tasks</Badge>
+                <Badge t="outline">{definition.name} plan</Badge>
+              </div>
             </Card>
           </section>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -107,21 +121,18 @@ export default function MyRobot() {
         </>
       )}
 
-      {tab === 'Configuration' && (
+      {tab === 'Settings' && (
         <section>
-          <SectionTitle action={configuration ? `v${configuration.version}` : 'Unavailable'}>
-            Confirmed configuration
-          </SectionTitle>
+          <SectionTitle action={configuration ? 'Ready' : 'Unavailable'}>Robot settings</SectionTitle>
           {configuration ? (
             <Card className="divide-y divide-white/8">
               {[
-                ['Palette', configuration.palette],
+                ['Look', configuration.palette],
                 ['Personality', configuration.personality],
-                ['Voice profile', configuration.voiceProfileId],
-                ['Processing speed', `${configuration.tuning.speed}%`],
-                ['Battery optimization', `${configuration.tuning.battery}%`],
-                ['Sensor sensitivity', `${configuration.tuning.sensor}%`],
-                ['Last confirmed', new Date(configuration.updatedAt).toLocaleString()],
+                ['Voice', voiceName(configuration.voiceProfileId)],
+                ['Work speed', `${configuration.tuning.speed}%`],
+                ['Battery life', `${configuration.tuning.battery}%`],
+                ['Senses', `${configuration.tuning.sensor}%`],
               ].map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between gap-4 px-5 py-3.5">
                   <span className="text-body-md text-on-surface-variant">{key}</span>
@@ -132,40 +143,61 @@ export default function MyRobot() {
           ) : (
             <StateView
               kind="empty"
-              title="No configuration record"
-              desc="The robot service has not returned a confirmed configuration."
+              title="Robot settings are not ready yet"
+              desc="You can still see your robot and the skills it can use. Check back for settings later."
             />
+          )}
+          {configuration && (
+            <details className="surface mt-3 rounded-2xl p-4">
+              <summary className="cursor-pointer text-label-md font-semibold text-on-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                Technical details
+              </summary>
+              <dl className="mt-3 space-y-2 text-label-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-on-surface-variant">Settings version</dt>
+                  <dd className="text-on-surface">{configuration.version}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-on-surface-variant">Voice ID</dt>
+                  <dd className="max-w-[60%] break-all text-right text-on-surface">{configuration.voiceProfileId}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-on-surface-variant">Last updated</dt>
+                  <dd className="text-right text-on-surface">{new Date(configuration.updatedAt).toLocaleString()}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-on-surface-variant">Robot ID</dt>
+                  <dd className="max-w-[60%] break-all text-right text-on-surface">{robot.id}</dd>
+                </div>
+              </dl>
+            </details>
           )}
         </section>
       )}
 
-      {tab === 'Capabilities' && (
+      {tab === 'Skills' && (
         <section>
-          <SectionTitle action={`${capabilities.length} active`}>Package capabilities</SectionTitle>
+          <SectionTitle action={`${capabilities.length} ready`}>Your robot’s skills</SectionTitle>
           <div className="grid gap-2 sm:grid-cols-2">
             {capabilities.map((capability) => (
               <Card key={capability} className="flex items-center gap-3 p-3.5">
                 <Icon name="check_circle" className="text-tertiary" fill />
-                <span className="text-body-md text-on-surface">{capability}</span>
+                <span className="text-body-md text-on-surface">{capabilityLabels[capability] || 'Extra skill'}</span>
               </Card>
             ))}
           </div>
-          <p className="mt-3 text-label-sm text-outline">
-            Capability checks are repeated server-side when configuration, marketplace or deployment operations are
-            attempted. UI visibility is not authorization.
-          </p>
         </section>
       )}
 
-      {tab === 'Services' && (
+      {tab === 'More' && (
         <section>
-          <SectionTitle>Connected service boundaries</SectionTitle>
+          <SectionTitle>Keep going</SectionTitle>
           <Card className="divide-y divide-white/8">
             {[
-              ['Training', '/training', 'Training progress belongs to the training service.'],
-              ['Data contribution', '/data', 'Quality and contribution records belong to the data service.'],
-              ['Deployment', '/deploy', 'Contracts and telemetry belong to the deployment service.'],
-              ['Wallet', '/wallet', 'Balances and settlement belong to the financial ledger.'],
+              ['Training', '/training', 'Help your robot learn new skills.'],
+              ['Data tasks', '/data', 'Complete tasks and see your progress.'],
+              ['Mining', '/deploy', 'Choose a worksite and start a mining cycle.'],
+              ['Wallet', '/wallet', 'See your RoboCoin and account history.'],
             ].map(([label, to, description]) => (
               <div key={label} className="flex items-center gap-3 px-5 py-3.5">
                 <div className="min-w-0 flex-1">
@@ -178,11 +210,11 @@ export default function MyRobot() {
               </div>
             ))}
           </Card>
-          <p className="mt-3 text-label-sm text-outline">
-            Example: this robot {hasCapability(robot.packageSlug, 'deployment.standard') ? 'has' : 'does not have'} the
-            package capability for standard deployment, but a deployment still requires independent eligibility and
-            contract approval.
-          </p>
+          {!hasCapability(robot.packageSlug, 'deployment.standard') && (
+            <p className="mt-3 text-label-sm text-outline">
+              Some work options unlock as your robot grows.
+            </p>
+          )}
         </section>
       )}
     </AppShell>
