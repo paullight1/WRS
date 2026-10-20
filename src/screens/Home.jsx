@@ -115,12 +115,20 @@ function SummaryCard({ title, value, loading, state, icon, note }) {
         <h2 className="min-w-0 whitespace-normal break-words text-label-sm leading-tight sm:text-label-md">{title}</h2>
       </div>
       <p
-        className={`mt-3 text-on-surface ${value !== null && !loading ? 'font-data text-headline-md' : 'text-body-sm'}`}
+        className={`mt-3 flex min-h-9 items-center text-on-surface ${value !== null && !loading ? 'font-data text-headline-md' : 'text-body-sm'}`}
         aria-live="polite"
       >
-        {loading ? 'Loading…' : (value ?? message)}
+        {loading ? (
+          <span aria-label="Loading balance" className="h-7 w-24 animate-pulse rounded-md bg-white/10" />
+        ) : (
+          (value ?? message)
+        )}
       </p>
-      {note && !loading && <p className="mt-1 text-label-sm text-on-surface-variant">{note}</p>}
+      {loading ? (
+        <span aria-hidden="true" className="mt-2 block h-4 w-full animate-pulse rounded bg-white/5" />
+      ) : (
+        note && <p className="mt-1 text-label-sm text-on-surface-variant">{note}</p>
+      )}
     </Card>
   )
 }
@@ -436,9 +444,14 @@ export default function Home() {
                 <div className="min-w-0">
                   <p className="text-label-sm text-[#b5bdcf]">Amount per cycle</p>
                   <p className="tnum mt-0.5 break-words font-data text-title font-bold text-white" aria-live="polite">
-                    {summary.loading
-                      ? 'Loading amount…'
-                      : formatMiningCycleAmount(miningSnapshot) || 'Amount unavailable'}
+                    {summary.loading ? (
+                      <span
+                        aria-label="Loading mining amount"
+                        className="mt-1 block h-6 w-36 animate-pulse rounded bg-white/10"
+                      />
+                    ) : (
+                      formatMiningCycleAmount(miningSnapshot) || 'Amount unavailable'
+                    )}
                   </p>
                 </div>
               </div>
@@ -463,7 +476,7 @@ export default function Home() {
         aria-label="Member balances"
         role={summary.loading ? 'status' : undefined}
         aria-busy={summary.loading || undefined}
-        className="grid grid-cols-2 gap-3"
+        className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-3 sm:grid-cols-2"
       >
         <SummaryCard
           title="XP balance"

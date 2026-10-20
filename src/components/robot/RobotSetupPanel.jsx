@@ -7,7 +7,7 @@ export default function RobotSetupPanel({ robotState }) {
   let title = 'Set up your robot'
   let description = 'Your robot is not ready yet. Follow a few simple steps to build it and get started.'
   let action = (
-    <Button to="/onboarding" icon="arrow_forward">
+    <Button to="/onboarding" full className="min-h-12 shadow-[0_8px_24px_rgba(37,99,235,0.25)] sm:w-auto" icon="arrow_forward">
       Set up my robot
     </Button>
   )
@@ -24,7 +24,13 @@ export default function RobotSetupPanel({ robotState }) {
     title = 'Robot setup unavailable'
     description = 'We could not open robot setup. Try again.'
     action = (
-      <Button onClick={() => void refresh?.()} icon="refresh" loading={loading}>
+      <Button
+        full
+        className="min-h-12 shadow-[0_8px_24px_rgba(37,99,235,0.25)] sm:w-auto"
+        onClick={() => void refresh?.()}
+        icon="refresh"
+        loading={loading}
+      >
         Try again
       </Button>
     )
@@ -32,7 +38,7 @@ export default function RobotSetupPanel({ robotState }) {
     title = 'Finish setting up your robot'
     description = 'Your progress is saved. Pick up where you left off.'
     action = (
-      <Button to="/onboarding" icon="arrow_forward">
+      <Button to="/onboarding" full className="min-h-12 shadow-[0_8px_24px_rgba(37,99,235,0.25)] sm:w-auto" icon="arrow_forward">
         Continue setup
       </Button>
     )
@@ -47,7 +53,7 @@ export default function RobotSetupPanel({ robotState }) {
         <div className="min-w-0 flex-1">
           <h2 className="font-headline-sm text-title text-on-surface">{title}</h2>
           <p className="mt-1 text-body-sm leading-relaxed text-on-surface-variant">{description}</p>
-          {action && <div className="mt-3">{action}</div>}
+          {action && <div className="mt-4 w-full sm:w-auto">{action}</div>}
         </div>
       </Card>
     </section>

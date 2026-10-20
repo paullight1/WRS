@@ -202,7 +202,12 @@ export default function RewardsProduction() {
                     ? ` XP rewards are limited to ${referral.dailyLimit} qualified referral${referral.dailyLimit === 1 ? '' : 's'} per day.`
                     : ''}
                 </p>
-                <Button to="/referrals" full className="mt-4" icon="person_add">
+                <Button
+                  to="/referrals"
+                  full
+                  className="mt-4 min-h-14 border border-blue-300/30 bg-[#2563eb] text-white shadow-[0_8px_24px_rgba(37,99,235,0.3)] hover:bg-[#1d4ed8]"
+                  icon="person_add"
+                >
                   {referral ? 'Invite friends' : 'Manage referrals'}
                 </Button>
               </Card>

@@ -2,33 +2,21 @@ import { useEffect, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
 import RewardArt from '../components/rewards/RewardArt.jsx'
 import StateView from '../components/states/StateView.jsx'
-import { Badge, Button, Card, Field, SectionTitle } from '../components/ui.jsx'
+import { Badge, Button, Card, Icon } from '../components/ui.jsx'
 import { browserEcosystemClient } from '../infrastructure/ecosystem/browserEcosystemClient.ts'
 
-function referralCodeFrom(value) {
-  const raw = String(value || '').trim()
-  if (!raw) return ''
-  try {
-    const url = new URL(raw, window.location.origin)
-    const code = url.searchParams.get('referralCode') || url.searchParams.get('ref')
-    if (code) return code.trim().toUpperCase()
-  } catch {
-    // Treat non-URL input as a referral code.
-  }
-  return raw.toUpperCase()
-}
+const PUBLIC_SITE_URL = 'https://worldroboticsystem.com'
 
 export default function ReferralsProduction() {
   const [snapshot, setSnapshot] = useState(null)
   const [rewards, setRewards] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [inviteCode, setInviteCode] = useState('')
-  const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   const referralLink = snapshot?.code
-    ? `${window.location.origin}/register?referralCode=${encodeURIComponent(snapshot.code)}`
+    ? `${PUBLIC_SITE_URL}/register?referralCode=${encodeURIComponent(snapshot.code)}`
     : ''
 
   const copyInvite = async (value, label) => {
@@ -63,15 +51,6 @@ export default function ReferralsProduction() {
     }
   }
 
-  const refresh = async () => {
-    const [referrals, rewardData] = await Promise.all([
-      browserEcosystemClient.referrals(),
-      browserEcosystemClient.rewards(),
-    ])
-    setSnapshot(referrals)
-    setRewards(rewardData)
-  }
-
   useEffect(() => {
     let active = true
     Promise.all([browserEcosystemClient.referrals(), browserEcosystemClient.rewards()])
@@ -91,23 +70,6 @@ export default function ReferralsProduction() {
       active = false
     }
   }, [])
-
-  const accept = async () => {
-    setBusy(true)
-    setMessage('')
-    try {
-      await browserEcosystemClient.acceptReferral(referralCodeFrom(inviteCode))
-      setInviteCode('')
-      setMessage(
-        'Referral attribution recorded. Rewards remain pending until verified paid activation and the review window complete.',
-      )
-      await refresh()
-    } catch (reason) {
-      setMessage(reason instanceof Error ? reason.message : 'Referral code could not be accepted.')
-    } finally {
-      setBusy(false)
-    }
-  }
 
   const relationships = snapshot?.relationships || []
 
@@ -169,56 +131,56 @@ export default function ReferralsProduction() {
             </p>
           </Card>
 
-          <Card className="space-y-3 p-card-padding">
-            <Field
-              label="Referral link or code you received"
-              value={inviteCode}
-              onChange={(event) => setInviteCode(event.target.value)}
-              placeholder="Paste referral link or enter code"
-            />
-            <Button full loading={busy} disabled={inviteCode.trim().length < 8} onClick={accept}>
-              Apply referral
-            </Button>
-          </Card>
-
           <section>
-            <SectionTitle action={`${relationships.length} records`}>Referral history</SectionTitle>
-            <div className="space-y-3">
-              {relationships.map((relationship) => (
-                <Card key={relationship.id} className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-data text-data-sm text-outline">{relationship.referral_code}</p>
-                      <p className="mt-1 text-label-sm text-on-surface-variant">
-                        Created {new Date(relationship.created_at).toLocaleString()}
-                      </p>
-                      {relationship.eligible_at && (
-                        <p className="mt-1 text-label-sm text-outline">
-                          Review eligible {new Date(relationship.eligible_at).toLocaleString()}
+            <button
+              type="button"
+              aria-expanded={historyOpen}
+              aria-controls="referral-history-content"
+              onClick={() => setHistoryOpen((open) => !open)}
+              className="mb-3 flex w-full items-center justify-between gap-3 rounded-xl py-2 text-left"
+            >
+              <span className="font-headline-md text-headline-md text-on-surface">Referral history</span>
+              <span className="flex shrink-0 items-center gap-2 text-label-sm text-on-surface-variant">
+                {relationships.length} records
+                <Icon name="expand_more" className={`transition-transform ${historyOpen ? 'rotate-180' : ''}`} />
+              </span>
+            </button>
+            <div id="referral-history-content" className="space-y-3" hidden={!historyOpen}>
+                {relationships.map((relationship) => (
+                  <Card key={relationship.id} className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-data text-data-sm text-outline">{relationship.referral_code}</p>
+                        <p className="mt-1 text-label-sm text-on-surface-variant">
+                          Created {new Date(relationship.created_at).toLocaleString()}
                         </p>
-                      )}
+                        {relationship.eligible_at && (
+                          <p className="mt-1 text-label-sm text-outline">
+                            Review eligible {new Date(relationship.eligible_at).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                      <Badge
+                        t={
+                          relationship.status === 'qualified'
+                            ? 'success'
+                            : relationship.status === 'rejected'
+                              ? 'outline'
+                              : 'gold'
+                        }
+                      >
+                        {relationship.status}
+                      </Badge>
                     </div>
-                    <Badge
-                      t={
-                        relationship.status === 'qualified'
-                          ? 'success'
-                          : relationship.status === 'rejected'
-                            ? 'outline'
-                            : 'gold'
-                      }
-                    >
-                      {relationship.status}
-                    </Badge>
-                  </div>
-                </Card>
-              ))}
-              {!relationships.length && (
-                <StateView
-                  kind="empty"
-                  title="No referral relationships"
-                  desc="Attribution records will appear here after a valid code is accepted or someone uses yours."
-                />
-              )}
+                  </Card>
+                ))}
+                {!relationships.length && (
+                  <StateView
+                    kind="empty"
+                    title="No referral relationships"
+                    desc="Records appear here after someone signs up with your invite and referral activity is recorded."
+                  />
+                )}
             </div>
           </section>
         </>

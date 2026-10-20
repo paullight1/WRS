@@ -383,7 +383,15 @@ export default function MiningProduction() {
               View active cycle
             </Button>
           ) : snapshot.issuanceEnabled ? (
-            <Button full size="lg" loading={starting} disabled={!canStart} icon="play_arrow" onClick={start}>
+            <Button
+              full
+              size="lg"
+              loading={starting}
+              disabled={!canStart}
+              icon="play_arrow"
+              onClick={start}
+              className="border border-primary ring-2 ring-primary/70 shadow-[0_0_18px_rgba(59,130,246,0.28)]"
+            >
               Start mining
             </Button>
           ) : null}
@@ -491,14 +499,19 @@ export default function MiningProduction() {
         ) : (
           <StateView
             kind="empty"
-            title="No settled awards yet"
-            desc="Mining awards will appear here after a cycle settles. Add a public alias to join the rankings."
+            title="Your mining leaderboard starts here"
+            desc="Start a mining cycle to earn RoboCoin. Once it settles, your award will appear here and count toward the rankings. Add a public alias to let other miners recognize you."
             size={104}
             className="!px-4 !py-5"
             action={
-              <Button to="/community" variant="tonal">
-                Set public alias
-              </Button>
+              <div className="flex flex-col justify-center gap-2 sm:flex-row">
+                <Button to="/deploy?tab=Available" icon="play_arrow">
+                  Start mining
+                </Button>
+                <Button to="/community" variant="tonal">
+                  Set public alias
+                </Button>
+              </div>
             }
           />
         )}

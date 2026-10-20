@@ -12,7 +12,6 @@ export default function More() {
   const robotState = useRobot()
   const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
-  const [profileState, setProfileState] = useState('loading')
   useEffect(() => {
     let active = true
     browserAccountClient
@@ -20,10 +19,9 @@ export default function More() {
       .then((snapshot) => {
         if (!active) return
         setProfile(snapshot?.profile || null)
-        setProfileState(snapshot?.profile ? 'ready' : 'unavailable')
       })
       .catch(() => {
-        if (active) setProfileState('unavailable')
+        if (active) setProfile(null)
       })
     return () => {
       active = false
@@ -33,9 +31,9 @@ export default function More() {
   const accountLabel =
     typeof profile?.fullName === 'string' && profile.fullName.trim()
       ? profile.fullName.trim()
-      : profileState === 'loading'
-        ? 'Loading profile'
-        : 'Profile unavailable'
+      : typeof auth.session?.email === 'string'
+        ? auth.session.email.split('@')[0]
+        : 'Your profile'
   const packageLabel = robotState.robot ? packageDefinition(robotState.robot.packageSlug).name : 'No active robot'
 
   const groups = [
@@ -116,7 +114,7 @@ export default function More() {
         <div className="min-w-0 flex-1">
           <p className="truncate text-title text-on-surface">{accountLabel}</p>
           <p className="truncate font-data text-data-sm text-on-surface-variant">
-            {profile?.email || (!auth.isDemo && auth.session?.userId) || 'Account profile'}
+            {profile?.email || auth.session?.email || auth.session?.userId || 'Account profile'}
           </p>
         </div>
         <Icon name="chevron_right" className="text-outline" />
