@@ -5,32 +5,32 @@ export default function RobotSetupPanel({ robotState }) {
   const serviceReady = authoritative === true && !isDemo
 
   let title = 'Set up your robot'
-  let description = 'Create a robot account and configuration to get started.'
+  let description = 'Your robot is not ready yet. Follow a few simple steps to build it and get started.'
   let action = (
     <Button to="/onboarding" icon="arrow_forward">
-      Start setup
+      Set up my robot
     </Button>
   )
 
   if (isDemo) {
     title = 'Robot setup unavailable'
-    description = 'Live robot setup is disabled in preview mode. Use a verified WRS environment to provision a robot.'
+    description = 'Robot setup is not available in this preview. Open the live WRS app to set up your robot.'
     action = null
   } else if (!serviceReady) {
-    title = 'Robot service unavailable'
-    description = 'Robot provisioning is not enabled for this environment.'
+    title = 'Robot setup is not ready yet'
+    description = 'Robot setup is not ready here yet. Please try again later.'
     action = null
   } else if (error) {
     title = 'Robot setup unavailable'
-    description = error
+    description = 'We could not open robot setup. Try again.'
     action = (
       <Button onClick={() => void refresh?.()} icon="refresh" loading={loading}>
-        Retry
+        Try again
       </Button>
     )
   } else if (onboarding) {
-    title = 'Continue robot setup'
-    description = 'Your saved setup is ready to finish.'
+    title = 'Finish setting up your robot'
+    description = 'Your progress is saved. Pick up where you left off.'
     action = (
       <Button to="/onboarding" icon="arrow_forward">
         Continue setup

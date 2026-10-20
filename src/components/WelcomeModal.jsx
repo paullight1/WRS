@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { createPortal } from 'react-dom'
 import { Button, Icon } from './ui.jsx'
 import StateArt from './states/StateArt.jsx'
 
@@ -45,9 +45,9 @@ export function consumeWelcome() {
 }
 
 const NEXT = [
-  { icon: 'smart_toy', label: 'Your robot', desc: 'View its setup and capabilities', to: '/robot' },
-  { icon: 'model_training', label: 'Train', desc: 'Teach it through training activities', to: '/training' },
-  { icon: 'paid', label: 'Mine RoboCoin', desc: 'Choose a robot and start a mining cycle', to: '/deploy' },
+  { icon: 'smart_toy', label: 'Set up your robot', desc: 'Make it yours' },
+  { icon: 'model_training', label: 'Train your robot', desc: 'Help it learn new skills' },
+  { icon: 'paid', label: 'Start mining', desc: 'Earn RoboCoin with your robot' },
 ]
 
 export default function WelcomeModal({ open, onClose, robotName }) {
@@ -57,16 +57,11 @@ export default function WelcomeModal({ open, onClose, robotName }) {
   useEffect(() => {
     if (!open) return undefined
     restoreTo.current = document.activeElement
-    // Focus the first control in the panel. Button renders a Link when given
-    // `to` and does not forward refs, so this is queried rather than held.
     panel.current?.querySelector('a[href], button:not([disabled])')?.focus()
+    const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
     const onKey = (e) => {
-      if (e.key === 'Escape') {
-        onClose()
-        return
-      }
       if (e.key !== 'Tab' || !panel.current) return
       // Keep focus inside the dialog.
       const f = panel.current.querySelectorAll('a[href], button:not([disabled])')
@@ -85,68 +80,66 @@ export default function WelcomeModal({ open, onClose, robotName }) {
     document.addEventListener('keydown', onKey)
     return () => {
       document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
+      document.body.style.overflow = previousOverflow
       restoreTo.current?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 
-  return (
-    <div className="fixed inset-0 z-drawer grid place-items-end sm:place-items-center">
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        className="wrs-fade-in absolute inset-0 h-full w-full cursor-default bg-black/70 backdrop-blur-sm"
-      />
+  return createPortal(
+    <div className="fixed inset-0 z-drawer grid place-items-center overflow-y-auto bg-black/70 p-3 backdrop-blur-sm sm:p-6">
+      <div className="absolute inset-0" aria-hidden="true" />
 
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-labelledby="welcome-title"
-        className="wrs-rise-in relative w-full max-w-[440px] rounded-t-3xl border border-white/12 bg-surface-container p-6 pb-[max(24px,env(safe-area-inset-bottom))] sm:rounded-3xl sm:pb-6"
+        aria-describedby="welcome-description"
+        className="wrs-rise-in relative my-auto w-full max-w-[440px] overflow-y-auto rounded-3xl border border-white/12 bg-surface-container p-5 sm:p-6"
+        style={{
+          maxHeight:
+            'calc(100dvh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)))',
+          paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
+        }}
       >
         <div className="flex flex-col items-center text-center">
-          <StateArt kind="welcome" size={140} />
-          <p className="mt-3 text-label-md text-tertiary">A quick guide to your workspace</p>
+          <StateArt kind="welcome" size={112} />
+          <p className="mt-2 text-label-md text-tertiary">Your first steps</p>
           <h2 id="welcome-title" className="mt-1 font-headline-lg text-headline-lg text-on-surface">
             Welcome to WRS
           </h2>
-          <p className="mt-2 text-body-md text-on-surface-variant">
-            {robotName ? `${robotName} is ready. ` : ''}Build capability with training, then put your robot to work mining.
+          <p id="welcome-description" className="mt-2 max-w-sm text-body-md text-on-surface-variant">
+            {robotName ? `${robotName} is ready. ` : ''}Please review these steps before continuing. Set up your robot,
+            help it learn, then earn RoboCoin.
           </p>
         </div>
 
-        <ul className="mt-6 space-y-1">
-          {NEXT.map((n) => (
-            <li key={n.label}>
-              <Link
-                to={n.to}
-                onClick={onClose}
-                className="flex items-center gap-3 rounded-xl bg-white/[.04] px-3.5 py-3 transition-colors hover:bg-white/[.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
-              >
-                <Icon name={n.icon} className="shrink-0 text-[20px] text-primary" fill />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-title-sm text-on-surface">{n.label}</span>
-                  <span className="mt-0.5 block text-body-sm text-on-surface-variant">{n.desc}</span>
+        <ol className="mt-5 space-y-2">
+          {NEXT.map((step, index) => (
+            <li key={step.label}>
+              <div className="flex items-center gap-3 rounded-xl bg-white/[.04] px-3.5 py-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                  <span className="sr-only">Step {index + 1}: </span>
+                  <Icon name={step.icon} className="text-[20px]" fill />
                 </span>
-                <Icon name="arrow_forward" className="shrink-0 text-[18px] text-on-surface-variant" />
-              </Link>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-title-sm text-on-surface">{step.label}</span>
+                  <span className="mt-0.5 block text-body-sm text-on-surface-variant">{step.desc}</span>
+                </span>
+              </div>
             </li>
           ))}
-        </ul>
+        </ol>
 
-        <div className="mt-6 space-y-2">
-          <Button to={robotName ? '/robot' : '/onboarding'} full size="lg" trailingIcon="arrow_forward" onClick={onClose}>
-            {robotName ? 'View my robot' : 'Create my robot'}
-          </Button>
-          <Button variant="ghost" full size="lg" onClick={onClose}>
-            Look around first
+        <div className="mt-5">
+          <Button full size="lg" trailingIcon="arrow_forward" onClick={onClose}>
+            Continue to Home
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
