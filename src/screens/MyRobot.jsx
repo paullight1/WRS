@@ -45,10 +45,21 @@ export default function MyRobot() {
     'robot.visionary-modules': 'Visionary skills',
   }
   const voiceName = (id) => {
+    if (!id) return 'Not set'
     if (id === 'standard-en') return 'English'
     if (id === 'standard-yo') return 'Yoruba'
     if (String(id).toLowerCase().includes('custom')) return 'Custom voice'
     return 'Standard voice'
+  }
+  const percentLabel = (value) => {
+    if (value === null || value === undefined || value === '') return 'Not set'
+    const number = Number(value)
+    return Number.isFinite(number) ? `${number}%` : 'Not set'
+  }
+  const dateLabel = (value) => {
+    if (!value) return 'Not available'
+    const date = new Date(value)
+    return Number.isNaN(date.getTime()) ? 'Not available' : date.toLocaleString()
   }
 
   return (
@@ -127,12 +138,12 @@ export default function MyRobot() {
           {configuration ? (
             <Card className="divide-y divide-white/8">
               {[
-                ['Look', configuration.palette],
-                ['Personality', configuration.personality],
+                ['Look', configuration.palette || 'Not set'],
+                ['Personality', configuration.personality || 'Not set'],
                 ['Voice', voiceName(configuration.voiceProfileId)],
-                ['Work speed', `${configuration.tuning.speed}%`],
-                ['Battery life', `${configuration.tuning.battery}%`],
-                ['Senses', `${configuration.tuning.sensor}%`],
+                ['Work speed', percentLabel(configuration.tuning?.speed)],
+                ['Battery life', percentLabel(configuration.tuning?.battery)],
+                ['Senses', percentLabel(configuration.tuning?.sensor)],
               ].map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between gap-4 px-5 py-3.5">
                   <span className="text-body-md text-on-surface-variant">{key}</span>
@@ -155,15 +166,15 @@ export default function MyRobot() {
               <dl className="mt-3 space-y-2 text-label-sm">
                 <div className="flex justify-between gap-4">
                   <dt className="text-on-surface-variant">Settings version</dt>
-                  <dd className="text-on-surface">{configuration.version}</dd>
+                  <dd className="text-on-surface">{configuration.version || 'Not available'}</dd>
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-on-surface-variant">Voice ID</dt>
-                  <dd className="max-w-[60%] break-all text-right text-on-surface">{configuration.voiceProfileId}</dd>
+                  <dd className="max-w-[60%] break-all text-right text-on-surface">{configuration.voiceProfileId || 'Not available'}</dd>
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-on-surface-variant">Last updated</dt>
-                  <dd className="text-right text-on-surface">{new Date(configuration.updatedAt).toLocaleString()}</dd>
+                  <dd className="text-right text-on-surface">{dateLabel(configuration.updatedAt)}</dd>
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-on-surface-variant">Robot ID</dt>
