@@ -74,7 +74,7 @@ function accruedMiningAtomic(session, now) {
   return accrued
 }
 
-function formatDailyMiningRate(snapshot) {
+function formatMiningCycleAmount(snapshot) {
   const session = snapshot?.session
   const rate = snapshot?.rateBreakdown?.estimatedAtomicPerHour ?? session?.rule?.rateAtomicPerHour
   const scale = snapshot?.rateBreakdown?.atomicUnitScale ?? session?.rule?.atomicUnitScale
@@ -92,7 +92,7 @@ function formatDailyMiningRate(snapshot) {
     const formatted = atomicUnitsToDecimal(atomicAmount.toString(), scale + fraction.length)
     const [integer, decimal = ''] = formatted.split('.')
     const trimmedDecimal = decimal.replace(/0+$/, '')
-    return `${integer}${trimmedDecimal ? `.${trimmedDecimal}` : ''} RBC / 24h`
+    return `${integer}${trimmedDecimal ? `.${trimmedDecimal}` : ''} RBC`
   } catch {
     return null
   }
@@ -125,7 +125,7 @@ function SummaryCard({ title, value, loading, state, icon, note }) {
   )
 }
 
-function SettledMiningReport({ session, robotName, worksiteName }) {
+function SettledMiningReport({ session }) {
   if (!session) return null
   let award = null
   if (session.estimatedAwardAtomic !== null && session.rule?.atomicUnitScale !== undefined) {
@@ -142,32 +142,20 @@ function SettledMiningReport({ session, robotName, worksiteName }) {
         <Icon name="task_alt" className="mt-0.5 text-tertiary" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-title font-semibold text-on-surface">Last mining cycle</h2>
-            <Badge t="tertiary">Settled</Badge>
+            <h2 className="text-title font-semibold text-on-surface">Your last mining cycle is complete</h2>
+            <Badge t="tertiary">Complete</Badge>
           </div>
-          <p className="mt-1 text-body-sm text-on-surface-variant">
-            {robotName || 'Your robot'} · {worksiteName || 'Worksite'}
-          </p>
-          <p className="mt-1 text-label-sm text-outline">
-            Completed {new Date(session.settledAt || session.endsAt).toLocaleString()}
-          </p>
+          <p className="mt-1 text-body-sm text-on-surface-variant">Your robot finished its last round.</p>
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="rounded-xl bg-surface-container px-3 py-3">
-          <p className="text-label-sm text-on-surface-variant">Cycle duration</p>
-          <p className="tnum mt-1 text-title font-semibold text-on-surface">24 hours</p>
-        </div>
-        <div className="rounded-xl bg-surface-container px-3 py-3">
-          <p className="text-label-sm text-on-surface-variant">RoboCoin awarded</p>
-          <p className="tnum mt-1 text-title font-semibold text-tertiary">{award === null ? '—' : `+${award} RBC`}</p>
-        </div>
+      <div className="mt-4 rounded-xl bg-surface-container px-4 py-3">
+        <p className="text-label-sm text-on-surface-variant">You earned</p>
+        <p className="tnum mt-1 text-title font-semibold text-tertiary">
+          {award === null ? 'Amount not available yet' : `+${award} RBC`}
+        </p>
       </div>
-      <p className="mt-4 text-body-sm text-on-surface-variant">
-        Come back after each 24-hour cycle and start mining again when your robot and worksite are ready.
-      </p>
       <Button to="/deploy" full className="mt-4" icon="paid">
-        Return to Mining
+        Continue mining
       </Button>
     </Card>
   )
@@ -446,9 +434,11 @@ export default function Home() {
                   <Icon name="paid" className="text-[22px]" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-label-sm text-[#b5bdcf]">24-hour mining rate</p>
+                  <p className="text-label-sm text-[#b5bdcf]">Amount per cycle</p>
                   <p className="tnum mt-0.5 break-words font-data text-title font-bold text-white" aria-live="polite">
-                    {summary.loading ? 'Loading rate…' : formatDailyMiningRate(miningSnapshot) || 'Rate unavailable'}
+                    {summary.loading
+                      ? 'Loading amount…'
+                      : formatMiningCycleAmount(miningSnapshot) || 'Amount unavailable'}
                   </p>
                 </div>
               </div>
@@ -461,22 +451,11 @@ export default function Home() {
         miningSnapshot?.authoritative === true &&
         (() => {
           const session = miningSnapshot.session
-          const robotName = (item) => miningSnapshot.robots.find((robot) => robot.robotId === item?.robotId)?.name
-          const worksiteName = (item) =>
-            miningSnapshot.worksites.find((site) => site.worksiteId === item?.worksiteId)?.name
           const latestSettled = miningSnapshot.recentSessions.find((item) => item.status === 'settled')
           return session?.status === 'settled' ? (
-            <SettledMiningReport
-              session={session}
-              robotName={robotName(session)}
-              worksiteName={worksiteName(session)}
-            />
+            <SettledMiningReport session={session} />
           ) : session ? null : latestSettled ? (
-            <SettledMiningReport
-              session={latestSettled}
-              robotName={robotName(latestSettled)}
-              worksiteName={worksiteName(latestSettled)}
-            />
+            <SettledMiningReport session={latestSettled} />
           ) : null
         })()}
 
