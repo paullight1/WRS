@@ -19,7 +19,7 @@ const ROLE_SCOPE = {
   deployment_operator: ['overview', 'deployments'], risk_operator: ['overview', 'risk'], reward_operator: ['overview', 'rewards'],
 }
 
-export default function AdminShell({ children, title = 'Operations' }) {
+export default function AdminShell({ children, title = 'Operations', subtitle }) {
   const auth = useAuth()
   const { theme, toggleTheme } = useAdminTheme()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -113,14 +113,17 @@ export default function AdminShell({ children, title = 'Operations' }) {
         size={290}
         title={<span className="admin-drawer-title"><img className="admin-brand-logo" src={wrsLogo} alt="" />WRS Console</span>}
         overlayProps={{ backgroundOpacity: 0.58, blur: 1 }}
-        withinPortal={false}
         zIndex={100}
       >
         {mobileNavigation}
       </Drawer>
       <main className="admin-main">
         <header className="admin-topbar">
-          <div><div className="admin-crumb">WRS / Operations</div><h1>{title}</h1></div>
+          <div className="admin-topbar-copy">
+            <div className="admin-crumb">WRS / Operations</div>
+            <h1>{title}</h1>
+            {subtitle && <p className="admin-topbar-subtitle">{subtitle}</p>}
+          </div>
           <div className="admin-top-actions">
             <span className="admin-secure-indicator admin-topbar-secure-indicator"><i />Secure session</span>
             <Menu position="bottom-end" shadow="md" withinPortal={false} closeOnItemClick>

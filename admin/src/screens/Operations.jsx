@@ -268,6 +268,17 @@ export default function Operations() {
 
   const records = rowsFrom(snapshot)
   const overviewMetrics = (snapshot?.summary?.metrics || []).filter((metric) => scopes.includes(metric.scope))
+  const queueMetrics = overviewMetrics.filter((metric) => metric.key !== 'reward_policy')
+  const availableQueueMetrics = queueMetrics.filter((metric) => metric.status !== 'unavailable' && typeof metric.value === 'number')
+  const attentionCount = availableQueueMetrics.filter((metric) => metric.value > 0).length
+  const unavailableQueueCount = queueMetrics.length - availableQueueMetrics.length
+  const queueStatus = loading && !snapshot
+    ? 'Loading queues…'
+    : !queueMetrics.length
+      ? 'Queue data unavailable'
+      : unavailableQueueCount
+        ? `${attentionCount} need attention · ${unavailableQueueCount} unavailable`
+        : `${attentionCount} ${attentionCount === 1 ? 'queue' : 'queues'} need attention`
   const visibleRecords = records.filter(({ group, row }) => `${group} ${primaryLabel(row)} ${secondaryLabel(row)} ${row.status || ''}`.toLowerCase().includes(recordFilter.toLowerCase()))
   const pageCount = Math.max(1, Math.ceil(visibleRecords.length / 10))
   const pageRecords = visibleRecords.slice((page - 1) * 10, page * 10)
@@ -275,30 +286,27 @@ export default function Operations() {
   const currentDetails = scopeDetails[activeScope] || scopeDetails.overview
 
   return (
-    <AdminShell title={currentDetails[1]} subtitle="Secure WRS control room">
+    <AdminShell title={currentDetails[1]} subtitle={activeScope === 'overview' ? currentDetails[2] : undefined}>
       <div className="space-y-6">
         {activeScope === 'overview' && (
           <section className="admin-overview" aria-label="Operations summary">
             <div className="admin-overview-heading">
-              <div>
-                <h2>At a glance</h2>
-              </div>
               <div className="admin-overview-tools">
                 <Badge variant={recentMfa ? 'success' : 'warning'}>
                   <span className={`h-1.5 w-1.5 rounded-full ${recentMfa ? 'bg-success' : 'bg-[#f7c948]'}`} />
-                  {recentMfa ? 'MFA verified' : 'MFA needed for changes'}
+                  {recentMfa ? 'MFA verified' : 'Changes need MFA'}
                 </Badge>
                 <span className="admin-overview-updated">
-                  {refreshedAt ? `Updated ${new Date(refreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Not yet refreshed'}
+                  {refreshedAt ? `Updated ${new Date(refreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : loading ? 'Loading live data…' : 'Live data not loaded'}
                 </span>
-                <Button variant="outline" disabled={loading} onClick={() => load('overview')}>
+                <Button variant="outline" disabled={loading} onClick={() => load('overview')} aria-label={loading ? 'Refreshing operations data' : 'Refresh operations data'}>
                   {loading ? 'Refreshing…' : 'Refresh'}
                 </Button>
               </div>
             </div>
 
             {scopes.includes('rewards') && <SupplyProgress issuance={snapshot?.summary?.issuance} loading={loading} onOpen={() => setSearchParams({ scope: 'rewards' })} />}
-            <div className="admin-queue-heading"><div className="admin-section-title"><h3>Review queues</h3><AdminHint label="How to use these queues">Select a card to open its records. Counts show work waiting for review, not all historical records. Zero means no pending work; unavailable means the count could not be loaded. Sensitive changes may require authenticator verification.</AdminHint></div><span>{overviewMetrics.filter((metric) => typeof metric.value === 'number' && metric.value > 0).length} queues need attention</span></div>
+            <div className="admin-queue-heading"><div className="admin-section-title"><h3>Work queues</h3><AdminHint label="How to use these queues">Select a card to open its records. Counts show work waiting for review, not all historical records. Zero means no pending work; unavailable means the count could not be loaded. Sensitive changes may require authenticator verification.</AdminHint></div><span>{queueStatus}</span></div>
             {message && !snapshot ? (
               <div className="admin-overview-error" role="alert">
                 <span>{message}</span>
@@ -337,7 +345,11 @@ export default function Operations() {
               </div>
             ) : (
               <div className="admin-metric-empty">
-                {loading ? 'Refreshing available queues…' : 'No overview queues are assigned to this operator.'}
+                <div>
+                  <strong>{loading ? 'Loading your queues' : 'Queue data is not available'}</strong>
+                  <p>{loading ? 'Your role-based work counts will appear here.' : 'Refresh to try again. Your assigned work areas are available from the menu.'}</p>
+                </div>
+                {!loading && <Button variant="outline" onClick={() => load('overview')}>Try again</Button>}
               </div>
             )}
           </section>
