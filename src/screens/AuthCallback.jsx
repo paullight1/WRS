@@ -4,13 +4,11 @@ import { useAuth } from '../components/auth/AuthProvider.jsx'
 
 export default function AuthCallback() {
   const nav = useNavigate()
-  const auth = useAuth()
-  const handled = useRef(false)
+  const { refresh: refreshAuth } = useAuth()
+  const confirmationRequest = useRef(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (handled.current) return undefined
-    handled.current = true
     let active = true
     const params = new URLSearchParams(window.location.hash.replace(/^#/, ''))
     const accessToken = params.get('access_token')
@@ -28,29 +26,49 @@ export default function AuthCallback() {
         active = false
       }
     }
-    fetch('/api/auth/confirm', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ accessToken, refreshToken }),
-    })
-      .then(async (response) => {
-        const body = await response.json().catch(() => ({}))
-        if (!response.ok) throw new Error(body?.message || 'Unable to confirm your email.')
-        return body
+    let pending = confirmationRequest.current
+    if (!pending || pending.accessToken !== accessToken) {
+      const controller = new AbortController()
+      const timeout = window.setTimeout(() => controller.abort(), 30_000)
+      const promise = fetch('/api/auth/confirm', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ accessToken, refreshToken }),
+        signal: controller.signal,
       })
+        .then(async (response) => {
+          const body = await response.json().catch(() => ({}))
+          if (!response.ok) throw new Error(body?.message || 'Unable to confirm your email.')
+          return body
+        })
+        .finally(() => window.clearTimeout(timeout))
+      pending = { accessToken, promise }
+      confirmationRequest.current = pending
+    }
+
+    pending.promise
       .then(async () => {
         if (!active) return
-        await auth.refresh()
+        const session = await refreshAuth()
+        if (!active) return
+        if (!session) throw new Error('Your email is confirmed, but we could not sign you in. Please sign in.')
         nav('/onboarding', { replace: true })
       })
       .catch((reason) => {
-        if (active) setError(reason instanceof Error ? reason.message : 'Unable to confirm your email.')
+        if (!active) return
+        const message =
+          reason instanceof Error && reason.name === 'AbortError'
+            ? 'Confirmation is taking longer than expected. Please try again or request a new confirmation email.'
+            : reason instanceof Error
+              ? reason.message
+              : 'Unable to confirm your email.'
+        setError(message)
       })
     return () => {
       active = false
     }
-  }, [auth, nav])
+  }, [refreshAuth, nav])
 
   return (
     <div className="grid min-h-screen place-items-center px-margin-page text-center">
@@ -60,9 +78,14 @@ export default function AuthCallback() {
         </h1>
         {error && <p className="mt-3 text-body-md text-error">{error}</p>}
         {error && (
-          <button type="button" className="mt-6 text-primary underline" onClick={() => nav('/register')}>
-            Back to registration
-          </button>
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <button type="button" className="text-primary underline" onClick={() => nav('/verify')}>
+              Request a new confirmation email
+            </button>
+            <button type="button" className="text-primary underline" onClick={() => nav('/login')}>
+              Go to login
+            </button>
+          </div>
         )}
       </div>
     </div>
