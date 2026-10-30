@@ -5,6 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
 const productionFiles = [
+  'admin/src/**/*.{js,jsx}',
   'api/**/*.js',
   'server/**/*.js',
   'src/lib/**/*.{js,mjs}',
@@ -16,6 +17,7 @@ const productionFiles = [
   'src/components/admin/**/*.{js,jsx}',
   'src/components/WelcomeModal.jsx',
   'src/components/AppShell.jsx',
+  'src/components/ApplicationStyles.jsx',
   'src/screens/{Login,Register,Verify,ForgotPassword,ResetPassword,SecuritySettings,Onboarding,Customize,RobotPassport,Home,MyRobot,More,Profile,Settings,Checkout,PaymentSuccess,Wallet,Transactions,Training,TrainingModule,DataTask,DataContribution,DataQuality,Notifications,MiningProduction,DataRevenue,Deploy,DeploymentDetails,ActiveDeployment,DeployProduction,DeploymentDetailsProduction,ActiveDeploymentProduction}.jsx',
   'src/screens/{AdminOperationsProduction,RewardsProduction}.jsx',
   'src/App.jsx',

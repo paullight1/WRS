@@ -17,7 +17,7 @@ The SQL assumes Supabase-provided schemas/roles exist, including `auth`, `storag
 
 ## Required migration order
 
-Run **all 30 files** below in order. Do not skip hardening/fix migrations; later files intentionally correct or strengthen earlier definitions.
+Run **all 39 files** below in order. Do not skip hardening/fix migrations; later files intentionally correct or strengthen earlier definitions.
 
 | # | Migration | Purpose |
 |---:|---|---|
@@ -51,6 +51,15 @@ Run **all 30 files** below in order. Do not skip hardening/fix migrations; later
 | 28 | `20260926092033_xp_rbc_mining_foundation.sql` | Adds authoritative XP and RoboCoin ledgers, mining rules, sessions and settlement foundations. |
 | 29 | `20260929120000_mining_robot_worksite_unlocks.sql` | Adds one-active-session robot/worksite selection, approved worksites and sequential robot unlocks. |
 | 30 | `20260929130000_mining_reporting.sql` | Adds server-derived mining metrics and privacy-safe weekly/all-time RoboCoin leaderboard projections. |
+| 31 | `20261001050017_mining_one_free_robot_slot.sql` | Keeps the first mining experience to one free robot slot while preserving authoritative worksite/session checks. |
+| 32 | `20261001080216_configurable_xp_rbc_reward_rules.sql` | Adds versioned, verified XP/RBC reward receipts and idempotent activity issuance boundaries. |
+| 33 | `20261003103000_mining_robot_slots_by_rbc.sql` | Unlocks additional active robot slots only after settled, non-reversed mining awards reach the RBC threshold. |
+| 34 | `20261003182654_admin_operator_role_management.sql` | Adds audited, admin-only operator-role assignment and permission hardening. |
+| 35 | `20261005221739_reward_dashboard_summary.sql` | Adds read-only member XP, referral and settled mining reward dashboard projections. |
+| 36 | `20261005222205_reward_dashboard_history_fix.sql` | Corrects reward dashboard history identifiers and preserves ordered ledger-backed history. |
+| 37 | `20261005222455_event_xp_claim_guard.sql` | Prevents event-code redemption from being consumed when verified XP issuance cannot complete. |
+| 38 | `20261006083712_seed_manufacturing_starting_worksite.sql` | Seeds Manufacturing as the first approved mining worksite and keeps unreleased industries pending. |
+| 39 | `20261030211347_simplify_referral_approval.sql` | Removes the paid-plan and seven-day referral approval requirements; retains verified active accounts, manual approval, existing rewards and restricted execution. |
 
 ## Recommended application methods
 

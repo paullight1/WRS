@@ -1,14 +1,13 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { MantineProvider } from '@mantine/core'
 
 const KEY = 'wrs-admin-theme'
 const ThemeContext = createContext(null)
 
 function readTheme() {
   try {
-    return localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light'
+    return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark'
   } catch {
-    return 'light'
+    return 'dark'
   }
 }
 
@@ -17,16 +16,20 @@ export function AdminThemeProvider({ children }) {
   const toggleTheme = useCallback(() => {
     setTheme((current) => {
       const next = current === 'light' ? 'dark' : 'light'
-      try { localStorage.setItem(KEY, next) } catch { /* Storage can be disabled; the in-memory choice still works. */ }
+      try {
+        localStorage.setItem(KEY, next)
+      } catch {
+        /* Storage can be disabled; the in-memory choice still works. */
+      }
       return next
     })
   }, [])
   const value = useMemo(() => ({ theme, colorScheme: theme, toggleTheme }), [theme, toggleTheme])
   return (
     <ThemeContext.Provider value={value}>
-      <MantineProvider forceColorScheme={theme}>
-        <div className="admin-app" data-theme={theme} data-admin-theme={theme}>{children}</div>
-      </MantineProvider>
+      <div className="admin-app" data-theme={theme} data-admin-theme={theme}>
+        {children}
+      </div>
     </ThemeContext.Provider>
   )
 }

@@ -115,18 +115,24 @@ export function functionHandler(handler) {
             code: error.code,
             durationMs: telemetry.durationMs(),
           })
-          return corsResponse(request, json({ message: error.message, code: error.code }, error.status, {
-            'x-request-id': telemetry.requestId,
-          }))
+          return corsResponse(
+            request,
+            json({ message: error.message, code: error.code }, error.status, {
+              'x-request-id': telemetry.requestId,
+            }),
+          )
         }
         telemetry.error('api.request.failed', error, {
           method: request.method,
           status: 500,
           durationMs: telemetry.durationMs(),
         })
-        return corsResponse(request, json({ message: 'The service could not complete the request.' }, 500, {
-          'x-request-id': telemetry.requestId,
-        }))
+        return corsResponse(
+          request,
+          json({ message: 'The service could not complete the request.' }, 500, {
+            'x-request-id': telemetry.requestId,
+          }),
+        )
       }
     },
   }

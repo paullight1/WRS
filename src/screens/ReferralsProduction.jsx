@@ -146,41 +146,41 @@ export default function ReferralsProduction() {
               </span>
             </button>
             <div id="referral-history-content" className="space-y-3" hidden={!historyOpen}>
-                {relationships.map((relationship) => (
-                  <Card key={relationship.id} className="p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-data text-data-sm text-outline">{relationship.referral_code}</p>
-                        <p className="mt-1 text-label-sm text-on-surface-variant">
-                          Created {new Date(relationship.created_at).toLocaleString()}
+              {relationships.map((relationship) => (
+                <Card key={relationship.id} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-data text-data-sm text-outline">{relationship.referral_code}</p>
+                      <p className="mt-1 text-label-sm text-on-surface-variant">
+                        Created {new Date(relationship.created_at).toLocaleString()}
+                      </p>
+                      {relationship.eligible_at && (
+                        <p className="mt-1 text-label-sm text-outline">
+                          Review eligible {new Date(relationship.eligible_at).toLocaleString()}
                         </p>
-                        {relationship.eligible_at && (
-                          <p className="mt-1 text-label-sm text-outline">
-                            Review eligible {new Date(relationship.eligible_at).toLocaleString()}
-                          </p>
-                        )}
-                      </div>
-                      <Badge
-                        t={
-                          relationship.status === 'qualified'
-                            ? 'success'
-                            : relationship.status === 'rejected'
-                              ? 'outline'
-                              : 'gold'
-                        }
-                      >
-                        {relationship.status}
-                      </Badge>
+                      )}
                     </div>
-                  </Card>
-                ))}
-                {!relationships.length && (
-                  <StateView
-                    kind="empty"
-                    title="No referral relationships"
-                    desc="Records appear here after someone signs up with your invite and referral activity is recorded."
-                  />
-                )}
+                    <Badge
+                      t={
+                        relationship.status === 'qualified'
+                          ? 'success'
+                          : relationship.status === 'rejected'
+                            ? 'outline'
+                            : 'gold'
+                      }
+                    >
+                      {relationship.status}
+                    </Badge>
+                  </div>
+                </Card>
+              ))}
+              {!relationships.length && (
+                <StateView
+                  kind="empty"
+                  title="No referral relationships"
+                  desc="Records appear here after someone signs up with your invite and referral activity is recorded."
+                />
+              )}
             </div>
           </section>
         </>

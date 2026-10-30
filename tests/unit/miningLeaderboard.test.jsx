@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import MiningProduction from '../../src/screens/MiningProduction.jsx'
 import { browserMiningClient } from '../../src/infrastructure/mining/browserMiningClient.ts'
 
@@ -35,6 +36,13 @@ const snapshot = {
   rateBreakdown: null,
 }
 
+const renderMining = () =>
+  render(
+    <MemoryRouter>
+      <MiningProduction />
+    </MemoryRouter>,
+  )
+
 describe('Mining leaderboard', () => {
   afterEach(cleanup)
 
@@ -48,7 +56,7 @@ describe('Mining leaderboard', () => {
   })
 
   it('loads weekly and all-time rankings from the server', async () => {
-    render(<MiningProduction />)
+    renderMining()
     fireEvent.click(await screen.findByRole('tab', { name: 'Leaderboard' }))
     expect(await screen.findByText('RobotFan')).toBeInTheDocument()
     expect(browserMiningClient.leaderboard).toHaveBeenCalledWith('week')
@@ -58,9 +66,9 @@ describe('Mining leaderboard', () => {
 
   it('shows real empty and error states', async () => {
     browserMiningClient.leaderboard.mockResolvedValueOnce({ period: 'week', rows: [] })
-    render(<MiningProduction />)
+    renderMining()
     fireEvent.click(await screen.findByRole('tab', { name: 'Leaderboard' }))
-    expect(await screen.findByText(/No settled mining awards/)).toBeInTheDocument()
+    expect(await screen.findByText(/Your mining leaderboard starts here/)).toBeInTheDocument()
 
     browserMiningClient.leaderboard.mockRejectedValueOnce(new Error('Leaderboard unavailable'))
     fireEvent.click(screen.getByRole('button', { name: 'All time' }))

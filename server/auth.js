@@ -4,7 +4,6 @@ import { HttpError } from './http.js'
 import { authPublic, authSecret, serviceRest, serviceRpc } from './supabase.js'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const E164 = /^\+[1-9]\d{7,14}$/
 const OTP = /^\d{6}$/
 const CHALLENGE_TTL_MS = 10 * 60_000
 const RESEND_COOLDOWN_MS = 60_000

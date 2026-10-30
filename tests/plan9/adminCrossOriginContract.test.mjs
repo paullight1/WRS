@@ -1,7 +1,15 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { functionHandler as apiHandler, json as apiJson, assertSameOrigin as assertApiOrigin } from '../../api/_lib/http.js'
-import { functionHandler as serverHandler, json as serverJson, assertSameOrigin as assertServerOrigin } from '../../server/http.js'
+import {
+  functionHandler as apiHandler,
+  json as apiJson,
+  assertSameOrigin as assertApiOrigin,
+} from '../../api/_lib/http.js'
+import {
+  functionHandler as serverHandler,
+  json as serverJson,
+  assertSameOrigin as assertServerOrigin,
+} from '../../server/http.js'
 
 const adminOrigin = 'https://admin.worldroboticsystem.com'
 const apiOrigin = 'https://worldroboticsystem.com'
@@ -23,13 +31,15 @@ for (const [label, handlerFactory, json, assertOrigin] of [
       routeCalls += 1
       return json({ ok: true })
     })
-    const response = await handler.fetch(request('/api/admin/operations', {
-      method: 'OPTIONS',
-      headers: {
-        'access-control-request-method': 'POST',
-        'access-control-request-headers': 'content-type',
-      },
-    }))
+    const response = await handler.fetch(
+      request('/api/admin/operations', {
+        method: 'OPTIONS',
+        headers: {
+          'access-control-request-method': 'POST',
+          'access-control-request-headers': 'content-type',
+        },
+      }),
+    )
 
     assert.equal(response.status, 204)
     assert.equal(response.headers.get('access-control-allow-origin'), adminOrigin)
@@ -46,7 +56,9 @@ for (const [label, handlerFactory, json, assertOrigin] of [
       return json({ ok: false }, 403)
     })
     const allowed = await handler.fetch(request('/api/example', { method: 'POST' }))
-    const unknown = await handler.fetch(request('/api/example', { method: 'POST', origin: 'https://support.worldroboticsystem.com' }))
+    const unknown = await handler.fetch(
+      request('/api/example', { method: 'POST', origin: 'https://support.worldroboticsystem.com' }),
+    )
     const body = await unknown.json()
 
     assert.equal(allowed.status, 403)

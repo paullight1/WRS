@@ -16,12 +16,12 @@ describe('RobotSetupPanel', () => {
   it('starts provisioning only when the authoritative robot service is available', () => {
     setup({ authoritative: true, isDemo: false, onboarding: null, error: '' })
     expect(screen.getByRole('heading', { name: 'Set up your robot' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /start setup/i })).toHaveAttribute('href', '/onboarding')
+    expect(screen.getByRole('link', { name: /set up my robot/i })).toHaveAttribute('href', '/onboarding')
   })
 
   it('resumes a saved setup draft', () => {
     setup({ authoritative: true, isDemo: false, onboarding: { step: 3 }, error: '' })
-    expect(screen.getByRole('heading', { name: 'Continue robot setup' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Finish setting up your robot' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /continue setup/i })).toHaveAttribute('href', '/onboarding')
   })
 
@@ -34,13 +34,13 @@ describe('RobotSetupPanel', () => {
       error: 'Robot service returned an invalid response.',
       refresh,
     })
-    fireEvent.click(screen.getByRole('button', { name: /retry/i }))
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }))
     expect(refresh).toHaveBeenCalledOnce()
   })
 
   it('does not link into a dead-end onboarding flow when the service is disabled or in preview mode', () => {
     const { rerender } = setup({ authoritative: false, isDemo: false, onboarding: null, error: '' })
-    expect(screen.getByRole('heading', { name: 'Robot service unavailable' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Robot setup is not ready yet' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /setup/i })).not.toBeInTheDocument()
 
     rerender(

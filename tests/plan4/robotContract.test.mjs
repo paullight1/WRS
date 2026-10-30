@@ -74,7 +74,10 @@ test('onboarding and configuration use authoritative robot service boundaries', 
   assert.match(customize, /saveRobotConfiguration/)
   assert.doesNotMatch(customize, /Robot configuration saved['"]/)
   assert.match(onboarding, /requestedPackageSlug: 'free'/)
-  assert.doesNotMatch(onboarding, /requestedPackageSlug:\s*['"](?:starter|builder|professional|enterprise|elite|visionary)['"]/i)
+  assert.doesNotMatch(
+    onboarding,
+    /requestedPackageSlug:\s*['"](?:starter|builder|professional|enterprise|elite|visionary)['"]/i,
+  )
 })
 
 test('passport no longer claims static identity/history as authoritative production state', () => {

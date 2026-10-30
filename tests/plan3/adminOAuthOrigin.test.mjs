@@ -20,7 +20,10 @@ test('OAuth without an explicit return target keeps the existing root-app destin
 test('OAuth rejects an unconfigured sibling origin', () => {
   process.env.WRS_ALLOWED_WEB_ORIGINS = adminOrigin
 
-  assert.throws(() => resolveOAuthReturnTo(apiRequest, 'https://other.worldroboticsystem.com/auth/callback'), /return origin/i)
+  assert.throws(
+    () => resolveOAuthReturnTo(apiRequest, 'https://other.worldroboticsystem.com/auth/callback'),
+    /return origin/i,
+  )
 })
 
 test('OAuth rejects a relative path that tries to escape the configured origin', () => {
@@ -30,7 +33,14 @@ test('OAuth rejects a relative path that tries to escape the configured origin',
 })
 
 test('OAuth signs the validated admin return target into the state cookie', async () => {
-  const envNames = ['WRS_ALLOWED_WEB_ORIGINS', 'WRS_OAUTH_PROVIDERS', 'WRS_OAUTH_COOKIE_SECRET', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SECRET_KEY']
+  const envNames = [
+    'WRS_ALLOWED_WEB_ORIGINS',
+    'WRS_OAUTH_PROVIDERS',
+    'WRS_OAUTH_COOKIE_SECRET',
+    'SUPABASE_URL',
+    'SUPABASE_PUBLISHABLE_KEY',
+    'SUPABASE_SECRET_KEY',
+  ]
   const previousEnv = Object.fromEntries(envNames.map((name) => [name, process.env[name]]))
   const originalFetch = globalThis.fetch
   process.env.WRS_ALLOWED_WEB_ORIGINS = adminOrigin
@@ -43,7 +53,10 @@ test('OAuth signs the validated admin return target into the state cookie', asyn
 
   try {
     const result = await beginOAuth(apiRequest, 'google', `${adminOrigin}/auth/callback`)
-    const payload = verifySignedToken(parseCookies(new Request(apiRequest.url, { headers: { cookie: result.cookie } })).wrs_oauth, process.env.WRS_OAUTH_COOKIE_SECRET)
+    const payload = verifySignedToken(
+      parseCookies(new Request(apiRequest.url, { headers: { cookie: result.cookie } })).wrs_oauth,
+      process.env.WRS_OAUTH_COOKIE_SECRET,
+    )
     assert.equal(payload.returnTo, `${adminOrigin}/auth/callback`)
   } finally {
     globalThis.fetch = originalFetch

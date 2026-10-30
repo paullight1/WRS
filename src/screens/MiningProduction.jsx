@@ -55,8 +55,8 @@ function robotSlotProgress(value) {
 
 function defaultWorksiteId(snapshot) {
   return (
-    snapshot?.worksites?.find((site) => site.available && site.name.trim().toLowerCase() === 'manufacturing')?.worksiteId ||
-    ''
+    snapshot?.worksites?.find((site) => site.available && site.name.trim().toLowerCase() === 'manufacturing')
+      ?.worksiteId || ''
   )
 }
 
@@ -290,13 +290,15 @@ export default function MiningProduction() {
               <span id="mining-worksite-previews">Choose your worksite</span>
             </SectionTitle>
             <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3">
-              {Object.entries(worksites).map(([key, site]) => (
+              {Object.entries(worksites).map(([key, site]) =>
                 (() => {
                   const serverSite = snapshot.worksites.find(
                     (choice) => choice.name.trim().toLowerCase() === site.name.toLowerCase(),
                   )
                   const isStartingWorksite = key === 'manufacturing' && serverSite?.available
-                  const isActiveWorksite = Boolean(currentSession?.worksiteId && serverSite?.worksiteId === currentSession.worksiteId)
+                  const isActiveWorksite = Boolean(
+                    currentSession?.worksiteId && serverSite?.worksiteId === currentSession.worksiteId,
+                  )
                   const isSelected = !currentSession && serverSite?.worksiteId === selectedWorksiteId
                   const locked = !isStartingWorksite && !isActiveWorksite
                   const disabled = locked || Boolean(currentSession) || !serverSite?.available
@@ -338,8 +340,8 @@ export default function MiningProduction() {
                       </div>
                     </button>
                   )
-                })()
-              ))}
+                })(),
+              )}
             </div>
             <p className="-mt-2 text-label-sm text-on-surface-variant">
               {startingWorksite

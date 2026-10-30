@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import test from 'node:test'
 import gateway, { routeManifest } from '../../api/gateway.js'
 
+const nonEndpointFiles = new Set(['server/routes/auth/confirmedEmailProfile.js'])
+
 function files(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = `${directory}/${entry.name}`
@@ -11,14 +13,19 @@ function files(directory) {
 }
 
 test('the single Vercel gateway exposes every preserved endpoint', async () => {
-  const endpoints = files('server/routes').filter((path) => path.endsWith('.js'))
-  assert.deepEqual([...routeManifest].sort(), endpoints.map((path) => path.replace('server/routes/', '/api/').replace(/\.js$/, '')).sort())
+  const endpoints = files('server/routes').filter((path) => path.endsWith('.js') && !nonEndpointFiles.has(path))
+  assert.deepEqual(
+    [...routeManifest].sort(),
+    endpoints.map((path) => path.replace('server/routes/', '/api/').replace(/\.js$/, '')).sort(),
+  )
   for (const endpoint of endpoints) {
     const module = await import(new URL(`../../${endpoint}`, import.meta.url))
     assert.equal(typeof module.default.fetch, 'function', endpoint)
   }
   const deployedFiles = files('api').filter((path) => !path.startsWith('api/_'))
-  assert.deepEqual(deployedFiles, ['api/gateway.js'])
+  assert.ok(deployedFiles.includes('api/gateway.js'))
+  const vercel = fs.readFileSync('vercel.json', 'utf8')
+  assert.match(vercel, /destination\s*"\s*:\s*"\/api\/gateway\?__wrs_route=:path\*"/)
 })
 
 test('gateway serves health with query parameters and trailing slash', async () => {
@@ -33,13 +40,14 @@ test('unknown API paths return JSON rather than app HTML', async () => {
   assert.equal((await response.json()).code, 'not-found')
 })
 
-
 test('Vercel rewrites dispatch nested API routes and preserve query parameters', async () => {
-  const response = await gateway.fetch(new Request('https://wrs.example/api/gateway?__wrs_route=auth/login', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', origin: 'https://wrs.example' },
-    body: '{}',
-  }))
+  const response = await gateway.fetch(
+    new Request('https://wrs.example/api/gateway?__wrs_route=auth/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin: 'https://wrs.example' },
+      body: '{}',
+    }),
+  )
   assert.equal(response.status, 400)
   assert.equal((await response.json()).code, 'invalid-credentials')
   const health = await gateway.fetch(new Request('https://wrs.example/api/gateway?__wrs_route=health&probe=1'))

@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { assertAllowedMutationOrigin, configuredWebOrigins, corsResponse, preflightResponse } from '../../../api/_lib/origins.js'
+import {
+  assertAllowedMutationOrigin,
+  configuredWebOrigins,
+  corsResponse,
+  preflightResponse,
+} from '../../../api/_lib/origins.js'
 
 const apiOrigin = 'https://worldroboticsystem.com'
 const adminOrigin = 'https://admin.worldroboticsystem.com'
@@ -32,8 +37,12 @@ describe('configured WRS web origins', () => {
   it('rejects an unconfigured sibling and cross-site mutation', () => {
     process.env.WRS_ALLOWED_WEB_ORIGINS = adminOrigin
 
-    expect(() => assertAllowedMutationOrigin(request({ origin: 'https://support.worldroboticsystem.com' }))).toThrow(/cross-origin/i)
-    expect(() => assertAllowedMutationOrigin(request({ origin: adminOrigin, fetchSite: 'cross-site' }))).toThrow(/cross-site/i)
+    expect(() => assertAllowedMutationOrigin(request({ origin: 'https://support.worldroboticsystem.com' }))).toThrow(
+      /cross-origin/i,
+    )
+    expect(() => assertAllowedMutationOrigin(request({ origin: adminOrigin, fetchSite: 'cross-site' }))).toThrow(
+      /cross-site/i,
+    )
   })
 
   it('preserves requests without an Origin header', () => {
@@ -42,11 +51,13 @@ describe('configured WRS web origins', () => {
 
   it('returns a credentialed exact-origin preflight response', () => {
     process.env.WRS_ALLOWED_WEB_ORIGINS = adminOrigin
-    const response = preflightResponse(request({
-      method: 'OPTIONS',
-      origin: adminOrigin,
-      headers: { 'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type' },
-    }))
+    const response = preflightResponse(
+      request({
+        method: 'OPTIONS',
+        origin: adminOrigin,
+        headers: { 'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type' },
+      }),
+    )
 
     expect(response.status).toBe(204)
     expect(response.headers.get('access-control-allow-origin')).toBe(adminOrigin)
@@ -58,7 +69,15 @@ describe('configured WRS web origins', () => {
     process.env.WRS_ALLOWED_WEB_ORIGINS = adminOrigin
     const response = new Response('ok')
 
-    expect(corsResponse(request({ method: 'GET', origin: adminOrigin }), response).headers.get('access-control-allow-origin')).toBe(adminOrigin)
-    expect(corsResponse(request({ method: 'GET', origin: 'https://support.worldroboticsystem.com' }), response).headers.get('access-control-allow-origin')).toBeNull()
+    expect(
+      corsResponse(request({ method: 'GET', origin: adminOrigin }), response).headers.get(
+        'access-control-allow-origin',
+      ),
+    ).toBe(adminOrigin)
+    expect(
+      corsResponse(request({ method: 'GET', origin: 'https://support.worldroboticsystem.com' }), response).headers.get(
+        'access-control-allow-origin',
+      ),
+    ).toBeNull()
   })
 })

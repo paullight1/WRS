@@ -8,8 +8,19 @@ test('rejects unknown application modes', () => {
   assert.throws(() => parseRuntimeConfig({ VITE_WRS_MODE: 'banana' }), /VITE_WRS_MODE/)
 })
 
-test('defaults to fail-closed staging behavior when mode is omitted', () => {
+test('defaults to a non-authoritative demo workspace when mode and public services are omitted', () => {
   const config = parseRuntimeConfig({})
+  assert.equal(config.mode, 'demo')
+  assert.equal(config.isDemo, true)
+  assert.equal(config.isStaging, false)
+  assert.equal(config.isProduction, false)
+})
+
+test('public Supabase configuration opts into staging without making it production', () => {
+  const config = parseRuntimeConfig({
+    VITE_PUBLIC_SUPABASE_URL: 'https://wrs.example.supabase.co',
+    VITE_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_example',
+  })
   assert.equal(config.mode, 'staging')
   assert.equal(config.isDemo, false)
   assert.equal(config.isStaging, true)

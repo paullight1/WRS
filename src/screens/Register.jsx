@@ -241,10 +241,7 @@ export default function Register() {
               </label>
             </div>
             {registrationConflict ? (
-              <div
-                role="alert"
-                className="mt-5 rounded-2xl border border-[#d9c9ee] bg-[#f8f5fd] p-4 text-left"
-              >
+              <div role="alert" className="mt-5 rounded-2xl border border-[#d9c9ee] bg-[#f8f5fd] p-4 text-left">
                 <h3 className="text-[16px] font-bold text-[#34224c]">This email already has an account</h3>
                 <p className="mt-1 text-[14px] font-medium leading-5 text-[#665c74]">
                   Sign in with this email or reset your password to get back into your account.

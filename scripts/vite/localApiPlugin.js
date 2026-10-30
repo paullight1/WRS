@@ -13,7 +13,8 @@ export function localApiPlugin(projectRoot) {
         const relativePath = decodeURIComponent(requestUrl.pathname).replace(/^\/+/, '')
         if (relativePath.includes('..')) return next()
         const handlerPath = path.resolve(projectRoot, 'api/gateway.js')
-        if (!handlerPath.startsWith(path.resolve(projectRoot, 'api') + path.sep) || !fs.existsSync(handlerPath)) return next()
+        if (!handlerPath.startsWith(path.resolve(projectRoot, 'api') + path.sep) || !fs.existsSync(handlerPath))
+          return next()
 
         try {
           const chunks = []

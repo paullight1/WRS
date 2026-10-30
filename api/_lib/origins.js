@@ -11,7 +11,14 @@ function originError(message) {
 function normalizedOrigin(value) {
   try {
     const url = new URL(value)
-    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
+    if (
+      !['http:', 'https:'].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      url.pathname !== '/' ||
+      url.search ||
+      url.hash
+    ) {
       return null
     }
     return url.origin
@@ -69,7 +76,8 @@ export function corsResponse(request, response) {
   const headers = new Headers(response.headers)
   for (const [name, value] of corsHeaders(origin)) headers.set(name, value)
   const vary = response.headers.get('vary')
-  if (vary && !vary.split(',').some((item) => item.trim().toLowerCase() === 'origin')) headers.set('vary', `${vary}, Origin`)
+  if (vary && !vary.split(',').some((item) => item.trim().toLowerCase() === 'origin'))
+    headers.set('vary', `${vary}, Origin`)
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
 }
 
@@ -96,7 +104,8 @@ export function preflightResponse(request) {
     .split(',')
     .map((header) => header.trim().toLowerCase())
     .filter(Boolean)
-  if (requestedHeaders.some((header) => !allowedHeaders.has(header))) return preflightError('Requested headers are not allowed.')
+  if (requestedHeaders.some((header) => !allowedHeaders.has(header)))
+    return preflightError('Requested headers are not allowed.')
 
   const headers = corsHeaders(origin)
   headers.set('access-control-allow-methods', [...allowedMethods].join(', '))

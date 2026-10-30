@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute } from './components/auth/AuthProvider.jsx'
 import { NotifyProvider } from './components/notifications/Notify.jsx'
@@ -25,6 +26,7 @@ import TrainingModule from './screens/TrainingModule.jsx'
 import DataContribution from './screens/DataContribution.jsx'
 import DataTask from './screens/DataTask.jsx'
 import DataQuality from './screens/DataQuality.jsx'
+import Deploy from './screens/Deploy.jsx'
 import DeploymentDetailsProduction from './screens/DeploymentDetailsProduction.jsx'
 import ActiveDeploymentProduction from './screens/ActiveDeploymentProduction.jsx'
 import MiningProduction from './screens/MiningProduction.jsx'
@@ -45,8 +47,10 @@ import SettingsProduction from './screens/SettingsProduction.jsx'
 import SecuritySettings from './screens/SecuritySettings.jsx'
 import SupportProduction from './screens/SupportProduction.jsx'
 import AccountDeletionRecoveryProduction from './screens/AccountDeletionRecoveryProduction.jsx'
-import AdminOperationsProduction from './screens/AdminOperationsProduction.jsx'
 import AuthCallback from './screens/AuthCallback.jsx'
+
+const ApplicationStyles = lazy(() => import('./components/ApplicationStyles.jsx'))
+const AdminOperationsProduction = lazy(() => import('./screens/AdminOperationsProduction.jsx'))
 
 const authenticated = (element) => <ProtectedRoute policy="authenticated">{element}</ProtectedRoute>
 const verified = (element) => <ProtectedRoute requireVerified>{element}</ProtectedRoute>
@@ -70,67 +74,94 @@ const SupportScreen = SupportProduction
 export default function App() {
   return (
     <ThemeProvider>
-    <AuthProvider>
-      <RobotProvider>
-        <NotifyProvider>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/app" element={<Splash />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/verify" element={<Verify />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+      <AuthProvider>
+        <RobotProvider>
+          <NotifyProvider>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route
+                element={
+                  <Suspense
+                    fallback={
+                      <div role="status" className="p-6">
+                        Loading workspace…
+                      </div>
+                    }
+                  >
+                    <ApplicationStyles />
+                  </Suspense>
+                }
+              >
+                <Route path="/app" element={<Splash />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/verify" element={<Verify />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-            <Route path="/account/deletion" element={accountRecovery(<AccountDeletionRecoveryProduction />)} />
+                <Route path="/account/deletion" element={accountRecovery(<AccountDeletionRecoveryProduction />)} />
 
-            <Route path="/onboarding" element={verified(<Onboarding />)} />
-            <Route path="/home" element={verified(<Home />)} />
-            <Route path="/robot" element={verified(<MyRobot />)} />
-            <Route path="/robot/passport" element={verified(<RobotPassport />)} />
-            <Route path="/robot/customize" element={verified(<Customize />)} />
+                <Route path="/onboarding" element={verified(<Onboarding />)} />
+                <Route path="/home" element={verified(<Home />)} />
+                <Route path="/robot" element={verified(<MyRobot />)} />
+                <Route path="/robot/passport" element={verified(<RobotPassport />)} />
+                <Route path="/robot/customize" element={verified(<Customize />)} />
 
-            <Route path="/packages" element={authenticated(<Packages />)} />
-            <Route path="/packages/:slug" element={authenticated(<PackageDetail />)} />
-            <Route path="/packages/:slug/checkout" element={verified(<Checkout />)} />
-            <Route path="/packages/:slug/success" element={verified(<PaymentSuccess />)} />
+                <Route path="/packages" element={authenticated(<Packages />)} />
+                <Route path="/packages/:slug" element={authenticated(<PackageDetail />)} />
+                <Route path="/packages/:slug/checkout" element={verified(<Checkout />)} />
+                <Route path="/packages/:slug/success" element={verified(<PaymentSuccess />)} />
 
-            <Route path="/training" element={verified(<Training />)} />
-            <Route path="/training/:slug" element={verified(<TrainingModule />)} />
-            <Route path="/data" element={verified(<DataContribution />)} />
-            <Route path="/data/quality" element={verified(<DataQuality />)} />
-            <Route path="/data/:slug" element={verified(<DataTask />)} />
+                <Route path="/training" element={verified(<Training />)} />
+                <Route path="/training/:slug" element={verified(<TrainingModule />)} />
+                <Route path="/data" element={verified(<DataContribution />)} />
+                <Route path="/data/quality" element={verified(<DataQuality />)} />
+                <Route path="/data/:slug" element={verified(<DataTask />)} />
 
-            <Route path="/deploy" element={verified(runtimeConfig.isDemo ? <Deploy /> : <MiningProduction />)} />
-            <Route path="/deploy/active" element={verified(<ActiveDeploymentScreen />)} />
-            <Route path="/deploy/active/:id" element={verified(<ActiveDeploymentScreen />)} />
-            <Route path="/deploy/:name" element={verified(<DeploymentDetailsScreen />)} />
+                <Route path="/deploy" element={verified(runtimeConfig.isDemo ? <Deploy /> : <MiningProduction />)} />
+                <Route path="/deploy/active" element={verified(<ActiveDeploymentScreen />)} />
+                <Route path="/deploy/active/:id" element={verified(<ActiveDeploymentScreen />)} />
+                <Route path="/deploy/:name" element={verified(<DeploymentDetailsScreen />)} />
 
-            <Route path="/wallet" element={kyc(<Wallet />)} />
-            <Route path="/wallet/transactions" element={kyc(<Transactions />)} />
-            <Route path="/wallet/data-revenue" element={kyc(<DataRevenue />)} />
+                <Route path="/wallet" element={kyc(<Wallet />)} />
+                <Route path="/wallet/transactions" element={kyc(<Transactions />)} />
+                <Route path="/wallet/data-revenue" element={kyc(<DataRevenue />)} />
 
-            <Route path="/rewards" element={verified(<RewardsScreen />)} />
-            <Route path="/rewards/event-code" element={verified(<EventCodeScreen />)} />
-            <Route path="/rewards/boosts" element={verified(<BoostsScreen />)} />
-            <Route path="/marketplace" element={verified(<MarketplaceScreen />)} />
-            <Route path="/academy" element={verified(<AcademyScreen />)} />
-            <Route path="/community" element={verified(<CommunityScreen />)} />
-            <Route path="/referrals" element={verified(<ReferralsScreen />)} />
-            <Route path="/notifications" element={authenticated(<Notifications />)} />
+                <Route path="/rewards" element={verified(<RewardsScreen />)} />
+                <Route path="/rewards/event-code" element={verified(<EventCodeScreen />)} />
+                <Route path="/rewards/boosts" element={verified(<BoostsScreen />)} />
+                <Route path="/marketplace" element={verified(<MarketplaceScreen />)} />
+                <Route path="/academy" element={verified(<AcademyScreen />)} />
+                <Route path="/community" element={verified(<CommunityScreen />)} />
+                <Route path="/referrals" element={verified(<ReferralsScreen />)} />
+                <Route path="/notifications" element={authenticated(<Notifications />)} />
 
-            <Route path="/more" element={authenticated(<More />)} />
-            <Route path="/profile" element={authenticated(<ProfileScreen />)} />
-            <Route path="/settings" element={authenticated(<SettingsScreen />)} />
-            <Route path="/settings/security" element={authenticated(<SecuritySettings />)} />
-            <Route path="/support" element={authenticated(<SupportScreen />)} />
-            <Route path="/admin/operations" element={operations(<AdminOperationsProduction />)} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </NotifyProvider>
-      </RobotProvider>
-    </AuthProvider>
+                <Route path="/more" element={authenticated(<More />)} />
+                <Route path="/profile" element={authenticated(<ProfileScreen />)} />
+                <Route path="/settings" element={authenticated(<SettingsScreen />)} />
+                <Route path="/settings/security" element={authenticated(<SecuritySettings />)} />
+                <Route path="/support" element={authenticated(<SupportScreen />)} />
+                <Route
+                  path="/admin/operations"
+                  element={operations(
+                    <Suspense
+                      fallback={
+                        <div role="status" className="p-6">
+                          Loading admin…
+                        </div>
+                      }
+                    >
+                      <AdminOperationsProduction />
+                    </Suspense>,
+                  )}
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </NotifyProvider>
+        </RobotProvider>
+      </AuthProvider>
     </ThemeProvider>
   )
 }

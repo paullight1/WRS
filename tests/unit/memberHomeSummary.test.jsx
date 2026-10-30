@@ -1,5 +1,6 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import Home from '../../src/screens/Home.jsx'
 import { browserAccountClient } from '../../src/infrastructure/account/browserAccountClient.ts'
 import { browserRobotClient } from '../../src/infrastructure/robot/browserRobotClient.ts'
@@ -39,6 +40,8 @@ vi.mock('../../src/components/robot3d/Robot3D.jsx', () => ({ default: () => <div
 vi.mock('../../src/components/WelcomeModal.jsx', () => ({
   default: () => null,
   consumeWelcome: () => false,
+  hasSeenOnboarding: () => true,
+  markOnboardingSeen: vi.fn(),
 }))
 vi.mock('../../src/components/auth/AuthProvider.jsx', () => ({ useAuth: () => ({ session: { userId: 'user-1' } }) }))
 vi.mock('../../src/lib/runtimeConfig.js', () => ({
@@ -62,6 +65,13 @@ const miningSnapshot = (availableAtomic = '0') => ({
   balance: { availableAtomic, atomicScale: 2 },
 })
 
+const renderHome = () =>
+  render(
+    <MemoryRouter>
+      <Home />
+    </MemoryRouter>,
+  )
+
 describe('verified Home summary', () => {
   afterEach(cleanup)
 
@@ -74,7 +84,7 @@ describe('verified Home summary', () => {
   })
 
   it('uses the WRS logo and greets the authenticated profile name', async () => {
-    render(<Home />)
+    renderHome()
     expect(await screen.findByRole('img', { name: 'World Robotic System' })).toHaveAttribute(
       'src',
       '/wrs-logo-footer.png',
@@ -84,7 +94,7 @@ describe('verified Home summary', () => {
   })
 
   it('shows XP before the RoboCoin balance from authoritative services', async () => {
-    render(<Home />)
+    renderHome()
     await screen.findByText('1,250 XP')
     expect(screen.getByText('34.75 RBC')).toBeInTheDocument()
     expect(screen.getAllByRole('heading').map((heading) => heading.textContent)).toContain('XP balance')
@@ -93,24 +103,24 @@ describe('verified Home summary', () => {
   })
 
   it('claims and reports the server-confirmed daily login XP', async () => {
-    render(<Home />)
+    renderHome()
     expect(await screen.findByText('Daily login reward: +5 XP added.')).toBeInTheDocument()
     expect(browserMiningClient.claimDailyActivity).toHaveBeenCalledOnce()
   })
 
   it('shows a loading state while the verified summary is unresolved', () => {
     browserMiningClient.snapshot.mockImplementation(() => new Promise(() => {}))
-    render(<Home />)
+    renderHome()
     expect(screen.getByRole('status', { name: /member balances/i })).toBeInTheDocument()
   })
 
   it('shows a verified zero balance and never converts a missing value to zero', async () => {
     browserMiningClient.snapshot.mockResolvedValue(miningSnapshot('0'))
-    render(<Home />)
+    renderHome()
     expect(await screen.findByText('0.00 RBC')).toBeInTheDocument()
     cleanup()
     browserMiningClient.snapshot.mockResolvedValue(miningSnapshot(null))
-    render(<Home />)
+    renderHome()
     await waitFor(() => expect(screen.getByText(/no verified balance/i)).toBeInTheDocument())
   })
 
@@ -118,7 +128,7 @@ describe('verified Home summary', () => {
     browserAccountClient.snapshot.mockRejectedValue(new Error('Account unavailable'))
     browserRobotClient.passport.mockRejectedValue(new Error('Passport unavailable'))
     browserMiningClient.snapshot.mockRejectedValue(new Error('Mining unavailable'))
-    render(<Home />)
+    renderHome()
     expect(await screen.findByText(/Good (morning|afternoon|evening), there/)).toBeInTheDocument()
     await waitFor(() => expect(screen.getAllByText(/unavailable/i).length).toBeGreaterThanOrEqual(2))
     expect(screen.queryByText('0 XP')).not.toBeInTheDocument()

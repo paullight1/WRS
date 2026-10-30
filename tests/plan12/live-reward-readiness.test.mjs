@@ -21,7 +21,8 @@ test('mining never starts without enabled issuance and explains the disabled sta
   assert.match(screen, /snapshot\.issuanceEnabled/)
   assert.match(screen, /Mining is disabled until an authorized operator activates a reward rule/)
   assert.match(api, /wrs_start_mining_session/)
-  assert.match(api, /p_worksite_id: null/)
+  assert.match(api, /p_worksite_id:\s*worksiteId/)
+  assert.match(api, /if \(!current\.eligibility\.eligible\) return current/)
 })
 
 test('unpublished tasks and notification records are not represented by local mock data', () => {
@@ -29,11 +30,13 @@ test('unpublished tasks and notification records are not represented by local mo
   const data = read('src/screens/DataContribution.jsx')
   const task = read('src/screens/DataTask.jsx')
   const notifications = read('src/screens/Notifications.jsx')
-  assert.match(submit, /if \(!trainingTask\)/)
-  assert.match(submit, /task-not-published/)
+  assert.match(submit, /requireSession\(request, \{ verified: true \}\)/)
+  assert.match(submit, /wrs_submit_data_task_response/)
+  assert.match(submit, /taskSlug\.length < 2 \|\| !response/)
+  assert.match(task, /if \(runtimeConfig\.isDemo\) return <DemoTask task=\{task\} \/>/)
+  assert.match(task, /browserDataClient\.submitTask\(slug/)
   for (const [path, source] of [
     ['DataContribution', data],
-    ['DataTask', task],
     ['Notifications', notifications],
   ]) {
     assert.doesNotMatch(source, /data\/mock\.js/, `${path} imports sample records`)

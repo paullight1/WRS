@@ -1,4 +1,11 @@
-import { appendCookies, assertSameOrigin, functionHandler, json, readJson, requireMethod } from '../../../api/_lib/http.js'
+import {
+  appendCookies,
+  assertSameOrigin,
+  functionHandler,
+  json,
+  readJson,
+  requireMethod,
+} from '../../../api/_lib/http.js'
 import { startMiningSession, validateMiningStartBody } from '../../../api/_lib/mining.js'
 import { requireSession } from '../../../api/_lib/session.js'
 

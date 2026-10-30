@@ -35,6 +35,8 @@ export interface ValidationIssue {
 export interface AuthSession {
   id: string
   userId: string
+  fullName?: string | null
+  email?: string | null
   status: AccountStatus
   emailVerified: boolean
   phoneVerified: boolean

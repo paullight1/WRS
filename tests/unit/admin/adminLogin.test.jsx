@@ -12,7 +12,11 @@ afterEach(() => {
 })
 
 function renderLogin() {
-  return render(<MemoryRouter><AdminLogin /></MemoryRouter>)
+  return render(
+    <MemoryRouter>
+      <AdminLogin />
+    </MemoryRouter>,
+  )
 }
 
 describe('AdminLogin', () => {
@@ -26,7 +30,9 @@ describe('AdminLogin', () => {
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'secret-password' } })
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
 
-    await waitFor(() => expect(authState.current.login).toHaveBeenCalledWith('operator@example.test', 'secret-password', true))
+    await waitFor(() =>
+      expect(authState.current.login).toHaveBeenCalledWith('operator@example.test', 'secret-password', true),
+    )
     expect(screen.queryByRole('link', { name: /register|create account/i })).toBeNull()
   })
 

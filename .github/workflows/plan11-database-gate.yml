@@ -96,6 +96,8 @@ jobs:
           done
           test "${count}" -eq "${expected_count}"
           echo "Applied ${count}/${expected_count} repository migrations"
+      - name: Verify referral approval without a paid plan
+        run: psql -v ON_ERROR_STOP=1 -f tests/database/referral-approval-invariants.sql
       - name: Run Plan 11 read-only verification SQL
         run: |
           set -euo pipefail

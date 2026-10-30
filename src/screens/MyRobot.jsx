@@ -170,7 +170,9 @@ export default function MyRobot() {
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-on-surface-variant">Voice ID</dt>
-                  <dd className="max-w-[60%] break-all text-right text-on-surface">{configuration.voiceProfileId || 'Not available'}</dd>
+                  <dd className="max-w-[60%] break-all text-right text-on-surface">
+                    {configuration.voiceProfileId || 'Not available'}
+                  </dd>
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-on-surface-variant">Last updated</dt>
@@ -222,9 +224,7 @@ export default function MyRobot() {
             ))}
           </Card>
           {!hasCapability(robot.packageSlug, 'deployment.standard') && (
-            <p className="mt-3 text-label-sm text-outline">
-              Some work options unlock as your robot grows.
-            </p>
+            <p className="mt-3 text-label-sm text-outline">Some work options unlock as your robot grows.</p>
           )}
         </section>
       )}

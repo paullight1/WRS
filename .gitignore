@@ -11,3 +11,6 @@ dist
 .playwright-cli/
 .worktrees/
 .wrs-data.json
+
+test-results/
+output/playwright/

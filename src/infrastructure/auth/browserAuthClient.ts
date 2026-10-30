@@ -35,11 +35,15 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const browserAuthClient = {
   session: () => request<{ session: AuthSession | null }>('/api/auth/session'),
   register: (input: RegistrationInput) =>
-    request<{ userId: string; email: string; confirmationRequired: boolean; challenges: VerificationChallengeSummary[] }>(
-      '/api/auth/register', {
+    request<{
+      userId: string
+      email: string
+      confirmationRequired: boolean
+      challenges: VerificationChallengeSummary[]
+    }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(input),
-      }),
+    }),
   resendConfirmation: (email: string) =>
     request<{ message: string }>('/api/auth/verification/resend-confirmation', {
       method: 'POST',

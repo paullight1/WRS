@@ -48,7 +48,10 @@ function formatXp(value) {
 function formatRbc(balance, pendingAtomic = 0n) {
   if (balance?.availableAtomic === null || balance?.atomicScale === null) return null
   try {
-    const amount = atomicUnitsToDecimal((BigInt(balance.availableAtomic) + pendingAtomic).toString(), balance.atomicScale)
+    const amount = atomicUnitsToDecimal(
+      (BigInt(balance.availableAtomic) + pendingAtomic).toString(),
+      balance.atomicScale,
+    )
     const [whole, fraction = ''] = amount.split('.')
     const groupedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     const minimumFraction = fraction.padEnd(2, '0')

@@ -7,7 +7,12 @@ export default function RobotSetupPanel({ robotState }) {
   let title = 'Set up your robot'
   let description = 'Your robot is not ready yet. Follow a few simple steps to build it and get started.'
   let action = (
-    <Button to="/onboarding" full className="min-h-12 shadow-[0_8px_24px_rgba(37,99,235,0.25)] sm:w-auto" icon="arrow_forward">
+    <Button
+      to="/onboarding"
+      full
+      className="min-h-12 shadow-[0_8px_24px_rgba(37,99,235,0.25)] sm:w-auto"
+      icon="arrow_forward"
+    >
       Set up my robot
     </Button>
   )
@@ -38,7 +43,12 @@ export default function RobotSetupPanel({ robotState }) {
     title = 'Finish setting up your robot'
     description = 'Your progress is saved. Pick up where you left off.'
     action = (
-      <Button to="/onboarding" full className="min-h-12 shadow-[0_8px_24px_rgba(37,99,235,0.25)] sm:w-auto" icon="arrow_forward">
+      <Button
+        to="/onboarding"
+        full
+        className="min-h-12 shadow-[0_8px_24px_rgba(37,99,235,0.25)] sm:w-auto"
+        icon="arrow_forward"
+      >
         Continue setup
       </Button>
     )

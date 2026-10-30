@@ -51,12 +51,13 @@ test('Phase 11.1 preflight fails closed for incomplete production infrastructure
 test('Phase 11.1 includes the complete ordered Supabase SQL pack', async () => {
   const migrationsUrl = new URL('../../supabase/migrations/', import.meta.url)
   const migrations = (await readdir(migrationsUrl)).filter((name) => name.endsWith('.sql')).sort()
-  assert.equal(migrations.length, 30, 'expected 30 ordered WRS migrations')
+  assert.ok(migrations.length >= 30, 'expected the full WRS migration pack')
   assert.equal(migrations[0], '20260821030000_plan3_identity.sql')
-  assert.equal(migrations.at(-1), '20260929130000_mining_reporting.sql')
+  assert.equal(migrations.at(-1), '20261030211347_simplify_referral_approval.sql')
 
   const guide = await text('supabase/MIGRATION_GUIDE.md')
-  for (const migration of migrations) assert.match(guide, new RegExp(migration.replaceAll('.', '\\.')))
+  const documented = [...guide.matchAll(/^\|\s*\d+\s*\|\s*`([^`]+\.sql)`\s*\|/gm)].map((match) => match[1])
+  assert.deepEqual(documented, migrations, 'migration guide must list every repository migration in timestamp order')
   assert.match(guide, /timestamp order/i)
   assert.match(guide, /staging/i)
   assert.match(guide, /production/i)

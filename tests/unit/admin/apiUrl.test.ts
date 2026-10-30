@@ -14,7 +14,10 @@ describe('apiUrl', () => {
     expect(apiUrl('/api/auth/session', 'https://api.example.test/')).toBe('https://api.example.test/api/auth/session')
   })
 
-  it.each(['not-an-origin', 'ftp://api.example.test', 'https://api.example.test/base'])('rejects invalid API origin %s', (origin) => {
-    expect(() => apiUrl('/api/auth/session', origin)).toThrow(/HTTP origin/)
-  })
+  it.each(['not-an-origin', 'ftp://api.example.test', 'https://api.example.test/base'])(
+    'rejects invalid API origin %s',
+    (origin) => {
+      expect(() => apiUrl('/api/auth/session', origin)).toThrow(/HTTP origin/)
+    },
+  )
 })

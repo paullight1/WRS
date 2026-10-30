@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import MiningProduction from '../../src/screens/MiningProduction.jsx'
 import { browserMiningClient } from '../../src/infrastructure/mining/browserMiningClient.ts'
 
@@ -35,7 +36,7 @@ const base = {
       unlockRequirement: 'Complete one full 24-hour mining cycle with the previous robots first',
     },
   ],
-  worksites: [{ worksiteId: 'site-1', name: 'Northern Test Facility', available: true }],
+  worksites: [{ worksiteId: 'site-1', name: 'Manufacturing', available: true }],
   stats: { activeRobots: 0, miningMilliseconds: 0, averageRateAtomicPerHour: null, atomicScale: 2 },
   balance: { availableAtomic: '0', atomicScale: 2 },
   eligibility: { eligible: true, reasonCodes: [] },
@@ -49,6 +50,13 @@ const base = {
     atomicUnitScale: 2,
   },
 }
+
+const renderMining = () =>
+  render(
+    <MemoryRouter>
+      <MiningProduction />
+    </MemoryRouter>,
+  )
 
 describe('Mining robot selection', () => {
   afterEach(cleanup)
@@ -76,17 +84,18 @@ describe('Mining robot selection', () => {
   })
 
   it('explains and disables robots that have not unlocked', async () => {
-    render(<MiningProduction />)
+    renderMining()
     expect(await screen.findByRole('radio', { name: /WRS Builder/ })).toBeDisabled()
     expect(screen.getByText(/Complete one full 24-hour mining cycle/)).toBeInTheDocument()
   })
 
   it('starts one selected robot at the configured server rate and shows the selection as fixed', async () => {
-    render(<MiningProduction />)
+    renderMining()
     fireEvent.click(await screen.findByRole('button', { name: /Start mining/ }))
     await waitFor(() =>
       expect(browserMiningClient.start).toHaveBeenCalledWith({
         robotId: 'robot-1',
+        worksiteId: 'site-1',
         idempotencyKey: expect.any(String),
       }),
     )
@@ -113,7 +122,7 @@ describe('Mining robot selection', () => {
       },
       stats: { ...base.stats, activeRobots: 1 },
     })
-    render(<MiningProduction />)
+    renderMining()
     fireEvent.click(await screen.findByRole('tab', { name: 'Active' }))
     expect(await screen.findByText('WRS Explorer')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Start mining/ })).not.toBeInTheDocument()

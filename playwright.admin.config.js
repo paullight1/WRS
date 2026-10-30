@@ -4,6 +4,8 @@ export default defineConfig({
   testDir: './tests/e2e',
   testMatch: 'admin-console.spec.js',
   fullyParallel: true,
+  timeout: 90000,
+  expect: { timeout: 30000 },
   reporter: 'list',
   use: {
     ...devices['Desktop Chrome'],

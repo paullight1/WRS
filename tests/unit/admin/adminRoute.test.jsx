@@ -29,7 +29,14 @@ function renderGuarded(initialEntry = '/operations') {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
-        <Route path="*" element={<AdminRoute><div>Operations console</div></AdminRoute>} />
+        <Route
+          path="*"
+          element={
+            <AdminRoute>
+              <div>Operations console</div>
+            </AdminRoute>
+          }
+        />
         <Route path="/login" element={<div>Admin sign in</div>} />
         <Route path="/verify" element={<div>Verify your operator account</div>} />
       </Routes>

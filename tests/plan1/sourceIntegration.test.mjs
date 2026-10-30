@@ -10,7 +10,7 @@ const guardedScreens = [
   ['src/screens/Wallet.jsx', 'wallet.withdraw'],
   ['src/screens/EventCode.jsx', 'reward.eventCode'],
   ['src/screens/Boosts.jsx', 'reward.boost'],
-  ['src/screens/TrainingModule.jsx', 'data.taskSubmit'],
+  ['src/screens/DataTask.jsx', 'data.taskSubmit'],
   ['src/screens/DeploymentDetails.jsx', 'deployment.request'],
   ['src/screens/ActiveDeployment.jsx', 'deployment.pause'],
   ['src/screens/Settings.jsx', 'account.deleteData'],
@@ -27,8 +27,13 @@ test('every audited sensitive screen consumes the centralized policy', () => {
 
 test('payment success route uses verified access evaluation rather than route presence', () => {
   const source = read('src/screens/PaymentSuccess.jsx')
-  assert.match(source, /evaluatePaymentSuccessAccess/)
+  assert.match(source, /getSensitiveActionPolicy\(['"]payment\.success['"]\)/)
+  assert.match(source, /browserFinanceClient\s*\.verifyPayment\(reference\)/)
   assert.match(source, /location\.search|useLocation/)
+  assert.match(
+    source,
+    /result\?\.status\s*!==\s*['"]succeeded['"]|result\.status\s*!==\s*['"]succeeded['"]|result\?\.status\s*===\s*['"]succeeded['"]|result\.status\s*===\s*['"]succeeded['"]/,
+  )
 })
 
 test('marketplace member route is inert until catalogue commerce is available', () => {

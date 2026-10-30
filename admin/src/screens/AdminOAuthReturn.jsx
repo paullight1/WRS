@@ -1,26 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../src/components/auth/AuthProvider.jsx'
 
 export default function AdminOAuthReturn() {
-  const auth = useAuth()
+  const { refresh } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const [error, setError] = useState('')
+  const error = new URLSearchParams(location.search).has('error')
+    ? 'Single sign-on could not be completed. Please sign in again.'
+    : ''
 
   useEffect(() => {
     let active = true
-    if (new URLSearchParams(location.search).has('error')) {
-      setError('Single sign-on could not be completed. Please sign in again.')
-      return () => { active = false }
-    }
-    auth.refresh().then((session) => {
+    if (error) return
+    refresh().then((session) => {
       if (!active) return
       if (session) navigate('/', { replace: true })
       else navigate('/login', { replace: true, state: { error: true } })
     })
-    return () => { active = false }
-  }, [auth, location.search, navigate])
+    return () => {
+      active = false
+    }
+  }, [refresh, error, navigate])
 
   return (
     <main className="admin-auth-page">
@@ -28,7 +29,11 @@ export default function AdminOAuthReturn() {
         <span className="admin-eyebrow">WRS ADMIN CONSOLE</span>
         <h1>{error ? 'Sign-in needs attention' : 'Finishing secure sign in'}</h1>
         {error ? <p role="alert">{error}</p> : <p role="status">Checking your existing operator session…</p>}
-        {error && <Link className="admin-auth-help" to="/login">Return to operator sign in</Link>}
+        {error && (
+          <Link className="admin-auth-help" to="/login">
+            Return to operator sign in
+          </Link>
+        )}
       </section>
     </main>
   )

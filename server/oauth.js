@@ -104,7 +104,10 @@ export async function beginOAuth(request, provider, returnTo) {
 
   const cookie = serializeCookie(
     OAUTH_COOKIE,
-    signedToken({ v: 1, rowId, provider: normalized, state, nonce, verifier, returnTo: redirectTo, exp: expiresAt.getTime() }, secret()),
+    signedToken(
+      { v: 1, rowId, provider: normalized, state, nonce, verifier, returnTo: redirectTo, exp: expiresAt.getTime() },
+      secret(),
+    ),
     { secure: secureCookie(), sameSite: 'Lax', maxAge: Math.floor(OAUTH_TTL_MS / 1000) },
   )
   const url = new URL(`${supabaseBaseUrl()}/auth/v1/authorize`)

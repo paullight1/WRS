@@ -167,6 +167,8 @@ export async function buildAppSession(user, accessToken) {
   return {
     id: claims.session_id,
     userId: user.id,
+    fullName: profile.full_name || null,
+    email: profile.normalized_email || null,
     status: profile.status || 'pending',
     emailVerified: Boolean(profile.email_verified_at),
     phoneVerified: true,

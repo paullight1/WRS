@@ -270,7 +270,9 @@ export default function Onboarding() {
         {step === 4 && (
           <div className="text-center">
             <Icon name="fact_check" className="mb-3 text-[44px] text-tertiary" fill />
-            <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Ready to create your robot?</h1>
+            <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">
+              Ready to create your robot?
+            </h1>
             <div className="mt-5 grid grid-cols-2 gap-2 text-left">
               {[
                 ['Robot', name],

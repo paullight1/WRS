@@ -142,7 +142,7 @@ test('community attendance is verifiable, leaderboard is opt-in and moderation i
   assert.match(read('server/routes/community/moderate.js'), /requireInternalBearer/)
 })
 
-test('referrals prevent self/duplicate attribution and qualify only after verified paid activation plus review window', () => {
+test('referrals prevent self/duplicate attribution and approve verified accounts without a paid plan', () => {
   const sql = read('supabase/migrations/20260822080000_plan8_ecosystem.sql').toLowerCase()
   assert.match(sql, /referral_profiles/)
   assert.match(sql, /referral_relationships/)
@@ -150,9 +150,16 @@ test('referrals prevent self/duplicate attribution and qualify only after verifi
   assert.match(sql, /unique\s*\(referred_user_id\)/)
   assert.match(sql, /email_verified_at/)
   assert.match(sql, /phone_verified_at/)
-  assert.match(sql, /package_entitlements/)
-  assert.match(sql, /interval '7 days'/)
-  assert.match(sql, /wrs_qualify_referral/)
+  const approval = read('supabase/migrations/20261030211347_simplify_referral_approval.sql').toLowerCase()
+  assert.match(approval, /wrs_qualify_referral/)
+  assert.match(approval, /for update/)
+  assert.match(approval, /status = 'active'/)
+  assert.match(approval, /email_verified_at is not null/)
+  assert.match(approval, /eligible_at = now\(\)/)
+  assert.doesNotMatch(approval, /package_entitlements|interval '7 days'|source\s*=\s*'payment'/)
+  assert.match(approval, /revoke all on function public\.wrs_qualify_referral\(uuid\) from public, anon, authenticated/)
+  assert.match(approval, /grant execute on function public\.wrs_qualify_referral\(uuid\) to service_role/)
+  assert.match(read('.github/workflows/plan11-database-gate.yml'), /tests\/database\/referral-approval-invariants\.sql/)
   assert.match(read('server/routes/referrals/qualify.js'), /requireInternalBearer/)
 })
 

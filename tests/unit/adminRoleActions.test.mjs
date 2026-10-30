@@ -32,6 +32,7 @@ function request(body, origin = 'https://wrs.example') {
 }
 const valid = { action: 'role.grant', userId: subject, role: 'reward_operator', reason: 'Approved staffing request' }
 beforeEach(() => {
+  mocks.serviceRest.mockResolvedValue({ data: [] })
   mocks.requireSession.mockResolvedValue({
     user: { id: actor },
     session: { mfaEnabled: true, mfaSatisfiedAt: new Date().toISOString() },
@@ -134,8 +135,10 @@ describe('exact role subject lookup', () => {
       p_operator_user_id: actor,
       p_identifier: identifier,
     })
-    expect(mocks.serviceRest).not.toHaveBeenCalled()
-    expect(Object.keys(await response.json()).sort()).toEqual(['identifier', 'roles', 'userId'])
+    expect(mocks.serviceRest).toHaveBeenCalledExactlyOnceWith(
+      `/rest/v1/user_roles?user_id=eq.${subject}&select=roles!inner(slug)&roles.slug=eq.admin&limit=1`,
+    )
+    expect(Object.keys(await response.json()).sort()).toEqual(['identifier', 'isAdmin', 'roles', 'userId'])
   })
   it.each(['', 'member', '*@example.test'])('rejects missing and partial identifiers %s', async (identifier) => {
     expect(
@@ -213,4 +216,13 @@ describe('initial-admin bootstrap', () => {
       expect(fetcher).toHaveBeenCalledTimes(1)
     },
   )
+})
+
+it('reports administrator access as read-only alongside manageable roles', async () => {
+  mocks.serviceRest.mockResolvedValueOnce({ data: [{ roles: { slug: 'admin' } }] })
+  const response = await roleSubject.fetch(
+    new Request(`https://wrs.example/api/admin/role-subject?identifier=${subject}`),
+  )
+  expect(response.status).toBe(200)
+  expect(await response.json()).toMatchObject({ isAdmin: true, roles: ['reward_operator'] })
 })

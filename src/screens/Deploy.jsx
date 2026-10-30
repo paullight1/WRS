@@ -3,19 +3,7 @@ import { Link } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import RobotFace from '../components/RobotFace.jsx'
 import Worksite3D from '../components/robot3d/Worksite3D.jsx'
-import {
-  ACCENTS,
-  Badge,
-  Button,
-  Card,
-  Field,
-  Icon,
-  Progress,
-  SectionTitle,
-  Toast,
-  tone,
-  IconTile,
-} from '../components/ui.jsx'
+import { ACCENTS, Badge, Button, Card, Field, Icon, SectionTitle, Toast, tone, IconTile } from '../components/ui.jsx'
 import { contribution, industries, robot, user, activeDeployments, deploymentHistory } from '../data/mock.js'
 import { worksiteFor } from '../data/worksites.js'
 import { getMiningCycleState, isMiningAreaUnlocked } from '../lib/miningCycle.js'
@@ -191,7 +179,11 @@ export default function Deploy() {
   const [selectedArea, setSelectedArea] = useState(() => window.localStorage.getItem(SELECTED_AREA_KEY))
   const [miningStartedAt, setMiningStartedAt] = useState(() => {
     const value = Number(window.localStorage.getItem(MINING_STARTED_AT_KEY))
-    return Number.isFinite(value) && value > 0 ? value : null
+    return Number.isFinite(value) && value > 0
+      ? value
+      : window.localStorage.getItem(SELECTED_AREA_KEY)
+        ? Date.now()
+        : null
   })
   const [lastClaimedAt, setLastClaimedAt] = useState(() => {
     const value = Number(window.localStorage.getItem(LAST_CLAIMED_KEY))
@@ -210,13 +202,11 @@ export default function Deploy() {
   }, [selectedArea, cycle.status])
 
   useEffect(() => {
-    if (!selectedArea || miningStartedAt) return
-    const startedAt = Date.now()
-    setMiningStartedAt(startedAt)
-    window.localStorage.setItem(MINING_STARTED_AT_KEY, String(startedAt))
-  }, [selectedArea, miningStartedAt])
+    if (miningStartedAt) window.localStorage.setItem(MINING_STARTED_AT_KEY, String(miningStartedAt))
+  }, [miningStartedAt])
 
-  const chooseStarter = () => {
+  function handleChooseStarter() {
+    // eslint-disable-next-line react-hooks/purity -- This runs only from the start button's click handler.
     const startedAt = Date.now()
     setSelectedArea(starter.name)
     setMiningStartedAt(startedAt)
@@ -369,7 +359,7 @@ export default function Deploy() {
                 <p className="mt-2 text-body-sm text-on-surface-variant">
                   Start with Warehouse Assistant. It is the only area unlocked for this account; the rest are pending.
                 </p>
-                <Button className="mt-4" full onClick={chooseStarter} icon="rocket_launch">
+                <Button className="mt-4" full onClick={handleChooseStarter} icon="rocket_launch">
                   Start Warehouse Assistant
                 </Button>
               </Card>

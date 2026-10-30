@@ -43,7 +43,11 @@ export default function PaymentSuccess() {
   if (runtimeConfig.isDemo) {
     return (
       <AppShell title="Purchase status" avatar={false}>
-        <StateView kind="locked" title="Payment verification unavailable" desc="A package entitlement can only be activated after an authoritative provider verification." />
+        <StateView
+          kind="locked"
+          title="Payment verification unavailable"
+          desc="A package entitlement can only be activated after an authoritative provider verification."
+        />
       </AppShell>
     )
   }

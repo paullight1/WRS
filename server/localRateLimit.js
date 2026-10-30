@@ -30,7 +30,9 @@ export function consumeLocalRateLimit(request, action, subject, limit, windowSec
   const windowStart = Math.floor(now / windowMs) * windowMs
   const forwarded = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
   const ip = forwarded.split(',')[0].trim()
-  const input = `${action}|${String(subject || '').trim().toLowerCase()}|${ip}`
+  const input = `${action}|${String(subject || '')
+    .trim()
+    .toLowerCase()}|${ip}`
   const digest = createHmac('sha256', localSecret).update(input).digest('hex')
   const key = `${action}:${digest}:${windowStart}`
 

@@ -10,6 +10,19 @@ import type { AccountSettings } from '../../domain/account/settings'
 
 type Json = Record<string, unknown>
 
+type TeamDirectory = {
+  members: Array<{ userId: string; fullName: string; email: string; roles: string[] }>
+  stats: {
+    total: number
+    active: number
+    pending: number
+    suspended: number
+    roleCounts: Record<string, number>
+    scope: 'all' | 'shown'
+  }
+  hasMore: boolean
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(apiUrl(path), {
     ...init,
@@ -57,8 +70,16 @@ const repository: AccountRepository = {
 }
 
 export const browserAccountClient = Object.assign(new AccountService(repository), {
+  supportThread: (ticketId: string, before: { id: string; time: string } | null = null) =>
+    request<{ messages: Record<string, unknown>[]; hasMore: boolean; before: { id: string; time: string } | null }>(
+      `/api/admin/support-thread?${new URLSearchParams({ ticketId, ...(before ? { beforeId: before.id, beforeTime: before.time } : {}) })}`,
+    ),
+
+  async team() {
+    return request<TeamDirectory>('/api/admin/team')
+  },
   roleSubject(identifier: string) {
-    return request<{ userId: string; identifier: string; roles: string[] }>(
+    return request<{ userId: string; identifier: string; roles: string[]; isAdmin?: boolean }>(
       `/api/admin/role-subject?identifier=${encodeURIComponent(identifier)}`,
     )
   },

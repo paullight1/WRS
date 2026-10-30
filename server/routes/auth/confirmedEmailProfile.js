@@ -2,7 +2,9 @@ import { serviceRest } from '../../../api/_lib/supabase.js'
 
 export async function syncConfirmedEmailProfile(user) {
   const userId = String(user?.id || '')
-  const email = String(user?.email || '').trim().toLowerCase()
+  const email = String(user?.email || '')
+    .trim()
+    .toLowerCase()
   const confirmedAtValue = user?.email_confirmed_at
   if (!userId || !email || !confirmedAtValue) return false
 
@@ -16,7 +18,9 @@ export async function syncConfirmedEmailProfile(user) {
   if (
     !profile ||
     profile.status !== 'pending' ||
-    String(profile.normalized_email || '').trim().toLowerCase() !== email
+    String(profile.normalized_email || '')
+      .trim()
+      .toLowerCase() !== email
   ) {
     return false
   }

@@ -6,12 +6,17 @@ import { pathToFileURL } from 'node:url'
 import gateway, { routeManifest } from '../../api/[...path].js'
 
 const routeRoot = path.resolve('server/routes')
+// This module is a shared auth helper, not a Fetch endpoint. It intentionally
+// stays out of the consolidated gateway manifest.
+const nonEndpointFiles = new Set(['auth/confirmedEmailProfile.js'])
 
 function routeFiles(directory = routeRoot) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const entryPath = path.join(directory, entry.name)
     if (entry.isDirectory()) return routeFiles(entryPath)
-    return entry.name.endsWith('.js') ? [path.relative(routeRoot, entryPath).replace(/\.js$/, '')] : []
+    if (!entry.name.endsWith('.js')) return []
+    const relative = path.relative(routeRoot, entryPath)
+    return nonEndpointFiles.has(relative) ? [] : [relative.replace(/\.js$/, '')]
   })
 }
 

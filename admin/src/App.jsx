@@ -13,7 +13,22 @@ export default function App() {
       <Route path="/login" element={<AdminLogin />} />
       <Route path="/verify" element={<AdminVerification />} />
       <Route path="/auth/callback" element={<AdminOAuthReturn />} />
-      <Route path="/" element={<AdminRoute><Suspense fallback={<div className="admin-auth-state" role="status">Loading operations workspace…</div>}><Operations /></Suspense></AdminRoute>} />
+      <Route
+        path="/"
+        element={
+          <AdminRoute>
+            <Suspense
+              fallback={
+                <div className="admin-auth-state" role="status">
+                  Loading operations workspace…
+                </div>
+              }
+            >
+              <Operations />
+            </Suspense>
+          </AdminRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

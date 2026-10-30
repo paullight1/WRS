@@ -37,20 +37,43 @@ export function auditConfiguration(env) {
   const target = String(env.WRS_SUPABASE_AUDIT_TARGET || '').trim()
   if (!Object.hasOwn(projectRefs, target)) throw new Error('WRS_SUPABASE_AUDIT_TARGET must be staging or production')
   const projectRef = String(env.WRS_SUPABASE_AUDIT_PROJECT_REF || '').trim()
-  if (projectRef !== projectRefs[target]) throw new Error('WRS_SUPABASE_AUDIT_PROJECT_REF does not match declared target')
+  if (projectRef !== projectRefs[target])
+    throw new Error('WRS_SUPABASE_AUDIT_PROJECT_REF does not match declared target')
   const publishableKey = String(env.WRS_SUPABASE_AUDIT_PUBLISHABLE_KEY || '').trim()
-  if (!/^sb_publishable_\S+$/.test(publishableKey)) throw new Error('WRS_SUPABASE_AUDIT_PUBLISHABLE_KEY must use a modern Supabase publishable key')
+  if (!/^sb_publishable_\S+$/.test(publishableKey))
+    throw new Error('WRS_SUPABASE_AUDIT_PUBLISHABLE_KEY must use a modern Supabase publishable key')
   let project
-  try { project = new URL(String(env.WRS_SUPABASE_AUDIT_URL || '').trim()) }
-  catch { throw new Error('WRS_SUPABASE_AUDIT_URL must be a valid HTTPS URL') }
-  if (project.protocol !== 'https:' || project.hostname !== `${projectRef}.supabase.co` || project.username || project.password || project.port || project.pathname !== '/' || project.search || project.hash) {
+  try {
+    project = new URL(String(env.WRS_SUPABASE_AUDIT_URL || '').trim())
+  } catch {
+    throw new Error('WRS_SUPABASE_AUDIT_URL must be a valid HTTPS URL')
+  }
+  if (
+    project.protocol !== 'https:' ||
+    project.hostname !== `${projectRef}.supabase.co` ||
+    project.username ||
+    project.password ||
+    project.port ||
+    project.pathname !== '/' ||
+    project.search ||
+    project.hash
+  ) {
     throw new Error('WRS_SUPABASE_AUDIT_URL does not match WRS_SUPABASE_AUDIT_PROJECT_REF')
   }
   const databaseUrl = String(env.WRS_SUPABASE_AUDIT_DB_URL || '').trim()
   let database
-  try { database = new URL(databaseUrl) }
-  catch { throw new Error('WRS_SUPABASE_AUDIT_DB_URL must be a valid PostgreSQL URL') }
-  if (!['postgres:', 'postgresql:'].includes(database.protocol) || !database.hostname || !database.username || !database.password || database.pathname !== '/postgres') {
+  try {
+    database = new URL(databaseUrl)
+  } catch {
+    throw new Error('WRS_SUPABASE_AUDIT_DB_URL must be a valid PostgreSQL URL')
+  }
+  if (
+    !['postgres:', 'postgresql:'].includes(database.protocol) ||
+    !database.hostname ||
+    !database.username ||
+    !database.password ||
+    database.pathname !== '/postgres'
+  ) {
     throw new Error('WRS_SUPABASE_AUDIT_DB_URL must be a complete postgres:// or postgresql:// connection URL')
   }
   // Support canonical Supabase direct connections and poolers only. The host and
@@ -70,7 +93,8 @@ export function auditConfiguration(env) {
   }
   if (database.hash) throw new Error('WRS_SUPABASE_AUDIT_DB_URL does not match declared target')
   const direct = database.hostname === `db.${projectRef}.supabase.co` && database.username === 'postgres'
-  const pooler = /^[a-z0-9-]+\.pooler\.supabase\.com$/.test(database.hostname) && database.username === `postgres.${projectRef}`
+  const pooler =
+    /^[a-z0-9-]+\.pooler\.supabase\.com$/.test(database.hostname) && database.username === `postgres.${projectRef}`
   if (!direct && !pooler) throw new Error('WRS_SUPABASE_AUDIT_DB_URL does not match declared target')
   return { target, projectRef, projectUrl: project.origin, projectHost: project.hostname, publishableKey, databaseUrl }
 }
@@ -89,17 +113,21 @@ export function repositoryMigrationNames(files) {
 
 export function assertMigrationParity(repositoryNames, appliedMigrations) {
   if (!Array.isArray(appliedMigrations)) throw new Error('Invalid applied migration names')
-  const appliedNames = appliedMigrations.map((row) => {
-    if (typeof row?.name !== 'string' || !row.name.trim()) throw new Error('Invalid applied migration name')
-    return row.name
-  }).sort()
+  const appliedNames = appliedMigrations
+    .map((row) => {
+      if (typeof row?.name !== 'string' || !row.name.trim()) throw new Error('Invalid applied migration name')
+      return row.name
+    })
+    .sort()
   if (new Set(appliedNames).size !== appliedNames.length) throw new Error('Duplicate applied migration name')
   const appliedSet = new Set(appliedNames)
   const repositorySet = new Set(repositoryNames)
   const missing = repositoryNames.filter((name) => !appliedSet.has(name))
   const unexpected = appliedNames.filter((name) => !repositorySet.has(name))
   if (missing.length || unexpected.length) {
-    throw new Error(`Live Supabase migration names differ: missing [${missing.join(', ')}]; unexpected [${unexpected.join(', ')}]`)
+    throw new Error(
+      `Live Supabase migration names differ: missing [${missing.join(', ')}]; unexpected [${unexpected.join(', ')}]`,
+    )
   }
   return appliedNames
 }
@@ -151,25 +179,44 @@ rollback;
 `
 
 function postgresAudit(databaseUrl) {
-  const result = spawnSync('docker', [
-    'run', '--rm', '-i', '-e', 'DATABASE_URL', postgresImage,
-    'sh', '-lc', 'exec psql "$DATABASE_URL" -X -q -v ON_ERROR_STOP=1 -At',
-  ], {
-    input: auditSql, encoding: 'utf8', timeout: 120_000, maxBuffer: 1024 * 1024,
-    env: { ...process.env, DATABASE_URL: databaseUrl },
-  })
+  const result = spawnSync(
+    'docker',
+    [
+      'run',
+      '--rm',
+      '-i',
+      '-e',
+      'DATABASE_URL',
+      postgresImage,
+      'sh',
+      '-lc',
+      'exec psql "$DATABASE_URL" -X -q -v ON_ERROR_STOP=1 -At',
+    ],
+    {
+      input: auditSql,
+      encoding: 'utf8',
+      timeout: 120_000,
+      maxBuffer: 1024 * 1024,
+      env: { ...process.env, DATABASE_URL: databaseUrl },
+    },
+  )
   if (result.error || result.status !== 0) throw new Error('Live Supabase PostgreSQL audit failed')
-  try { return JSON.parse(String(result.stdout || '').trim()) }
-  catch { throw new Error('Live Supabase PostgreSQL audit returned invalid JSON') }
+  try {
+    return JSON.parse(String(result.stdout || '').trim())
+  } catch {
+    throw new Error('Live Supabase PostgreSQL audit returned invalid JSON')
+  }
 }
 
 export function validateInfrastructure(audit, repositoryNames) {
-  if (!/^17\d{4}$/.test(String(audit.serverVersionNum || ''))) throw new Error('Supabase PostgreSQL major version must be 17')
+  if (!/^17\d{4}$/.test(String(audit.serverVersionNum || '')))
+    throw new Error('Supabase PostgreSQL major version must be 17')
   if (audit.pgcrypto !== true) throw new Error('pgcrypto extension is not installed')
   const appliedNames = assertMigrationParity(repositoryNames, audit.migrations)
   for (const name of criticalTables) {
     const states = (Array.isArray(audit.tables) ? audit.tables : []).filter((table) => table.name === name)
-    if (states.length !== 1 || states[0].exists !== true) throw new Error(`Live Supabase is missing critical WRS table: ${name}`)
+    if (states.length !== 1 || states[0].exists !== true)
+      throw new Error(`Live Supabase is missing critical WRS table: ${name}`)
     if (states[0].relrowsecurity !== true) throw new Error(`Live Supabase critical table lacks RLS: ${name}`)
   }
   const bucket = audit.bucket
@@ -184,39 +231,73 @@ export function validateInfrastructure(audit, repositoryNames) {
   }
   const allowedMimeTypes = new Set(bucket.allowed_mime_types)
   const missingMimeTypes = requiredMimeTypes.filter((mime) => !allowedMimeTypes.has(mime))
-  if (missingMimeTypes.length) throw new Error(`${privateBucket} is missing required MIME allowlist entries: ${missingMimeTypes.join(', ')}`)
+  if (missingMimeTypes.length)
+    throw new Error(`${privateBucket} is missing required MIME allowlist entries: ${missingMimeTypes.join(', ')}`)
   return { appliedNames, fileSizeLimit, allowedMimeTypes: [...allowedMimeTypes].sort() }
 }
 
-export async function runAudit({ env = process.env, migrationFiles, releaseCandidate, fetch: fetchHealth = globalThis.fetch, postgresAudit: queryDatabase = postgresAudit } = {}) {
+export async function runAudit({
+  env = process.env,
+  migrationFiles,
+  releaseCandidate,
+  fetch: fetchHealth = globalThis.fetch,
+  postgresAudit: queryDatabase = postgresAudit,
+} = {}) {
   const config = auditConfiguration(env)
-  const candidate = releaseCandidate ?? loadEvidence('Docs/production-readiness/11-live-activation/EVIDENCE_MATRIX.json').releaseCandidate
-  if (!/^[0-9a-f]{40}$/i.test(String(candidate || ''))) throw new Error('Plan 11 evidence must identify a full release candidate SHA')
-  const repositoryNames = repositoryMigrationNames(migrationFiles ?? fs.readdirSync('supabase/migrations').filter((name) => name.endsWith('.sql')))
+  const candidate =
+    releaseCandidate ??
+    loadEvidence('Docs/production-readiness/11-live-activation/EVIDENCE_MATRIX.json').releaseCandidate
+  if (!/^[0-9a-f]{40}$/i.test(String(candidate || '')))
+    throw new Error('Plan 11 evidence must identify a full release candidate SHA')
+  const repositoryNames = repositoryMigrationNames(
+    migrationFiles ?? fs.readdirSync('supabase/migrations').filter((name) => name.endsWith('.sql')),
+  )
   let authHealth
   try {
     authHealth = await fetchHealth(`${config.projectUrl}/auth/v1/health`, {
       headers: { apikey: config.publishableKey, accept: 'application/json' },
-      signal: AbortSignal.timeout(30_000), redirect: 'error',
+      signal: AbortSignal.timeout(30_000),
+      redirect: 'error',
     })
-  } catch { throw new Error('Supabase Auth health request failed') }
+  } catch {
+    throw new Error('Supabase Auth health request failed')
+  }
   if (!authHealth.ok) throw new Error(`Supabase Auth health failed with HTTP ${authHealth.status}`)
   const audit = await queryDatabase(config.databaseUrl)
   const state = validateInfrastructure(audit, repositoryNames)
   return {
-    gate: 'supabase-infrastructure', status: 'PROBE_PASS', checkedAt: new Date().toISOString(),
-    releaseCandidate: candidate, target: config.target, projectRef: config.projectRef, projectHost: config.projectHost,
-    postgresImage, serverVersion: audit.serverVersion, pgcrypto: true,
-    repositoryMigrationNames: repositoryNames, repositoryMigrationCount: repositoryNames.length,
-    appliedMigrationNames: state.appliedNames, appliedMigrationCount: state.appliedNames.length,
-    criticalTables, relrowsecurity: true,
-    privateBucket: { id: privateBucket, public: false, fileSizeLimit: state.fileSizeLimit, allowedMimeTypes: state.allowedMimeTypes },
+    gate: 'supabase-infrastructure',
+    status: 'PROBE_PASS',
+    checkedAt: new Date().toISOString(),
+    releaseCandidate: candidate,
+    target: config.target,
+    projectRef: config.projectRef,
+    projectHost: config.projectHost,
+    postgresImage,
+    serverVersion: audit.serverVersion,
+    pgcrypto: true,
+    repositoryMigrationNames: repositoryNames,
+    repositoryMigrationCount: repositoryNames.length,
+    appliedMigrationNames: state.appliedNames,
+    appliedMigrationCount: state.appliedNames.length,
+    criticalTables,
+    relrowsecurity: true,
+    privateBucket: {
+      id: privateBucket,
+      public: false,
+      fileSizeLimit: state.fileSizeLimit,
+      allowedMimeTypes: state.allowedMimeTypes,
+    },
     authHealth: 'ok',
     note: 'Read-only infrastructure probe for the declared target. This does not grant a Plan 11 gate or human approval PASS.',
   }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  try { process.stdout.write(`${JSON.stringify(await runAudit(), null, 2)}\n`) }
-  catch (error) { process.stderr.write(`${error.message}\n`); process.exitCode = 1 }
+  try {
+    process.stdout.write(`${JSON.stringify(await runAudit(), null, 2)}\n`)
+  } catch (error) {
+    process.stderr.write(`${error.message}\n`)
+    process.exitCode = 1
+  }
 }

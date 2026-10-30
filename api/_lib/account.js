@@ -280,16 +280,18 @@ export async function requireAdminSession(request, permission = 'operations.read
     p_user_id: resolved.user.id,
     p_permission: permission,
   })
-  if (allowed !== true) throw new HttpError(403, 'Operator permission is required.', 'operator-forbidden')
+  if (allowed !== true) throw new HttpError(403, 'You need access to this admin page.', 'operator-forbidden')
   if (options.stepUp && !recentMfa(resolved.session)) {
-    throw new HttpError(403, 'Recent MFA step-up is required for this operator action.', 'mfa-step-up-required')
+    throw new HttpError(403, 'Verify your security code before making this change.', 'mfa-step-up-required')
   }
   return resolved
 }
 
 async function recentRows(path) {
   const { data } = await serviceRest(path)
-  return Array.isArray(data) ? data : []
+  if (!Array.isArray(data))
+    throw new HttpError(502, 'An operations collection is unavailable.', 'operations-collection-unavailable')
+  return data
 }
 
 async function exactCount(path) {
@@ -302,6 +304,14 @@ async function exactCount(path) {
     throw new HttpError(502, 'An operations metric count is unavailable.', 'operations-count-unavailable')
   }
   return total
+}
+
+async function optionalExactCount(path) {
+  try {
+    return await exactCount(path)
+  } catch {
+    return null
+  }
 }
 
 async function operatorHasPermission(userId, permission) {
@@ -317,14 +327,14 @@ const overviewMetricQueries = [
     key: 'kyc_pending',
     permission: 'operations.kyc',
     scope: 'users',
-    query: () => exactCount('/rest/v1/user_profiles?kyc_status=eq.pending&select=user_id'),
+    query: () => exactCount('/rest/v1/user_profiles?status=neq.deleted&kyc_status=eq.pending&select=user_id'),
   },
   {
     key: 'support_open',
     permission: 'operations.support',
     scope: 'support',
     severity: 'attention',
-    query: () => exactCount('/rest/v1/support_tickets?status=in.(open,in_progress,waiting_user)&select=id'),
+    query: () => exactCount('/rest/v1/support_tickets?status=in.(open,in_progress)&select=id'),
   },
   {
     key: 'withdrawals_in_progress',
@@ -342,13 +352,13 @@ const overviewMetricQueries = [
     key: 'data_submissions_review',
     permission: 'operations.data',
     scope: 'data',
-    query: async () => {
-      const [submissions, taskResponses] = await Promise.all([
-        exactCount('/rest/v1/data_submissions?status=in.(submitted,processing,review)&select=id'),
-        exactCount('/rest/v1/data_task_responses?status=in.(submitted,review)&select=id'),
-      ])
-      return submissions + taskResponses
-    },
+    query: () => exactCount('/rest/v1/data_submissions?status=in.(submitted,processing,review)&select=id'),
+  },
+  {
+    key: 'data_task_responses_review',
+    permission: 'operations.data',
+    scope: 'data',
+    query: () => exactCount('/rest/v1/data_task_responses?status=in.(submitted,review)&select=id'),
   },
   {
     key: 'data_deletions_due',
@@ -368,42 +378,87 @@ const overviewMetricQueries = [
   },
 ]
 
+const overviewTotalQueries = [
+  ['users_total', 'operations.kyc', 'users', '/rest/v1/user_profiles?status=neq.deleted&select=user_id'],
+  ['users_active', 'operations.kyc', 'users', '/rest/v1/user_profiles?status=eq.active&select=user_id'],
+  ['users_pending', 'operations.kyc', 'users', '/rest/v1/user_profiles?status=eq.pending&select=user_id'],
+  ['users_suspended', 'operations.kyc', 'users', '/rest/v1/user_profiles?status=eq.suspended&select=user_id'],
+  ['support_total', 'operations.support', 'support', '/rest/v1/support_tickets?select=id'],
+  [
+    'support_finished',
+    'operations.support',
+    'support',
+    '/rest/v1/support_tickets?status=in.(resolved,closed)&select=id',
+  ],
+  ['payments_total', 'operations.finance', 'finance', '/rest/v1/payment_intents?select=id'],
+  ['payments_paid', 'operations.finance', 'finance', '/rest/v1/payment_intents?status=eq.succeeded&select=id'],
+  ['withdrawals_total', 'operations.finance', 'finance', '/rest/v1/withdrawals?select=id'],
+  ['withdrawals_paid', 'operations.finance', 'finance', '/rest/v1/withdrawals?status=eq.succeeded&select=id'],
+  ['payouts_paid', 'operations.finance', 'finance', '/rest/v1/deployment_settlements?status=eq.settled&select=id'],
+  ['robots_total', 'operations.deployment', 'deployments', '/rest/v1/robots?select=id'],
+  ['robots_active', 'operations.deployment', 'deployments', '/rest/v1/robots?lifecycle=eq.active&select=id'],
+  ['requests_total', 'operations.deployment', 'deployments', '/rest/v1/deployment_requests?select=id'],
+  ['jobs_total', 'operations.deployment', 'deployments', '/rest/v1/deployments?select=id'],
+  [
+    'jobs_active',
+    'operations.deployment',
+    'deployments',
+    '/rest/v1/deployments?status=in.(scheduled,active,paused)&select=id',
+  ],
+  ['jobs_completed', 'operations.deployment', 'deployments', '/rest/v1/deployments?status=eq.completed&select=id'],
+  ['submissions_total', 'operations.data', 'data', '/rest/v1/data_submissions?select=id'],
+  ['submissions_approved', 'operations.data', 'data', '/rest/v1/data_submissions?status=eq.approved&select=id'],
+  ['training_total', 'operations.data', 'data', '/rest/v1/data_task_responses?select=id'],
+  ['training_approved', 'operations.data', 'data', '/rest/v1/data_task_responses?status=eq.approved&select=id'],
+  ['deletions_total', 'operations.data', 'data', '/rest/v1/data_deletion_requests?select=id'],
+  ['referrals_total', 'operations.risk', 'risk', '/rest/v1/referral_relationships?select=id'],
+  ['referrals_approved', 'operations.risk', 'risk', '/rest/v1/referral_relationships?status=eq.qualified&select=id'],
+  ['community_reviews_total', 'operations.risk', 'risk', '/rest/v1/community_moderation_actions?select=id'],
+].map(([key, permission, scope, path]) => ({ key, permission, scope, query: () => exactCount(path) }))
+
 export async function operationsOverviewSummary(operatorUserId) {
-  const permitted = await Promise.all(
-    overviewMetricQueries.map(async (metric) => ({
-      metric,
-      allowed: await operatorHasPermission(operatorUserId, metric.permission),
-    })),
+  const permissionNames = [
+    ...new Set([
+      ...[...overviewMetricQueries, ...overviewTotalQueries].map((metric) => metric.permission),
+      'operations.rewards',
+    ]),
+  ]
+  const permissions = new Map(
+    await Promise.all(
+      permissionNames.map(async (permission) => [permission, await operatorHasPermission(operatorUserId, permission)]),
+    ),
   )
-
-  const metrics = await Promise.all(
-    permitted
-      .filter(({ allowed }) => allowed)
-      .map(async ({ metric }) => {
-        try {
+  const loadMetrics = (queries) =>
+    Promise.all(
+      queries
+        .filter((metric) => permissions.get(metric.permission))
+        .map(async (metric) => {
+          const value = await optionalExactCountQuery(metric.query)
           return {
             key: metric.key,
-            value: await metric.query(),
-            status: 'ready',
+            value,
+            status: value === null ? 'unavailable' : 'ready',
             scope: metric.scope,
             ...(metric.severity ? { severity: metric.severity } : {}),
           }
-        } catch {
-          return {
-            key: metric.key,
-            value: null,
-            status: 'unavailable',
-            scope: metric.scope,
-            ...(metric.severity ? { severity: metric.severity } : {}),
-          }
-        }
-      }),
-  )
-
+        }),
+    )
+  const [metrics, totals, recentUsers, rewardResult] = await Promise.all([
+    loadMetrics(overviewMetricQueries),
+    loadMetrics(overviewTotalQueries),
+    permissions.get('operations.kyc')
+      ? recentRows(
+          '/rest/v1/user_profiles?status=neq.deleted&select=user_id,full_name,normalized_email,status,created_at&order=created_at.desc,user_id.asc&limit=5',
+        ).catch(() => null)
+      : null,
+    permissions.get('operations.rewards')
+      ? serviceRpc('wrs_mining_operations_snapshot', { p_operator_user_id: operatorUserId }).catch(() => null)
+      : null,
+  ])
   let issuance = null
-  if (await operatorHasPermission(operatorUserId, 'operations.rewards')) {
-    try {
-      const { data } = await serviceRpc('wrs_mining_operations_snapshot', { p_operator_user_id: operatorUserId })
+  if (permissions.get('operations.rewards')) {
+    const data = rewardResult?.data
+    if (data?.issuance) {
       issuance = { ...data.issuance, status: 'ready' }
       const activeRule = (data.rules || []).find((rule) => rule.status === 'active')
       metrics.push({
@@ -412,75 +467,789 @@ export async function operationsOverviewSummary(operatorUserId) {
         status: 'ready',
         scope: 'rewards',
       })
-    } catch {
+    } else {
       issuance = { status: 'unavailable' }
       metrics.push({ key: 'reward_policy', value: null, status: 'unavailable', scope: 'rewards' })
     }
   }
+  return { generatedAt: new Date().toISOString(), metrics, totals, recentUsers, issuance }
+}
 
-  return { generatedAt: new Date().toISOString(), metrics, issuance }
+async function optionalExactCountQuery(query) {
+  try {
+    return await query()
+  } catch {
+    return null
+  }
+}
+
+const OPERATIONS_ROW_LIMIT = 100
+const RELATED_LOOKUP_LIMIT = 100
+const SUPPORT_MESSAGE_ROW_LIMIT = 1000
+
+function uniqueIds(rows, field) {
+  return [
+    ...new Set(
+      rows.map((row) => row?.[field]).filter((value) => value !== null && value !== undefined && String(value) !== ''),
+    ),
+  ]
+}
+
+function uniqueValues(values) {
+  return [...new Set(values.filter((value) => value !== null && value !== undefined && String(value) !== ''))]
+}
+
+function inFilter(field, values) {
+  return `${field}=in.(${values.map((value) => encodeURIComponent(String(value))).join(',')})`
+}
+
+function batches(values, size = RELATED_LOOKUP_LIMIT) {
+  const result = []
+  for (let index = 0; index < values.length; index += size) result.push(values.slice(index, index + size))
+  return result
+}
+
+async function relatedRows(path, rowLimit = RELATED_LOOKUP_LIMIT) {
+  try {
+    // Fetch one extra row so a bounded one-to-many lookup is never presented as
+    // complete. The caller receives the first deterministic rows plus an
+    // explicit truncation flag when the source has more data.
+    const separator = path.includes('?') ? '&' : '?'
+    const { data, response } = await serviceRest(`${path}${separator}limit=${rowLimit + 1}`, {
+      headers: { Prefer: 'count=exact' },
+    })
+    if (!Array.isArray(data)) throw new Error('Related data response was not a row collection.')
+    const range = response?.headers?.get('content-range') || ''
+    const exactTotal = range.includes('/') && !range.endsWith('/*') ? Number(range.split('/').at(-1)) : null
+    const truncated = data.length > rowLimit || (Number.isFinite(exactTotal) && exactTotal > data.length)
+    return { rows: truncated ? data.slice(0, rowLimit) : data, unavailable: false, truncated, missing: false }
+  } catch {
+    return { rows: [], unavailable: true, truncated: false, missing: false }
+  }
+}
+
+async function relatedRowsByIds(
+  table,
+  field,
+  ids,
+  select,
+  { rowLimit = RELATED_LOOKUP_LIMIT, order = '', filters = [], requireAll = false } = {},
+) {
+  if (!ids.length) return { rows: [], unavailable: false, truncated: false, missing: false }
+  const results = await Promise.all(
+    batches(ids).map((batch) => {
+      const orderFilter = order ? `&order=${order}` : ''
+      const extraFilters = filters.length ? `&${filters.join('&')}` : ''
+      return relatedRows(
+        `/rest/v1/${table}?${inFilter(field, batch)}&select=${select}${orderFilter}${extraFilters}`,
+        rowLimit,
+      )
+    }),
+  )
+  const rows = results.flatMap((result) => result.rows)
+  const returnedIds = new Set(
+    rows
+      .map((row) => row?.[field])
+      .filter(Boolean)
+      .map((value) => String(value)),
+  )
+  const missing = requireAll && ids.some((id) => !returnedIds.has(String(id)))
+  return {
+    rows,
+    unavailable: results.some((result) => result.unavailable) || missing,
+    truncated: results.some((result) => result.truncated),
+    missing,
+  }
+}
+
+function rowsBy(rows, field = 'id') {
+  return new Map(
+    rows.filter((row) => row?.[field] !== null && row?.[field] !== undefined).map((row) => [String(row[field]), row]),
+  )
+}
+
+function userContext(profile) {
+  return {
+    user_name: profile?.full_name ?? null,
+    user_email: profile?.normalized_email ?? null,
+    country_code: profile?.country_code ?? null,
+    country: profile?.country_code ?? null,
+  }
+}
+
+function withRelatedFailure(row, unavailable, truncated = false) {
+  return {
+    ...row,
+    ...(unavailable ? { relatedDataUnavailable: true } : {}),
+    ...(truncated ? { relatedDataTruncated: true } : {}),
+  }
+}
+
+async function loadProfilesForRows(rows, fields = ['user_id']) {
+  const ids = uniqueValues(fields.flatMap((field) => uniqueIds(rows, field)))
+  return relatedRowsByIds('user_profiles', 'user_id', ids, 'user_id,full_name,normalized_email,country_code', {
+    requireAll: true,
+  })
+}
+
+async function enrichJobs(rows, { profiles, robots, opportunities, unavailable = false } = {}) {
+  const profileMap = rowsBy(Array.isArray(profiles) ? profiles : profiles?.rows || [], 'user_id')
+  const robotMap = rowsBy(Array.isArray(robots) ? robots : robots?.rows || [])
+  const opportunityMap = rowsBy(Array.isArray(opportunities) ? opportunities : opportunities?.rows || [])
+  const truncated = Boolean(profiles?.truncated || robots?.truncated || opportunities?.truncated)
+  return rows.map((row) => {
+    const profile = row?.user_id ? profileMap.get(String(row.user_id)) : null
+    const robot = row?.robot_id ? robotMap.get(String(row.robot_id)) : null
+    const opportunity = row?.opportunity_id ? opportunityMap.get(String(row.opportunity_id)) : null
+    const next = {
+      ...row,
+      ...(row?.user_id ? userContext(profile) : {}),
+      ...(row?.robot_id ? { robot_name: robot?.name ?? null } : {}),
+      ...(row?.opportunity_id
+        ? {
+            job_title: opportunity?.title ?? row.job_title ?? null,
+            job_description: opportunity?.description ?? row.job_description ?? null,
+            rate_minor: opportunity?.rate_minor ?? row.rate_minor ?? null,
+            rate_unit: opportunity?.rate_unit ?? row.rate_unit ?? null,
+            currency: opportunity?.currency ?? row.currency ?? null,
+          }
+        : {}),
+    }
+    return withRelatedFailure(next, unavailable, truncated)
+  })
+}
+
+async function loadJobRelatedRows(rows) {
+  const [profiles, robots, opportunities] = await Promise.all([
+    loadProfilesForRows(rows),
+    relatedRowsByIds('robots', 'id', uniqueIds(rows, 'robot_id'), 'id,name', { requireAll: true }),
+    relatedRowsByIds(
+      'deployment_opportunities',
+      'id',
+      uniqueIds(rows, 'opportunity_id'),
+      'id,title,description,status,rate_minor,rate_unit,currency',
+      { requireAll: true },
+    ),
+  ])
+  return {
+    profiles,
+    robots,
+    opportunities,
+    unavailable: profiles.unavailable || robots.unavailable || opportunities.unavailable,
+    truncated: profiles.truncated || robots.truncated || opportunities.truncated,
+  }
+}
+
+async function countStats(definitions) {
+  const entries = await Promise.all(
+    Object.entries(definitions).map(async ([key, path]) => [key, await optionalExactCount(path)]),
+  )
+  return Object.fromEntries(entries)
+}
+
+function packageName(slug) {
+  return String(slug || '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
+function sortChronologically(rows) {
+  return [...rows].sort((left, right) => {
+    const leftTime = new Date(left?.created_at || 0).getTime()
+    const rightTime = new Date(right?.created_at || 0).getTime()
+    if (leftTime !== rightTime) return leftTime - rightTime
+    return String(left?.id || '').localeCompare(String(right?.id || ''))
+  })
+}
+
+async function enrichSupportRows(rows) {
+  const ticketIds = uniqueIds(rows, 'id')
+  const messageResult = await relatedRowsByIds(
+    'support_messages',
+    'ticket_id',
+    ticketIds,
+    'id,ticket_id,author_user_id,author_role,body,created_at',
+    { rowLimit: SUPPORT_MESSAGE_ROW_LIMIT, order: 'created_at.desc,id.desc' },
+  )
+  const actorIds = uniqueValues([
+    ...uniqueIds(rows, 'user_id'),
+    ...uniqueIds(rows, 'assigned_operator_id'),
+    ...uniqueIds(messageResult.rows, 'author_user_id'),
+  ])
+  const profileResult = await relatedRowsByIds(
+    'user_profiles',
+    'user_id',
+    actorIds,
+    'user_id,full_name,normalized_email,country_code',
+    { requireAll: true },
+  )
+  const profileMap = rowsBy(profileResult.rows, 'user_id')
+  const messagesByTicket = new Map()
+  for (const message of sortChronologically(messageResult.rows)) {
+    const actor = message.author_user_id ? profileMap.get(String(message.author_user_id)) : null
+    const enriched = {
+      ...message,
+      author_name: actor?.full_name ?? null,
+      author_email: actor?.normalized_email ?? null,
+      actor_name: actor?.full_name ?? null,
+      actor_email: actor?.normalized_email ?? null,
+    }
+    const collection = messagesByTicket.get(String(message.ticket_id)) || []
+    collection.push(enriched)
+    messagesByTicket.set(String(message.ticket_id), collection)
+  }
+  return rows.map((ticket) => {
+    const owner = ticket.user_id ? profileMap.get(String(ticket.user_id)) : null
+    const operator = ticket.assigned_operator_id ? profileMap.get(String(ticket.assigned_operator_id)) : null
+    const next = {
+      ...ticket,
+      ...(ticket.user_id ? userContext(owner) : {}),
+      ...(ticket.assigned_operator_id
+        ? {
+            assigned_operator_name: operator?.full_name ?? null,
+            assigned_operator_email: operator?.normalized_email ?? null,
+            assigned_name: operator?.full_name ?? null,
+            assigned_email: operator?.normalized_email ?? null,
+          }
+        : {}),
+      messages: messageResult.unavailable ? null : messagesByTicket.get(String(ticket.id)) || [],
+      ...(messageResult.truncated ? { messages_truncated: true } : {}),
+    }
+    return withRelatedFailure(
+      next,
+      messageResult.unavailable || profileResult.unavailable,
+      messageResult.truncated || profileResult.truncated,
+    )
+  })
+}
+
+function safeAssetMetadata(asset) {
+  if (!asset) return null
+  return {
+    id: asset.id,
+    user_id: asset.user_id,
+    purpose_slug: asset.purpose_slug,
+    data_category: asset.data_category,
+    mime_type: asset.mime_type,
+    size_bytes: asset.size_bytes,
+    checksum_sha256: asset.checksum_sha256,
+    scan_status: asset.scan_status,
+    status: asset.status,
+    uploaded_at: asset.uploaded_at,
+    created_at: asset.created_at,
+    updated_at: asset.updated_at,
+  }
+}
+
+async function enrichSubmissionRows(rows) {
+  const [profiles, assets] = await Promise.all([
+    loadProfilesForRows(rows),
+    relatedRowsByIds(
+      'data_assets',
+      'id',
+      uniqueIds(rows, 'asset_id'),
+      'id,user_id,purpose_slug,data_category,mime_type,size_bytes,checksum_sha256,scan_status,status,uploaded_at,created_at,updated_at',
+      { requireAll: true },
+    ),
+  ])
+  const profileMap = rowsBy(profiles.rows, 'user_id')
+  const assetMap = rowsBy(assets.rows)
+  const unavailable = profiles.unavailable || assets.unavailable
+  const truncated = profiles.truncated || assets.truncated
+  return rows.map((row) => {
+    const profile = row.user_id ? profileMap.get(String(row.user_id)) : null
+    const asset = row.asset_id ? safeAssetMetadata(assetMap.get(String(row.asset_id))) : null
+    const next = {
+      ...row,
+      ...(row.user_id ? userContext(profile) : {}),
+      ...(row.asset_id
+        ? {
+            asset,
+            data_category: asset?.data_category ?? null,
+            mime_type: asset?.mime_type ?? null,
+            size_bytes: asset?.size_bytes ?? null,
+            scan_status: asset?.scan_status ?? null,
+          }
+        : {}),
+    }
+    return withRelatedFailure(next, unavailable, truncated)
+  })
+}
+
+async function enrichDeletionRows(rows) {
+  const [profiles, assets] = await Promise.all([
+    loadProfilesForRows(rows),
+    relatedRowsByIds(
+      'data_assets',
+      'id',
+      uniqueIds(rows, 'asset_id'),
+      'id,user_id,purpose_slug,data_category,mime_type,size_bytes,checksum_sha256,scan_status,status,uploaded_at,created_at,updated_at',
+      { requireAll: true },
+    ),
+  ])
+  const profileMap = rowsBy(profiles.rows, 'user_id')
+  const assetMap = rowsBy(assets.rows)
+  const unavailable = profiles.unavailable || assets.unavailable
+  const truncated = profiles.truncated || assets.truncated
+  return rows.map((row) => {
+    const profile = row.user_id ? profileMap.get(String(row.user_id)) : null
+    const asset = row.asset_id ? safeAssetMetadata(assetMap.get(String(row.asset_id))) : null
+    const next = {
+      ...row,
+      ...(row.user_id ? userContext(profile) : {}),
+      data_category: asset?.data_category ?? row.data_category ?? null,
+      ...(row.asset_id ? { asset } : {}),
+    }
+    return withRelatedFailure(next, unavailable, truncated)
+  })
+}
+
+function referralEligibility(row, profile, { profilesUnavailable = false } = {}) {
+  if (row.status === 'qualified') {
+    return {
+      eligibility_status: 'ready',
+      eligibility_reason: 'Referral is already approved.',
+      eligible_at: row.eligible_at ?? null,
+    }
+  }
+  if (row.status === 'rejected') {
+    return {
+      eligibility_status: 'unverified',
+      eligibility_reason: 'Referral was rejected.',
+      eligible_at: row.eligible_at ?? null,
+    }
+  }
+  if (profilesUnavailable) {
+    return {
+      eligibility_status: 'unavailable',
+      eligibility_reason: 'Invited user details are unavailable. Refresh to retry.',
+      eligible_at: row.eligible_at ?? null,
+    }
+  }
+  if (!profile) {
+    return {
+      eligibility_status: 'unverified',
+      eligibility_reason: 'Invited user details could not be verified.',
+      eligible_at: row.eligible_at ?? null,
+    }
+  }
+  if (profile.status !== 'active') {
+    return {
+      eligibility_status: 'unverified',
+      eligibility_reason: 'Invited user is not active.',
+      eligible_at: row.eligible_at ?? null,
+    }
+  }
+  if (!profile.email_verified_at) {
+    return {
+      eligibility_status: 'unverified',
+      eligibility_reason: 'Invited user email is not verified.',
+      eligible_at: row.eligible_at ?? null,
+    }
+  }
+  return {
+    eligibility_status: 'ready',
+    eligibility_reason: 'Ready for approval.',
+    eligible_at: row.eligible_at ?? null,
+  }
+}
+
+const moderationTargetSources = {
+  event: {
+    table: 'community_events',
+    field: 'id',
+    select: 'id,title,description',
+    name: 'title',
+    content: 'description',
+  },
+  community_event: {
+    table: 'community_events',
+    field: 'id',
+    select: 'id,title,description',
+    name: 'title',
+    content: 'description',
+  },
+  announcement: {
+    table: 'community_announcements',
+    field: 'id',
+    select: 'id,title,body',
+    name: 'title',
+    content: 'body',
+  },
+  community_announcement: {
+    table: 'community_announcements',
+    field: 'id',
+    select: 'id,title,body',
+    name: 'title',
+    content: 'body',
+  },
+  marketplace_review: {
+    table: 'marketplace_reviews',
+    field: 'id',
+    select: 'id,review_text,rating',
+    name: null,
+    content: 'review_text',
+  },
+  review: {
+    table: 'marketplace_reviews',
+    field: 'id',
+    select: 'id,review_text,rating',
+    name: null,
+    content: 'review_text',
+  },
+  community_profile: {
+    table: 'community_leaderboard_profiles',
+    field: 'user_id',
+    select: 'user_id,display_alias',
+    name: 'display_alias',
+    content: null,
+  },
+  profile: {
+    table: 'community_leaderboard_profiles',
+    field: 'user_id',
+    select: 'user_id,display_alias',
+    name: 'display_alias',
+    content: null,
+  },
+}
+
+const OPERATOR_REFERENCE = /^operator:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
+
+function operatorReferenceUserId(value) {
+  const match = OPERATOR_REFERENCE.exec(String(value || ''))
+  return match ? match[1].toLowerCase() : null
+}
+
+async function enrichModerationRows(rows) {
+  const reviewerIds = uniqueValues(rows.map((row) => operatorReferenceUserId(row.operator_reference)))
+  const reviewerResult = await relatedRowsByIds(
+    'user_profiles',
+    'user_id',
+    reviewerIds,
+    'user_id,full_name,normalized_email',
+    { requireAll: true },
+  )
+  const reviewerMap = rowsBy(reviewerResult.rows, 'user_id')
+  const results = new Map()
+  await Promise.all(
+    Object.entries(moderationTargetSources).map(async ([targetType, source]) => {
+      const ids = uniqueValues(rows.filter((row) => row.target_type === targetType).map((row) => row.target_id))
+      if (!ids.length) return
+      const result = await relatedRowsByIds(source.table, source.field, ids, source.select, { requireAll: true })
+      results.set(targetType, { source, ...result, byId: rowsBy(result.rows, source.field) })
+    }),
+  )
+  return rows.map((row) => {
+    const result = results.get(row.target_type)
+    const target = result?.byId.get(String(row.target_id))
+    const reviewerId = operatorReferenceUserId(row.operator_reference)
+    const reviewer = reviewerId ? reviewerMap.get(reviewerId) : null
+    const next = {
+      ...row,
+      reviewer_name: reviewer?.full_name ?? null,
+      reviewer_email: reviewer?.normalized_email ?? null,
+      ...(result
+        ? {
+            target_name: result.source.name ? (target?.[result.source.name] ?? null) : null,
+            target_content: result.source.content ? (target?.[result.source.content] ?? null) : null,
+          }
+        : {}),
+    }
+    return withRelatedFailure(
+      next,
+      (result ? Boolean(result.unavailable) : true) || reviewerResult.unavailable,
+      Boolean(result?.truncated) || reviewerResult.truncated,
+    )
+  })
 }
 
 export async function operationsSnapshot(scope = 'overview') {
   const safeScope = String(scope || 'overview')
   if (safeScope === 'users') {
+    const profileFields =
+      'user_id,full_name,normalized_email,status,kyc_status,country_code,email_verified_at,phone_verified_at,created_at,updated_at'
+    const [users, identityChecks, total, active, pending, suspended, verificationPending, verified] = await Promise.all(
+      [
+        recentRows(`/rest/v1/user_profiles?status=neq.deleted&select=${profileFields}&order=created_at.desc&limit=100`),
+        recentRows(
+          `/rest/v1/user_profiles?status=neq.deleted&kyc_status=eq.pending&select=${profileFields}&order=updated_at.asc&limit=100`,
+        ).catch(() => null),
+        optionalExactCount('/rest/v1/user_profiles?status=neq.deleted&select=user_id'),
+        optionalExactCount('/rest/v1/user_profiles?status=eq.active&select=user_id'),
+        optionalExactCount('/rest/v1/user_profiles?status=eq.pending&select=user_id'),
+        optionalExactCount('/rest/v1/user_profiles?status=eq.suspended&select=user_id'),
+        optionalExactCount('/rest/v1/user_profiles?status=neq.deleted&kyc_status=eq.pending&select=user_id'),
+        optionalExactCount('/rest/v1/user_profiles?status=neq.deleted&kyc_status=eq.verified&select=user_id'),
+      ],
+    )
     return {
-      users: await recentRows(
-        '/rest/v1/user_profiles?select=user_id,status,kyc_status,country_code,email_verified_at,phone_verified_at,created_at,updated_at&order=created_at.desc&limit=100',
-      ),
+      users,
+      identityChecks,
+      userStats: { total, active, pending, suspended, verificationPending, verified },
     }
   }
   if (safeScope === 'support') {
-    return {
-      support: await recentRows(
-        '/rest/v1/support_tickets?select=id,user_id,category,subject,status,priority,assigned_operator_id,created_at,updated_at&order=updated_at.desc&limit=100',
-      ),
-    }
+    const rows = await recentRows(
+      `/rest/v1/support_tickets?select=id,user_id,category,subject,status,priority,assigned_operator_id,created_at,updated_at,resolved_at&order=updated_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+    )
+    const [support, stats] = await Promise.all([
+      enrichSupportRows(rows),
+      countStats({
+        total: '/rest/v1/support_tickets?select=id',
+        open: '/rest/v1/support_tickets?status=in.(open,in_progress)&select=id',
+        waiting: '/rest/v1/support_tickets?status=eq.waiting_user&select=id',
+        resolved: '/rest/v1/support_tickets?status=in.(resolved,closed)&select=id',
+      }),
+    ])
+    return { support, stats: { support: stats } }
   }
   if (safeScope === 'finance') {
+    const [withdrawals, payments, settlements] = await Promise.all([
+      recentRows(
+        `/rest/v1/withdrawals?select=id,user_id,amount_minor,currency,status,created_at,updated_at&order=created_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+      recentRows(
+        `/rest/v1/payment_intents?select=id,user_id,package_slug,amount_minor,currency,status,created_at,updated_at&order=created_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+      recentRows(
+        `/rest/v1/deployments?status=eq.completed&select=id,user_id,robot_id,opportunity_id,status,completed_at,updated_at&order=completed_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+    ])
+    const [withdrawalProfiles, paymentProfiles, jobRelated, settlementRows, stats] = await Promise.all([
+      loadProfilesForRows(withdrawals),
+      loadProfilesForRows(payments),
+      loadJobRelatedRows(settlements),
+      relatedRowsByIds(
+        'deployment_settlements',
+        'deployment_id',
+        uniqueIds(settlements, 'id'),
+        'id,deployment_id,user_id,amount_minor,currency,verified_work_count,status,settled_at',
+      ),
+      Promise.all([
+        countStats({
+          total: '/rest/v1/payment_intents?select=id',
+          paid: '/rest/v1/payment_intents?status=eq.succeeded&select=id',
+          pending: '/rest/v1/payment_intents?status=in.(initialized,pending)&select=id',
+          failed: '/rest/v1/payment_intents?status=in.(failed,refunded,reversed)&select=id',
+        }),
+        countStats({
+          total: '/rest/v1/withdrawals?select=id',
+          inProgress: '/rest/v1/withdrawals?status=in.(reserved,provider_pending)&select=id',
+          paid: '/rest/v1/withdrawals?status=eq.succeeded&select=id',
+          failed: '/rest/v1/withdrawals?status=in.(failed,reversed)&select=id',
+        }),
+        countStats({
+          total: '/rest/v1/deployments?status=eq.completed&select=id',
+          ready:
+            '/rest/v1/deployments?status=eq.completed&select=id,deployment_settlements!left(id)&deployment_settlements=is.null',
+          paid: '/rest/v1/deployment_settlements?status=eq.settled&select=id',
+        }),
+      ]),
+    ])
+    const paymentProfileMap = rowsBy(paymentProfiles.rows, 'user_id')
+    const withdrawalProfileMap = rowsBy(withdrawalProfiles.rows, 'user_id')
+    const enrichedPayments = payments.map((row) => {
+      const profile = row.user_id ? paymentProfileMap.get(String(row.user_id)) : null
+      return withRelatedFailure(
+        {
+          ...row,
+          ...(row.user_id ? userContext(profile) : {}),
+          plan_name: packageName(row.package_slug),
+          current_package: row.package_slug,
+        },
+        paymentProfiles.unavailable,
+      )
+    })
+    const enrichedWithdrawals = withdrawals.map((row) => {
+      const profile = row.user_id ? withdrawalProfileMap.get(String(row.user_id)) : null
+      return withRelatedFailure(
+        { ...row, ...(row.user_id ? userContext(profile) : {}) },
+        withdrawalProfiles.unavailable,
+      )
+    })
+    const settlementMap = rowsBy(settlementRows.rows, 'deployment_id')
+    const enrichedSettlements = await enrichJobs(settlements, jobRelated)
+    const finalSettlements = enrichedSettlements.map((row) => {
+      const settlement = settlementMap.get(String(row.id))
+      const next = settlementRows.unavailable
+        ? {
+            ...row,
+            payout_status: 'unavailable',
+            settlement_unavailable: true,
+          }
+        : settlement
+          ? {
+              ...row,
+              settlement_id: settlement.id,
+              settlement_amount_minor: settlement.amount_minor,
+              amount_minor: settlement.amount_minor,
+              currency: settlement.currency,
+              verified_work_count: settlement.verified_work_count,
+              settlement_status: settlement.status,
+              paid_status: settlement.status === 'settled' ? 'paid' : settlement.status,
+              payout_status: settlement.status,
+              settled_at: settlement.settled_at,
+            }
+          : {
+              ...row,
+              paid_status: 'unpaid',
+              payout_status: 'ready',
+            }
+      return withRelatedFailure(next, row.relatedDataUnavailable || settlementRows.unavailable)
+    })
     return {
-      withdrawals: await recentRows(
-        '/rest/v1/withdrawals?select=id,user_id,amount_minor,currency,status,created_at,updated_at&order=created_at.desc&limit=100',
-      ),
-      payments: await recentRows(
-        '/rest/v1/payment_intents?select=id,user_id,package_slug,amount_minor,currency,status,created_at,updated_at&order=created_at.desc&limit=100',
-      ),
-      settlements: await recentRows(
-        '/rest/v1/deployments?status=eq.completed&select=id,status,completed_at,updated_at&order=completed_at.desc&limit=100',
-      ),
+      withdrawals: enrichedWithdrawals,
+      payments: enrichedPayments,
+      settlements: finalSettlements,
+      stats: { payments: stats[0], withdrawals: stats[1], settlements: stats[2] },
     }
   }
   if (safeScope === 'deployments') {
+    const [deploymentRequests, deployments] = await Promise.all([
+      recentRows(
+        `/rest/v1/deployment_requests?select=id,user_id,robot_id,opportunity_id,status,requested_at,matched_at,decided_at&order=requested_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+      recentRows(
+        `/rest/v1/deployments?select=id,user_id,robot_id,opportunity_id,status,version,created_at,updated_at,completed_at&order=updated_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+    ])
+    const [requestRelated, deploymentRelated, stats] = await Promise.all([
+      loadJobRelatedRows(deploymentRequests),
+      loadJobRelatedRows(deployments),
+      Promise.all([
+        countStats({
+          total: '/rest/v1/deployment_requests?select=id',
+          requested: '/rest/v1/deployment_requests?status=eq.requested&select=id',
+          matched: '/rest/v1/deployment_requests?status=in.(matched,accepted)&select=id',
+          cancelled: '/rest/v1/deployment_requests?status=eq.cancelled&select=id',
+        }),
+        countStats({
+          total: '/rest/v1/deployments?select=id',
+          active: '/rest/v1/deployments?status=in.(scheduled,active,paused)&select=id',
+          completed: '/rest/v1/deployments?status=eq.completed&select=id',
+          failed: '/rest/v1/deployments?status=in.(failed,cancelled)&select=id',
+        }),
+      ]),
+    ])
     return {
-      deploymentRequests: await recentRows(
-        '/rest/v1/deployment_requests?status=eq.requested&select=id,status,requested_at,matched_at&order=requested_at.desc&limit=100',
-      ),
-      deployments: await recentRows(
-        '/rest/v1/deployments?select=id,user_id,robot_id,opportunity_id,status,version,created_at,updated_at&order=updated_at.desc&limit=100',
-      ),
+      deploymentRequests: await enrichJobs(deploymentRequests, requestRelated),
+      deployments: await enrichJobs(deployments, deploymentRelated),
+      stats: { deploymentRequests: stats[0], deployments: stats[1] },
     }
   }
   if (safeScope === 'data') {
+    const [submissions, taskResponses, deletions] = await Promise.all([
+      recentRows(
+        `/rest/v1/data_submissions?select=id,asset_id,user_id,status,quality_score,submission_metadata,review_notes,submitted_at,reviewed_at&order=submitted_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+      recentRows(
+        `/rest/v1/data_task_responses?select=id,user_id,task_slug,data_category,status,quality_score,submitted_at,reviewed_at,response&order=submitted_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+      recentRows(
+        `/rest/v1/data_deletion_requests?select=id,user_id,asset_id,reason,status,eligible_at,attempt_count,requested_at,completed_at&order=requested_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+    ])
+    const [enrichedSubmissions, taskProfiles, enrichedDeletions, stats] = await Promise.all([
+      enrichSubmissionRows(submissions),
+      loadProfilesForRows(taskResponses),
+      enrichDeletionRows(deletions),
+      Promise.all([
+        countStats({
+          total: '/rest/v1/data_submissions?select=id',
+          pending: '/rest/v1/data_submissions?status=in.(submitted,processing,review)&select=id',
+          approved: '/rest/v1/data_submissions?status=eq.approved&select=id',
+          rejected: '/rest/v1/data_submissions?status=eq.rejected&select=id',
+        }),
+        countStats({
+          total: '/rest/v1/data_task_responses?select=id',
+          pending: '/rest/v1/data_task_responses?status=in.(submitted,review)&select=id',
+          approved: '/rest/v1/data_task_responses?status=eq.approved&select=id',
+          rejected: '/rest/v1/data_task_responses?status=eq.rejected&select=id',
+        }),
+        countStats({
+          total: '/rest/v1/data_deletion_requests?select=id',
+          pending: '/rest/v1/data_deletion_requests?status=in.(requested,processing)&select=id',
+          completed: '/rest/v1/data_deletion_requests?status=eq.completed&select=id',
+          failed: '/rest/v1/data_deletion_requests?status=eq.failed&select=id',
+        }),
+      ]),
+    ])
+    const taskProfileMap = rowsBy(taskProfiles.rows, 'user_id')
+    const enrichedTaskResponses = taskResponses.map((row) =>
+      withRelatedFailure(
+        { ...row, ...(row.user_id ? userContext(taskProfileMap.get(String(row.user_id))) : {}) },
+        taskProfiles.unavailable,
+        taskProfiles.truncated,
+      ),
+    )
     return {
-      submissions: await recentRows(
-        '/rest/v1/data_submissions?select=id,user_id,status,quality_score,submitted_at,reviewed_at&order=submitted_at.desc&limit=100',
-      ),
-      taskResponses: await recentRows(
-        '/rest/v1/data_task_responses?select=id,task_slug,data_category,status,quality_score,submitted_at,response&order=submitted_at.desc&limit=100',
-      ),
-      deletions: await recentRows(
-        '/rest/v1/data_deletion_requests?select=id,user_id,status,eligible_at,attempt_count,requested_at,completed_at&order=requested_at.desc&limit=100',
-      ),
+      submissions: enrichedSubmissions,
+      taskResponses: enrichedTaskResponses,
+      deletions: enrichedDeletions,
+      stats: { submissions: stats[0], taskResponses: stats[1], deletions: stats[2] },
     }
   }
   if (safeScope === 'risk') {
+    const [referrals, moderation] = await Promise.all([
+      recentRows(
+        `/rest/v1/referral_relationships?select=id,referrer_user_id,referred_user_id,referral_code,status,eligible_at,qualified_at,created_at&order=created_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+      recentRows(
+        `/rest/v1/community_moderation_actions?select=id,target_type,target_id,action,reason,operator_reference,created_at&order=created_at.desc&limit=${OPERATIONS_ROW_LIMIT}`,
+      ),
+    ])
+    const referralUserIds = uniqueValues([
+      ...uniqueIds(referrals, 'referrer_user_id'),
+      ...uniqueIds(referrals, 'referred_user_id'),
+    ])
+    const [referralProfiles, enrichedModeration, stats] = await Promise.all([
+      relatedRowsByIds(
+        'user_profiles',
+        'user_id',
+        referralUserIds,
+        'user_id,full_name,normalized_email,country_code,status,email_verified_at',
+        { requireAll: true },
+      ),
+      enrichModerationRows(moderation),
+      Promise.all([
+        countStats({
+          total: '/rest/v1/referral_relationships?select=id',
+          pending: '/rest/v1/referral_relationships?status=eq.pending&select=id',
+          qualified: '/rest/v1/referral_relationships?status=eq.qualified&select=id',
+          rejected: '/rest/v1/referral_relationships?status=eq.rejected&select=id',
+        }),
+        countStats({
+          total: '/rest/v1/community_moderation_actions?select=id',
+          profiles: '/rest/v1/community_moderation_actions?target_type=eq.community_profile&select=id',
+          events: '/rest/v1/community_moderation_actions?target_type=eq.event&select=id',
+          announcements: '/rest/v1/community_moderation_actions?target_type=eq.announcement&select=id',
+        }),
+      ]),
+    ])
+    const referralProfileMap = rowsBy(referralProfiles.rows, 'user_id')
+    const enrichedReferrals = referrals.map((row) => {
+      const inviter = row.referrer_user_id ? referralProfileMap.get(String(row.referrer_user_id)) : null
+      const referred = row.referred_user_id ? referralProfileMap.get(String(row.referred_user_id)) : null
+      const eligibility = referralEligibility(row, referred, { profilesUnavailable: referralProfiles.unavailable })
+      return withRelatedFailure(
+        {
+          ...row,
+          inviter_name: inviter?.full_name ?? null,
+          inviter_email: inviter?.normalized_email ?? null,
+          referrer_name: inviter?.full_name ?? null,
+          referrer_email: inviter?.normalized_email ?? null,
+          referred_name: referred?.full_name ?? null,
+          referred_email: referred?.normalized_email ?? null,
+          ...eligibility,
+        },
+        referralProfiles.unavailable,
+        referralProfiles.truncated,
+      )
+    })
     return {
-      referrals: await recentRows(
-        '/rest/v1/referral_relationships?select=id,referrer_user_id,referred_user_id,status,eligible_at,qualified_at,created_at&order=created_at.desc&limit=100',
-      ),
-      moderation: await recentRows(
-        '/rest/v1/community_moderation_actions?select=id,target_type,target_id,action,reason,operator_reference,created_at&order=created_at.desc&limit=100',
-      ),
+      referrals: enrichedReferrals,
+      moderation: enrichedModeration,
+      stats: { referrals: stats[0], moderation: stats[1] },
     }
   }
   return {}
@@ -522,24 +1291,34 @@ export async function updateSupportAsOperator(operatorUserId, input) {
 export async function setUserStatusAsOperator(operatorUserId, userId, status, reason) {
   if (!['active', 'suspended'].includes(status))
     throw new HttpError(400, 'Unsupported account status.', 'invalid-status')
-  await serviceRest(`/rest/v1/user_profiles?user_id=eq.${encodeURIComponent(userId)}&status=neq.deleted`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
-    body: { status, updated_at: new Date().toISOString() },
-  })
+  const { data: changed } = await serviceRest(
+    `/rest/v1/user_profiles?user_id=eq.${encodeURIComponent(userId)}&status=neq.deleted`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: { status, updated_at: new Date().toISOString() },
+    },
+  )
+  if (!Array.isArray(changed) || changed.length !== 1)
+    throw new HttpError(404, 'This user account is no longer available.', 'user-not-found')
   await recordOperationsAction(operatorUserId, 'operations.security', 'user', userId, `user.${status}`, reason)
   return { userId, status }
 }
 
 export async function setKycAsOperator(operatorUserId, userId, kycStatus, reason) {
   if (!['unverified', 'pending', 'verified', 'rejected'].includes(kycStatus)) {
-    throw new HttpError(400, 'Unsupported KYC status.', 'invalid-kyc-status')
+    throw new HttpError(400, 'Choose a valid identity check status.', 'invalid-kyc-status')
   }
-  await serviceRest(`/rest/v1/user_profiles?user_id=eq.${encodeURIComponent(userId)}&status=neq.deleted`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
-    body: { kyc_status: kycStatus, updated_at: new Date().toISOString() },
-  })
+  const { data: changed } = await serviceRest(
+    `/rest/v1/user_profiles?user_id=eq.${encodeURIComponent(userId)}&status=neq.deleted`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: { kyc_status: kycStatus, updated_at: new Date().toISOString() },
+    },
+  )
+  if (!Array.isArray(changed) || changed.length !== 1)
+    throw new HttpError(404, 'This user account is no longer available.', 'user-not-found')
   await recordOperationsAction(operatorUserId, 'operations.kyc', 'user', userId, 'kyc.set', reason, { kycStatus })
   return { userId, kycStatus }
 }
