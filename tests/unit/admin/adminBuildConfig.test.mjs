@@ -39,7 +39,7 @@ function readConfig({ command, mode, apiOrigin, overrides = {} } = {}) {
 
 describe('standalone admin build configuration', () => {
   it('uses admin as the Vite root and writes to its own dist directory', () => {
-    const config = readConfig({ command: 'build', mode: 'production', apiOrigin: 'https://worldroboticsystem.com' })
+    const config = readConfig({ command: 'build', mode: 'production', apiOrigin: 'https://www.worldroboticsystem.com' })
 
     expect(config.root).toMatch(/[/\\]admin[/\\]?$/)
     expect(config.outDir).toMatch(/[/\\]admin[/\\]dist$/)
@@ -69,7 +69,7 @@ describe('standalone admin build configuration', () => {
       readConfig({
         command: 'build',
         mode: 'production',
-        apiOrigin: 'https://worldroboticsystem.com',
+        apiOrigin: 'https://www.worldroboticsystem.com',
         overrides: { VITE_WRS_MODE: 'staging' },
       }),
     ).toThrow(/VITE_WRS_MODE=production/)
@@ -77,7 +77,7 @@ describe('standalone admin build configuration', () => {
       readConfig({
         command: 'build',
         mode: 'production',
-        apiOrigin: 'https://worldroboticsystem.com',
+        apiOrigin: 'https://www.worldroboticsystem.com',
         overrides: { VITE_WRS_DATA_SERVICE: 'disabled' },
       }),
     ).toThrow(/VITE_WRS_DATA_SERVICE/)

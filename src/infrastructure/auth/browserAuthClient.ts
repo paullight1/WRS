@@ -1,4 +1,5 @@
 import type { AuthSession, OAuthProvider, RegistrationInput, VerificationKind } from '../../domain/auth/types'
+import { apiUrl } from '../http/apiUrl'
 
 type Json = Record<string, unknown>
 type VerificationChallengeSummary = { id: string; kind: VerificationKind }
@@ -16,7 +17,7 @@ class AuthRequestError extends Error {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     ...init,
     credentials: 'include',
     headers: { 'content-type': 'application/json', ...(init.headers || {}) },
@@ -78,10 +79,10 @@ export const browserAuthClient = {
     request<Json>('/api/auth/password/forgot', { method: 'POST', body: JSON.stringify({ identifier }) }),
   resetPassword: (token: string, password: string) =>
     request<Json>('/api/auth/password/reset', { method: 'POST', body: JSON.stringify({ token, password }) }),
-  beginOAuth: (provider: OAuthProvider) =>
+  beginOAuth: (provider: OAuthProvider, returnTo?: string) =>
     request<{ authorizationUrl: string }>('/api/auth/oauth/start', {
       method: 'POST',
-      body: JSON.stringify({ provider }),
+      body: JSON.stringify({ provider, ...(returnTo ? { returnTo } : {}) }),
     }),
   enrollMfa: () =>
     request<{ enrollmentId: string; provisioningUri: string; recoveryCodes: string[] }>('/api/auth/mfa/enroll', {
