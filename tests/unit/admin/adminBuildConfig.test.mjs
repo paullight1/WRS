@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
+import fs from 'node:fs'
+import os from 'node:os'
 import { pathToFileURL } from 'node:url'
 
 const configUrl = pathToFileURL(path.join(process.cwd(), 'admin/vite.config.js')).href
@@ -38,6 +40,40 @@ function readConfig({ command, mode, apiOrigin, overrides = {} } = {}) {
 }
 
 describe('standalone admin build configuration', () => {
+  it('builds with the checked-in public production configuration in a clean checkout', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wrs-admin-clean-'))
+    try {
+      for (const file of [
+        'admin/vite.config.js',
+        'admin/vercel.json',
+        'scripts/vite/localApiPlugin.js',
+        'src/lib/runtimeConfig.js',
+        'package.json',
+      ]) {
+        fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true })
+        fs.copyFileSync(path.join(process.cwd(), file), path.join(root, file))
+      }
+      const productionConfig = 'admin/production.config.json'
+      if (fs.existsSync(productionConfig)) fs.copyFileSync(productionConfig, path.join(root, productionConfig))
+      fs.symlinkSync(path.join(process.cwd(), 'node_modules'), path.join(root, 'node_modules'), 'dir')
+      const config = pathToFileURL(path.join(root, 'admin/vite.config.js')).href
+      const script = `const {default:load}=await import(${JSON.stringify(config)}); await load({command:'build',mode:'production'}); console.log(JSON.stringify({origin:process.env.VITE_WRS_API_ORIGIN,mode:process.env.VITE_WRS_MODE,identity:process.env.VITE_WRS_IDENTITY_SERVICE}))`
+      const output = execFileSync(process.execPath, ['--input-type=module', '-e', script], {
+        cwd: root,
+        env: { PATH: process.env.PATH },
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+      expect(JSON.parse(output)).toEqual({
+        origin: 'https://www.worldroboticsystem.com',
+        mode: 'production',
+        identity: 'true',
+      })
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true })
+    }
+  })
+
   it('uses admin as the Vite root and writes to its own dist directory', () => {
     const config = readConfig({ command: 'build', mode: 'production', apiOrigin: 'https://www.worldroboticsystem.com' })
 

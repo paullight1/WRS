@@ -1,0 +1,12 @@
+{
+  "VITE_WRS_MODE": "production",
+  "VITE_WRS_API_ORIGIN": "https://www.worldroboticsystem.com",
+  "VITE_WRS_AUTHORITY_URL": "https://www.worldroboticsystem.com",
+  "VITE_WRS_PAYMENT_SERVICE": "true",
+  "VITE_WRS_IDENTITY_SERVICE": "true",
+  "VITE_WRS_ROBOT_SERVICE": "true",
+  "VITE_WRS_DATA_SERVICE": "true",
+  "VITE_WRS_REWARD_SERVICE": "true",
+  "VITE_WRS_DEPLOYMENT_SERVICE": "true",
+  "VITE_WRS_SUPPORT_SERVICE": "true"
+}

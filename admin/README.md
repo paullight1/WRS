@@ -26,7 +26,8 @@ Create a separate Vercel project for the admin frontend and set:
 - **Output Directory:** `dist`
 - **Install command:** `npm install` from the repository workspace lockfile
 - Enable access to source files outside the project Root Directory. The admin workspace imports shared auth, policy, and API client modules from `../src` and local API middleware from `../scripts`.
-- **Environment variable:** `VITE_WRS_API_ORIGIN=https://www.worldroboticsystem.com` (an origin only; no path, query, or trailing endpoint path). Production admin builds fail if this is empty.
+- **Public production settings:** `admin/production.config.json` supplies the defaults below. Vercel environment variables can override them; do not store secrets in this file.
+- **API origin:** `VITE_WRS_API_ORIGIN=https://www.worldroboticsystem.com` (an origin only; no path, query, or trailing endpoint path). Production admin builds fail if this is empty.
 - Configure the shared public auth/runtime variables required by `src/lib/runtimeConfig.js`: `VITE_WRS_MODE=production`, `VITE_WRS_AUTHORITY_URL=https://www.worldroboticsystem.com`, and `VITE_WRS_IDENTITY_SERVICE=true`. The shared runtime currently also requires `VITE_WRS_PAYMENT_SERVICE`, `VITE_WRS_ROBOT_SERVICE`, `VITE_WRS_DATA_SERVICE`, `VITE_WRS_REWARD_SERVICE`, `VITE_WRS_DEPLOYMENT_SERVICE`, and `VITE_WRS_SUPPORT_SERVICE` to be enabled for a production build. If OAuth is enabled on the API, set `VITE_WRS_OAUTH_ENABLED=true`; otherwise leave it false.
 
 Set each of those service flags to `true`. Admin production builds fail when the runtime is not explicitly in production mode, a required service is disabled, or the required WRS authority is missing. These are public frontend settings; do not place service-role keys or signing secrets in `VITE_*` variables.
