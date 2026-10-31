@@ -362,7 +362,7 @@ export default function AppShell({
   }, [location.pathname])
 
   return (
-    <div className="min-h-screen">
+    <div className="wrs-member-app min-h-screen">
       <Drawer open={drawerOpen} onClose={closeDrawer} />
       <div className="lg:pl-[288px]">
         <TopBar

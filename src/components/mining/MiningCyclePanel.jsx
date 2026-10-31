@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { atomicRateToDecimal } from '../../domain/mining/metrics.ts'
 import { worksiteFor } from '../../data/worksites.js'
-import Worksite3D from '../robot3d/Worksite3D.jsx'
 import { Badge, Button, Card, CoinMark } from '../ui.jsx'
 
 function countdown(milliseconds) {
@@ -54,7 +53,7 @@ export default function MiningCyclePanel({
 
   if (compact)
     return (
-      <Card className="mt-4 space-y-3 border-white/10 bg-[#171b25] p-3" aria-label="Current mining cycle">
+      <Card className="mt-4 space-y-3 border-slate-200 bg-white p-3" aria-label="Current mining cycle">
         <div className="flex items-center justify-between gap-3">
           <span className="flex items-center gap-2 text-label-sm text-on-surface-variant">
             <span className={`h-2 w-2 rounded-full ${isRunning ? 'bg-tertiary' : 'bg-[#f7c948]'}`} />
@@ -62,7 +61,7 @@ export default function MiningCyclePanel({
           </span>
           <span className="tnum text-label-sm font-semibold text-on-surface">{rate} RBC / h</span>
         </div>
-        <p className="tnum font-data text-2xl font-bold leading-tight text-white">
+        <p className="tnum font-data text-2xl font-bold leading-tight text-on-surface">
           {isRunning ? countdown(remaining) : 'Cycle complete'}
           {isRunning && (
             <span className="ml-2 font-sans text-label-sm font-normal text-on-surface-variant">remaining</span>
@@ -71,11 +70,11 @@ export default function MiningCyclePanel({
         <div className="flex items-center gap-3">
           <div
             role="progressbar"
-            aria-label="24-hour mining cycle progress"
+            aria-label="Mining cycle progress"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progress)}
-            className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10"
+            className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200"
           >
             <div className="h-full rounded-full bg-tertiary" style={{ width: `${progress}%` }} />
           </div>
@@ -91,23 +90,14 @@ export default function MiningCyclePanel({
 
   return (
     <Card className="overflow-hidden p-0" aria-label="Current mining cycle">
-      <div className="relative">
-        <Worksite3D
-          industry={worksite.name}
-          paused={!isRunning}
-          height={232}
-          className="border-b border-white/10"
-          label={`${robotName || 'Your robot'} ${worksite.task}`}
-        />
-        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-4 pb-4 pt-12 sm:px-5">
-          <div className="min-w-0">
-            <p className="text-label-sm font-medium text-white/70">Worksite animation · {worksite.name}</p>
-            <p className="truncate text-title font-semibold text-white">{worksite.task}</p>
-          </div>
-          <Badge t={isRunning ? 'tertiary' : isPendingSettlement ? 'gold' : 'outline'}>
-            {isRunning ? 'Working' : isPendingSettlement ? 'Cycle ended' : 'Complete'}
-          </Badge>
+      <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-amber-50 px-4 py-5 sm:px-5">
+        <div className="min-w-0">
+          <p className="text-label-sm font-medium text-on-surface-variant">{worksite.name}</p>
+          <p className="truncate text-title font-semibold text-on-surface">{worksite.task}</p>
         </div>
+        <Badge t={isRunning ? 'tertiary' : isPendingSettlement ? 'gold' : 'outline'}>
+          {isRunning ? 'Working' : isPendingSettlement ? 'Cycle ended' : 'Complete'}
+        </Badge>
       </div>
       <div className="p-4 sm:p-5">
         <div className="flex items-start gap-3">
@@ -133,7 +123,11 @@ export default function MiningCyclePanel({
           <div className="rounded-xl bg-surface-container px-3 py-3">
             <p className="text-label-sm text-on-surface-variant">{isRunning ? 'Time remaining' : 'Cycle duration'}</p>
             <p className="tnum mt-1 text-title font-semibold text-on-surface">
-              {isRunning ? countdown(remaining) : '24 hours'}
+              {isRunning
+                ? countdown(remaining)
+                : Number.isFinite(duration) && duration > 0
+                  ? `${Math.round(duration / 3600000)} hours`
+                  : 'Cycle complete'}
             </p>
           </div>
         </div>
@@ -145,7 +139,7 @@ export default function MiningCyclePanel({
           </div>
           <div
             role="progressbar"
-            aria-label="24-hour mining cycle progress"
+            aria-label="Mining cycle progress"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progress)}

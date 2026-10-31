@@ -49,7 +49,7 @@ export default function SecuritySettings() {
           {!auth.session?.mfaEnabled && !enrollment && <Button onClick={start}>Enroll authenticator</Button>}
           {enrollment && (
             <>
-              <p className="break-all rounded-xl bg-black/25 p-3 font-data text-label-sm text-on-surface-variant">
+              <p className="break-all rounded-xl bg-surface-container p-3 font-data text-label-sm text-on-surface-variant">
                 {enrollment.provisioningUri}
               </p>
               <Field

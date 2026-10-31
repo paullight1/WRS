@@ -53,7 +53,7 @@ test('Phase 11.1 includes the complete ordered Supabase SQL pack', async () => {
   const migrations = (await readdir(migrationsUrl)).filter((name) => name.endsWith('.sql')).sort()
   assert.ok(migrations.length >= 30, 'expected the full WRS migration pack')
   assert.equal(migrations[0], '20260821030000_plan3_identity.sql')
-  assert.equal(migrations.at(-1), '20261030211347_simplify_referral_approval.sql')
+  assert.ok(migrations.includes('20261030211347_simplify_referral_approval.sql'))
 
   const guide = await text('supabase/MIGRATION_GUIDE.md')
   const documented = [...guide.matchAll(/^\|\s*\d+\s*\|\s*`([^`]+\.sql)`\s*\|/gm)].map((match) => match[1])

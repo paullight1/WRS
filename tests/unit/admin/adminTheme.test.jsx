@@ -1,52 +1,24 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { AdminThemeProvider, useAdminTheme } from '../../../admin/src/theme/AdminThemeProvider.jsx'
 
 afterEach(() => {
   cleanup()
   localStorage.clear()
 })
-
-function ThemeProbe() {
-  const { colorScheme, toggleTheme } = useAdminTheme()
-  return (
-    <div data-testid="scheme" data-scheme={colorScheme}>
-      <button onClick={toggleTheme}>Toggle theme</button>
-    </div>
-  )
+function Probe() {
+  const { colorScheme } = useAdminTheme()
+  return <span data-testid="scheme">{colorScheme}</span>
 }
-
-function renderTheme() {
-  return render(
-    <AdminThemeProvider>
-      <ThemeProbe />
-    </AdminThemeProvider>,
-  )
-}
-
-describe('AdminThemeProvider', () => {
-  it('defaults to dark without reading customer theme preferences', () => {
-    localStorage.setItem('wrs-theme', 'dark')
-    renderTheme()
-
-    expect(screen.getByTestId('scheme').dataset.scheme).toBe('dark')
-    expect(localStorage.getItem('wrs-admin-theme')).toBeNull()
-  })
-
-  it('persists light mode under its admin-only storage key', () => {
-    localStorage.setItem('wrs-theme', 'light')
-    renderTheme()
-    fireEvent.click(screen.getByRole('button', { name: 'Toggle theme' }))
-
-    expect(screen.getByTestId('scheme').dataset.scheme).toBe('light')
-    expect(localStorage.getItem('wrs-admin-theme')).toBe('light')
-    expect(localStorage.getItem('wrs-theme')).toBe('light')
-  })
-
-  it('falls back to dark for an invalid stored choice', () => {
-    localStorage.setItem('wrs-admin-theme', '{broken')
-    renderTheme()
-
-    expect(screen.getByTestId('scheme').dataset.scheme).toBe('dark')
+describe('admin appearance', () => {
+  it('uses light mode even when an earlier dark preference exists', () => {
+    localStorage.setItem('wrs-admin-theme', 'dark')
+    render(
+      <AdminThemeProvider>
+        <Probe />
+      </AdminThemeProvider>,
+    )
+    expect(screen.getByTestId('scheme')).toHaveTextContent('light')
+    expect(document.querySelector('.admin-app')).toHaveAttribute('data-theme', 'light')
   })
 })

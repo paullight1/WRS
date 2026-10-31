@@ -1,23 +1,5 @@
 /* Admin styles stay inside the workspace so the member application keeps its own theme. */
 .admin-app {
-  --adm-page: #111315;
-  --adm-panel: #191c1f;
-  --adm-panel-2: #202427;
-  --adm-border: #303539;
-  --adm-text: #f2f3ef;
-  --adm-muted: #a1a8ab;
-  --adm-accent: #ff8b57;
-  --adm-warning: #e9bf73;
-  --adm-danger: #ff9b92;
-  color-scheme: dark;
-  min-height: 100vh;
-  background: var(--adm-page);
-  color: var(--adm-text);
-  font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-}
-.admin-app[data-theme='light'] {
   --adm-page: #f5f5f1;
   --adm-panel: #fff;
   --adm-panel-2: #f0f1ec;
@@ -28,6 +10,12 @@
   --adm-warning: #8b5a09;
   --adm-danger: #b82d25;
   color-scheme: light;
+  min-height: 100vh;
+  background: var(--adm-page);
+  color: var(--adm-text);
+  font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
 }
 .admin-app *,
 .admin-app *::before,

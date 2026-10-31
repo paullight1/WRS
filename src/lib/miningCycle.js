@@ -1,5 +1,5 @@
 export const ROBOCOIN_REWARD = 1
-export const MINING_INTERVAL_MS = 24 * 60 * 60 * 1000
+export const MINING_INTERVAL_MS = 6 * 60 * 60 * 1000
 
 export function isMiningAreaUnlocked(index) {
   return index === 0

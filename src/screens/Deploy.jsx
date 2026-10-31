@@ -74,7 +74,7 @@ function DeploymentCard({ d, history = false, startedAt = null }) {
       {history && (
         <div className="mb-4 mt-3 flex items-center justify-between rounded-xl bg-primary/[.06] px-3.5 py-3">
           <span className="text-label-sm text-outline">Mining rate</span>
-          <span className="font-data text-data-sm text-primary">1 RoboCoin / 24 h</span>
+          <span className="font-data text-data-sm text-primary">1 RoboCoin / 6 h</span>
         </div>
       )}
 
@@ -106,7 +106,7 @@ function MiningCycleCard({ cycle, onClaim }) {
             {ready ? 'Your RoboCoin is ready' : 'Mining is in progress'}
           </h2>
           <p className="mt-2 max-w-[42ch] text-body-sm text-on-surface-variant">
-            Return once every 24 hours to claim 1 RoboCoin. The reward is generated when you check in, not in the
+            Return once every 6 hours to claim 1 RoboCoin. The reward is generated when you check in, not in the
             background.
           </p>
         </div>
@@ -162,7 +162,7 @@ function ReferralCard() {
           <p className="mt-1 text-body-sm text-on-surface-variant">Invite another builder to the robot economy.</p>
         </div>
       </div>
-      <div className="mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+      <div className="mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-surface-container px-3 py-2">
         <span className="min-w-0 flex-1 truncate font-data text-data-sm text-outline">{referralLink}</span>
         <Button size="sm" variant="ghost" onClick={shareReferral} icon={copied ? 'check' : 'content_copy'}>
           {copied ? 'Copied' : 'Share'}

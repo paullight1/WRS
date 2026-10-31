@@ -303,15 +303,13 @@ async function prepare(page, roles = ['admin'], sessionOverrides = {}) {
   )
 }
 
-test('dark workspace defaults correctly and stores a separate theme preference', async ({ page }) => {
+test('admin stays in light mode even with an old dark preference', async ({ page }) => {
   await prepare(page)
+  await page.addInitScript(() => localStorage.setItem('wrs-admin-theme', 'dark'))
   await page.goto('/?scope=users')
   await expect(page.getByRole('heading', { name: 'Users', exact: true })).toBeVisible()
-  await expect(page.locator('[data-admin-theme]')).toHaveAttribute('data-admin-theme', 'dark')
-  await page.getByRole('button', { name: 'Switch to light mode' }).click()
-  await page.reload()
   await expect(page.locator('[data-admin-theme]')).toHaveAttribute('data-admin-theme', 'light')
-  expect(await page.evaluate(() => localStorage.getItem('wrs-theme'))).toBeNull()
+  await expect(page.getByRole('button', { name: /switch to dark mode/i })).toHaveCount(0)
 })
 
 test('KYC operators see contextual permitted actions', async ({ page }) => {

@@ -57,7 +57,7 @@ export const tones = {
     accent: ACCENTS.green,
   },
   gold: {
-    text: 'text-[#f7c948]',
+    text: 'text-[#906000]',
     bg: 'bg-[#f7c948]/20',
     border: 'border-[#f7c948]/30',
     solid: 'bg-[#f7c948]',
@@ -113,7 +113,7 @@ export function CoinMark({ size = 24, className = '' }) {
     <span
       role="img"
       aria-label="RoboCoin"
-      className={`grid shrink-0 place-items-center rounded-full border border-[#f7c948]/45 bg-[#f7c948]/15 text-[#f7c948] ${className}`}
+      className={`grid shrink-0 place-items-center rounded-full border border-[#f7c948]/45 bg-[#f7c948]/15 text-[#906000] ${className}`}
       style={{ width: size, height: size }}
     >
       <span aria-hidden="true" className="font-bold leading-none" style={{ fontSize: Math.round(size * 0.54) }}>

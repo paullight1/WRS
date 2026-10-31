@@ -91,7 +91,7 @@ export async function miningSnapshot(userId) {
     if (error?.upstreamData?.code === 'PGRST202') {
       throw new HttpError(
         503,
-        'Mining setup is pending. The 24-hour cycle is not available yet.',
+        'Mining setup is pending. The 6-hour cycle is not available yet.',
         'mining-not-configured',
       )
     }

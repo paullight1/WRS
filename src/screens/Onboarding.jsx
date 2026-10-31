@@ -149,7 +149,7 @@ export default function Onboarding() {
           <button
             type="button"
             onClick={() => (step === 0 ? nav(-1) : setStep(step - 1))}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-blue-400/30 bg-[#142d5c] text-blue-50 active:bg-[#1a3b78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-300"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-blue-400/30 bg-white text-on-surface active:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-300"
             aria-label="Back"
           >
             <Icon name="arrow_back" className="text-on-surface-variant" />
@@ -183,13 +183,13 @@ export default function Onboarding() {
             <p className="mt-3 text-body-md leading-relaxed text-on-surface-variant">
               Choose a name, a look, and a personality.
             </p>
-            <Card className="mt-5 flex items-center gap-3 border-blue-400/60 bg-[#142d5c] p-4 text-left shadow-[0_8px_28px_rgba(37,99,235,0.2)]">
+            <Card className="mt-5 flex items-center gap-3 border-blue-400/60 bg-white p-4 text-left shadow-[0_8px_28px_rgba(37,99,235,0.2)]">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-500 text-white">
                 <Icon name="smart_toy" />
               </span>
               <div className="min-w-0 flex-1">
-                <h2 className="text-label-md font-semibold text-white">Free robot</h2>
-                <p className="mt-1 text-label-sm text-blue-100">Basic Robot · No payment needed</p>
+                <h2 className="text-label-md font-semibold text-on-surface">Free robot</h2>
+                <p className="mt-1 text-label-sm text-on-surface-variant">Basic Robot · No payment needed</p>
               </div>
               <Icon name="check_circle" className="text-blue-200" fill />
             </Card>
@@ -199,12 +199,12 @@ export default function Onboarding() {
         {step === 1 && (
           <div>
             <h1 className="mb-4 font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Name your robot</h1>
-            <Card className="border-blue-400/35 bg-[#142d5c] p-card-padding">
+            <Card className="border-blue-400/35 bg-white p-card-padding">
               <input
                 value={name}
                 maxLength={32}
                 onChange={(event) => setName(event.target.value)}
-                className="w-full bg-transparent text-center font-headline-lg-mobile text-headline-lg-mobile text-white outline-none placeholder:text-blue-200/70"
+                className="w-full bg-transparent text-center font-headline-lg-mobile text-headline-lg-mobile text-on-surface outline-none placeholder:text-slate-400"
                 aria-label="Robot name"
               />
             </Card>
@@ -255,11 +255,15 @@ export default function Onboarding() {
                   key={item.name}
                   onClick={() => setPersonality(item.name)}
                   aria-pressed={personality === item.name}
-                  className={`flex min-h-28 touch-manipulation flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 active:scale-[.98] ${personality === item.name ? 'border-blue-300 bg-[#2563eb] text-white shadow-[0_8px_24px_rgba(37,99,235,0.3)]' : 'border-blue-400/35 bg-[#142d5c] text-blue-50 hover:bg-[#1a3b78]'}`}
+                  className={`flex min-h-28 touch-manipulation flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 active:scale-[.98] ${personality === item.name ? 'border-blue-300 bg-[#2563eb] text-white shadow-[0_8px_24px_rgba(37,99,235,0.3)]' : 'border-blue-200 bg-white text-on-surface hover:bg-blue-50'}`}
                 >
-                  <Icon name={item.icon} className="text-white" />
+                  <Icon name={item.icon} className={personality === item.name ? 'text-white' : 'text-primary'} />
                   <span className="text-label-md font-semibold">{personalityLabels[item.name] || item.name}</span>
-                  <span className="text-label-sm text-blue-100">{personalityHints[item.name]}</span>
+                  <span
+                    className={`text-label-sm ${personality === item.name ? 'text-blue-100' : 'text-on-surface-variant'}`}
+                  >
+                    {personalityHints[item.name]}
+                  </span>
                   {personality === item.name && <Icon name="check_circle" className="text-white" fill />}
                 </button>
               ))}
@@ -280,9 +284,9 @@ export default function Onboarding() {
                 ['Eye color', eyeColors.find((color) => color.value === eye)?.label || 'Aqua'],
                 ['Personality', personalityLabels[personality] || personality],
               ].map(([label, value]) => (
-                <Card key={label} className="border-blue-400/30 bg-[#142d5c] p-3">
-                  <p className="text-label-sm text-blue-200">{label}</p>
-                  <p className="mt-1 truncate text-label-md font-semibold text-white">{value}</p>
+                <Card key={label} className="border-blue-400/30 bg-white p-3">
+                  <p className="text-label-sm text-on-surface-variant">{label}</p>
+                  <p className="mt-1 truncate text-label-md font-semibold text-on-surface">{value}</p>
                 </Card>
               ))}
             </div>

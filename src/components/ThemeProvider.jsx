@@ -1,22 +1,15 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect } from 'react'
 
 const ThemeContext = createContext(null)
+const lightTheme = { theme: 'light' }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return 'light'
-    return window.localStorage.getItem('wrs-theme') || 'light'
-  })
-
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-    document.documentElement.dataset.theme = theme
-    window.localStorage.setItem('wrs-theme', theme)
-  }, [theme])
+    document.documentElement.classList.remove('dark')
+    document.documentElement.dataset.theme = 'light'
+  }, [])
 
-  const value = useMemo(() => ({ theme, toggleTheme: () => setTheme((value) => (value === 'light' ? 'dark' : 'light')) }), [theme])
-
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  return <ThemeContext.Provider value={lightTheme}>{children}</ThemeContext.Provider>
 }
 
 export function useTheme() {

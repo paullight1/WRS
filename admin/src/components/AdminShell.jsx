@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import wrsLogo from '../../../public/wrs-logo-footer.png'
 import { useAuth } from '../../../src/components/auth/AuthProvider.jsx'
-import { useAdminTheme } from '../theme/AdminThemeProvider.jsx'
 import { securitySettingsUrl } from '../lib/externalRoutes.js'
 import { areasForRoles } from '../lib/operations.js'
 
@@ -19,7 +18,6 @@ const roleName = (role) =>
   })[role] || 'Team member'
 export default function AdminShell({ children, title = 'Admin', subtitle, actions, showPageHeader = true }) {
   const auth = useAuth()
-  const { theme, toggleTheme } = useAdminTheme()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [logoutError, setLogoutError] = useState('')
   const drawer = useRef(null)
@@ -83,14 +81,6 @@ export default function AdminShell({ children, title = 'Admin', subtitle, action
       )}
     </nav>
   )
-  const preferences = (
-    <button type="button" className="admin-theme-row" onClick={toggleTheme}>
-      <span className="material-symbols-outlined" aria-hidden="true">
-        {theme === 'light' ? 'dark_mode' : 'light_mode'}
-      </span>
-      <span>{theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}</span>
-    </button>
-  )
   return (
     <div className="admin-layout">
       <header className="admin-global-header">
@@ -141,10 +131,7 @@ export default function AdminShell({ children, title = 'Admin', subtitle, action
           </div>
         </details>
       </header>
-      <aside className="admin-sidebar">
-        {navigation()}
-        <div className="admin-sidebar-bottom">{preferences}</div>
-      </aside>
+      <aside className="admin-sidebar">{navigation()}</aside>
       <dialog
         ref={drawer}
         id="admin-mobile-navigation"
@@ -160,7 +147,6 @@ export default function AdminShell({ children, title = 'Admin', subtitle, action
           </button>
         </div>
         {navigation(true)}
-        <div className="admin-drawer-bottom">{preferences}</div>
       </dialog>
       <main className="admin-main">
         {showPageHeader && (

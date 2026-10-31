@@ -14,7 +14,7 @@ The console is served at `http://127.0.0.1:5175`. Sign in with an existing WRS a
 
 When local API development has no WRS signing secret, Vite enables a bounded, process-local rate limiter so auth requests do not fail at the configuration check. It is development-only; production continues to require the server signing secret and PostgreSQL distributed limiter. Local sign-in still requires the server-side Supabase URL and keys in the root environment; never put secret keys in browser `VITE_*` variables.
 
-The console defaults to dark mode. Its light/dark choice is stored under `wrs-admin-theme`, separate from customer app preferences.
+The console uses light mode.
 
 ## Vercel project setup (when ready)
 

@@ -46,7 +46,7 @@ export default {
         'outline-variant': '#434656',
         'surface-dim': 'var(--surface-0)',
         'on-tertiary-fixed-variant': '#004f54',
-        error: '#ffb4ab',
+        error: '#b42318',
         'tertiary-fixed-dim': '#00dbe7',
         'on-tertiary-container': '#c0faff',
         'surface-tint': '#b8c3ff',
@@ -61,7 +61,7 @@ export default {
         'tertiary-fixed': '#74f5ff',
         'on-surface-variant': 'var(--text-secondary)',
         'on-secondary-container': '#d6a9ff',
-        success: '#3ddc97',
+        success: '#087a53',
       },
       borderRadius: {
         DEFAULT: '0.25rem',
@@ -123,9 +123,18 @@ export default {
         /* marketing scale — the landing page only. The product scale above is
            a UI scale and tops out at 30px; a public page needs brand type.
            Namespaced `site-*` so no app screen can inherit it by accident. */
-        'site-display': ['clamp(2.125rem, 3.9vw, 3.375rem)', { lineHeight: '1.14', letterSpacing: '-0.02em', fontWeight: '500' }],
-        'site-h2': ['clamp(1.625rem, 2.7vw, 2.75rem)', { lineHeight: '1.2', letterSpacing: '-0.015em', fontWeight: '500' }],
-        'site-h3': ['clamp(1.0625rem, 1.3vw, 1.25rem)', { lineHeight: '1.4', letterSpacing: '-0.01em', fontWeight: '600' }],
+        'site-display': [
+          'clamp(2.125rem, 3.9vw, 3.375rem)',
+          { lineHeight: '1.14', letterSpacing: '-0.02em', fontWeight: '500' },
+        ],
+        'site-h2': [
+          'clamp(1.625rem, 2.7vw, 2.75rem)',
+          { lineHeight: '1.2', letterSpacing: '-0.015em', fontWeight: '500' },
+        ],
+        'site-h3': [
+          'clamp(1.0625rem, 1.3vw, 1.25rem)',
+          { lineHeight: '1.4', letterSpacing: '-0.01em', fontWeight: '600' },
+        ],
         'site-lead': ['clamp(1.0625rem, 1.1vw, 1.1875rem)', { lineHeight: '1.7', fontWeight: '400' }],
         'site-body': ['clamp(1rem, 1vw, 1.0625rem)', { lineHeight: '1.7', fontWeight: '400' }],
         'site-eyebrow': ['13px', { lineHeight: '18px', letterSpacing: '0', fontWeight: '500' }],

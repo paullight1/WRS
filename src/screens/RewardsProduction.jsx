@@ -221,7 +221,7 @@ export default function RewardsProduction() {
                     <h3 className="text-title font-semibold">Mine RoboCoin</h3>
                     <p className="mt-1 text-label-sm text-on-surface-variant">
                       {snapshot.issuanceEnabled
-                        ? 'Run a 24-hour robot cycle. RBC is credited after settlement.'
+                        ? 'Run a 6-hour robot cycle. RBC is credited after settlement.'
                         : 'Mining rewards are currently paused.'}
                     </p>
                   </div>

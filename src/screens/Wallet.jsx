@@ -173,7 +173,7 @@ function LiveWallet() {
             onChange={(event) => setAccountName(event.target.value)}
             placeholder="Account name"
             aria-label="Payout account name"
-            className="w-full rounded-xl border border-outline-variant bg-black/20 px-4 py-3 text-on-surface outline-none"
+            className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
           />
           <input
             value={accountNumber}
@@ -181,14 +181,14 @@ function LiveWallet() {
             placeholder="Account number"
             inputMode="numeric"
             aria-label="Payout account number"
-            className="w-full rounded-xl border border-outline-variant bg-black/20 px-4 py-3 text-on-surface outline-none"
+            className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
           />
           <input
             value={bankCode}
             onChange={(event) => setBankCode(event.target.value)}
             placeholder="Provider bank code"
             aria-label="Payout bank code"
-            className="w-full rounded-xl border border-outline-variant bg-black/20 px-4 py-3 text-on-surface outline-none"
+            className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
           />
           <Button
             onClick={createPayout}
@@ -237,7 +237,7 @@ function LiveWallet() {
             placeholder="0.00"
             inputMode="decimal"
             aria-label="Withdrawal amount in USD"
-            className="w-full rounded-xl border border-outline-variant bg-black/20 px-4 py-3 text-on-surface outline-none"
+            className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
           />
           <Button
             variant="tonal"

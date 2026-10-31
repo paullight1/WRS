@@ -260,7 +260,7 @@ export default function MiningProduction() {
                             ? robot.unlockRequirement
                             : assigned
                               ? 'Assigned to your current mining cycle'
-                              : 'Ready to mine for 24 hours'}
+                              : 'Ready to mine for 6 hours'}
                         </span>
                       </span>
                       <Badge t={locked ? 'outline' : selectedRobotId === robot.robotId ? 'tertiary' : 'outline'}>
@@ -417,7 +417,7 @@ export default function MiningProduction() {
             <StateView
               kind="empty"
               title="No active mining cycle"
-              desc="Choose an available robot to start your next 24-hour cycle."
+              desc="Choose an available robot to start your next 6-hour cycle."
             />
           )}
           <section>
@@ -448,7 +448,7 @@ export default function MiningProduction() {
                 title="No completed cycles yet"
                 desc={
                   currentSession
-                    ? 'Your first RoboCoin award is recorded after this 24-hour cycle settles.'
+                    ? 'Your first RoboCoin award is recorded after this cycle settles.'
                     : 'Completed mining cycles will appear here after settlement.'
                 }
                 className="px-4 py-6"
@@ -523,6 +523,56 @@ export default function MiningProduction() {
 
   return (
     <AppShell title="Mining" subtitle="Earn RoboCoin with your robot" wide>
+      {snapshot && !loading && !error && (
+        <section className="mining-overview" aria-label="Mining overview">
+          <div className="mining-balance">
+            <div>
+              <p className="mining-eyebrow">RoboCoin balance</p>
+              <p className="mining-balance-value">
+                {currencyAmount(snapshot.balance.availableAtomic, snapshot.balance.atomicScale) ?? '—'} <span>RBC</span>
+              </p>
+              <p className="mining-balance-note">Your available rewards</p>
+            </div>
+            <CoinMark size={62} />
+          </div>
+          <div className="mining-summary-grid">
+            <div>
+              <span>Mining status</span>
+              <strong>
+                {currentSession
+                  ? currentSession.status === 'active' &&
+                    Date.parse(currentSession.endsAt) > Date.parse(snapshot.serverNow)
+                    ? 'In progress'
+                    : 'Awaiting settlement'
+                  : snapshot.issuanceEnabled && snapshot.eligibility.eligible
+                    ? 'Ready to start'
+                    : 'Not available'}
+              </strong>
+            </div>
+            <div>
+              <span>Mining time</span>
+              <strong>{(snapshot.stats.miningMilliseconds / 3600000).toFixed(1)} hours</strong>
+            </div>
+            <div>
+              <span>Lifetime mined</span>
+              <strong>
+                {slotProgress ? slotProgress.earned.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'} RBC
+              </strong>
+            </div>
+          </div>
+          <div className="mining-shortcuts" aria-label="More mining features">
+            <Button to="/rewards" variant="quiet" icon="military_tech">
+              Rewards
+            </Button>
+            <Button to="/rewards/boosts" variant="quiet" icon="bolt">
+              Boosts
+            </Button>
+            <Button to="/wallet" variant="quiet" icon="account_balance_wallet">
+              Wallet
+            </Button>
+          </div>
+        </section>
+      )}
       <Tabs items={pageTabs} value={tab} onChange={setTab} />
       {content()}
     </AppShell>

@@ -3,15 +3,24 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
 
     /* Semantic elevation — surfaces get lighter as they come forward. */
-    --surface-0: #111417; /* page */
-    --surface-1: #191c1f; /* card / row group */
-    --surface-2: #1d2023; /* raised: sheets, menus */
-    --surface-3: #282a2e; /* controls */
-    --hairline: rgba(255, 255, 255, 0.07);
-    --hairline-strong: rgba(255, 255, 255, 0.12);
+    --surface-0: #f5f7fa; /* page */
+    --surface-1: #ffffff; /* card / row group */
+    --surface-2: #f0f3f7; /* raised: sheets, menus */
+    --surface-3: #e5eaf0; /* controls */
+    --hairline: rgba(30, 45, 65, 0.12);
+    --hairline-strong: rgba(30, 45, 65, 0.2);
+
+    --text-primary: #17232f;
+    --text-secondary: #536371;
+    --text-outline: #687988;
+    --brand-primary: #2554c7;
+    --brand-primary-container: #2853bb;
+    --brand-on-primary: #173a91;
+    --brand-secondary: #7445a9;
+    --brand-tertiary: #087a65;
 
     /* Motion — product pace: state change, not choreography. */
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -191,13 +200,9 @@
   }
 
   .bar-blur {
-    background: rgba(17, 20, 23, 0.82);
+    background: rgba(245, 247, 250, 0.92);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-  }
-
-  .dark .bar-blur {
-    background: rgba(17, 20, 23, 0.9);
   }
 
   .site-matrix {
@@ -310,4 +315,73 @@
   .range-wrs:focus-visible {
     outline-offset: 6px;
   }
+}
+
+/* Member mining overview */
+.mining-overview {
+  overflow: hidden;
+  border: 1px solid #dce5ed;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 10px 32px rgba(30, 54, 75, 0.06);
+}
+.mining-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(110deg, #f8f3e7, #fffdf8 65%, #fff1c9);
+}
+.mining-eyebrow,
+.mining-balance-note,
+.mining-summary-grid span {
+  color: #5e6c78;
+  font-size: 13px;
+}
+.mining-balance-value {
+  margin: 8px 0 4px;
+  color: #17232f;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.mining-balance-value span {
+  color: #926b0a;
+  font-size: 15px;
+}
+.mining-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.mining-summary-grid > div {
+  display: grid;
+  gap: 5px;
+  padding: 16px 20px;
+}
+.mining-summary-grid > div + div {
+  border-left: 1px solid #e5ebf0;
+}
+.mining-summary-grid strong {
+  color: #17232f;
+  font-size: 15px;
+}
+@media (max-width: 480px) {
+  .mining-balance {
+    padding: 20px;
+  }
+  .mining-summary-grid > div {
+    padding: 14px 10px;
+  }
+  .mining-summary-grid strong {
+    font-size: 13px;
+  }
+}
+
+.mining-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 10px;
+  border-top: 1px solid #e5ebf0;
 }

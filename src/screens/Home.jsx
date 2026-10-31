@@ -91,7 +91,7 @@ function formatMiningCycleAmount(snapshot) {
   }
 
   try {
-    const atomicAmount = BigInt(`${whole}${fraction}`) * 24n
+    const atomicAmount = BigInt(`${whole}${fraction}`) * 6n
     const formatted = atomicUnitsToDecimal(atomicAmount.toString(), scale + fraction.length)
     const [integer, decimal = ''] = formatted.split('.')
     const trimmedDecimal = decimal.replace(/0+$/, '')
@@ -394,7 +394,7 @@ export default function Home() {
         <RobotSetupPanel robotState={robotState} />
       ) : (
         <section>
-          <Card className="overflow-hidden border-[#433c92] bg-[#1d1c40] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)] sm:p-5">
+          <Card className="overflow-hidden border-[#dfe6ed] bg-white p-4 shadow-[0_12px_32px_rgba(30,54,75,0.06)] sm:p-5">
             <div className="flex items-start gap-4">
               <Robot3D
                 size={96}
@@ -440,13 +440,16 @@ export default function Home() {
                 refreshing={miningRefreshing}
               />
             ) : (
-              <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[#303747] bg-[#171b25] px-4 py-3.5">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[.07] text-[#f1c75b]">
+              <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[#e0e6ed] bg-[#f6f8fb] px-4 py-3.5">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#fff3cf] text-[#a66d00]">
                   <Icon name="paid" className="text-[22px]" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-label-sm text-[#b5bdcf]">Amount per cycle</p>
-                  <p className="tnum mt-0.5 break-words font-data text-title font-bold text-white" aria-live="polite">
+                  <p className="text-label-sm text-[#586a79]">Amount per cycle</p>
+                  <p
+                    className="tnum mt-0.5 break-words font-data text-title font-bold text-on-surface"
+                    aria-live="polite"
+                  >
                     {summary.loading ? (
                       <span
                         aria-label="Loading mining amount"

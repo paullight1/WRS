@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { MINING_INTERVAL_MS, getMiningCycleState, isMiningAreaUnlocked } from '../../src/lib/miningCycle.js'
 
 describe('mining cycle policy', () => {
+  it('uses six-hour mining cycles', () => {
+    expect(MINING_INTERVAL_MS).toBe(6 * 60 * 60 * 1000)
+  })
+
   it('keeps only the starter area unlocked', () => {
     expect(isMiningAreaUnlocked(0)).toBe(true)
     expect(isMiningAreaUnlocked(1)).toBe(false)
@@ -16,7 +20,7 @@ describe('mining cycle policy', () => {
     expect(state.nextEligibleAt).toBe(1_000)
   })
 
-  it('waits until a full 24-hour cycle has elapsed', () => {
+  it('waits until a full 6-hour cycle has elapsed', () => {
     const lastClaimedAt = 10_000
     const now = lastClaimedAt + MINING_INTERVAL_MS - 1
     const state = getMiningCycleState(lastClaimedAt, now)
@@ -26,7 +30,7 @@ describe('mining cycle policy', () => {
     expect(state.remainingMs).toBe(1)
   })
 
-  it('becomes claimable exactly at the next 24-hour boundary', () => {
+  it('becomes claimable exactly at the next 6-hour boundary', () => {
     const lastClaimedAt = 10_000
     const state = getMiningCycleState(lastClaimedAt, lastClaimedAt + MINING_INTERVAL_MS)
 

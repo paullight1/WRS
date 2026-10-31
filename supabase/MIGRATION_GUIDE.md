@@ -60,6 +60,7 @@ Run **all 39 files** below in order. Do not skip hardening/fix migrations; later
 | 37 | `20261005222455_event_xp_claim_guard.sql` | Prevents event-code redemption from being consumed when verified XP issuance cannot complete. |
 | 38 | `20261006083712_seed_manufacturing_starting_worksite.sql` | Seeds Manufacturing as the first approved mining worksite and keeps unreleased industries pending. |
 | 39 | `20261030211347_simplify_referral_approval.sql` | Removes the paid-plan and seven-day referral approval requirements; retains verified active accounts, manual approval, existing rewards and restricted execution. |
+| 40 | `20261031124121_mining_six_hour_cycles.sql` | Starts new mining cycles at six hours while preserving existing 24-hour sessions and reward limits. |
 
 ## Recommended application methods
 
