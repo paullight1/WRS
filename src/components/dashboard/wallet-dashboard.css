@@ -1374,11 +1374,11 @@
 
 /* Home places mining controls and account activity inside the dashboard. */
 .dw-home-dashboard .dw-balance-card {
-  min-height: 182px;
+  min-height: 144px;
 }
 .dw-home-dashboard .dw-balance-robot {
   height: 100%;
-  width: 52%;
+  width: 46%;
   right: -8px;
   bottom: 0;
   object-fit: cover;
@@ -1627,7 +1627,7 @@
 }
 @media (min-width: 760px) {
   .dw-home-dashboard .dw-balance-card {
-    min-height: 210px;
+    min-height: 170px;
   }
   .dw-home-dashboard .dw-balance-robot {
     width: 40%;
@@ -1861,7 +1861,7 @@
 }
 @media (min-width: 760px) {
   .dw-home-dashboard .dw-balance-card {
-    min-height: 190px;
+    min-height: 160px;
   }
   .dw-home-dashboard .dw-balance-robot {
     width: 40%;
