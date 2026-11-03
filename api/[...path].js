@@ -70,6 +70,7 @@ const routes = {
   '/api/marketplace/review': () => import('../server/routes/marketplace/review.js'),
   '/api/mining': () => import('../server/routes/mining.js'),
   '/api/mining/leaderboard': () => import('../server/routes/mining/leaderboard.js'),
+  '/api/mining/progress': () => import('../server/routes/mining/progress.js'),
   '/api/mining/start': () => import('../server/routes/mining/start.js'),
   '/api/payments/initialize': () => import('../server/routes/payments/initialize.js'),
   '/api/payments/reconcile': () => import('../server/routes/payments/reconcile.js'),

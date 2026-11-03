@@ -3,36 +3,28 @@ import { Link, useLocation } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
 import { useRobot } from '../components/robot/RobotProvider.jsx'
-import RobotSetupPanel from '../components/robot/RobotSetupPanel.jsx'
 import WelcomeModal, { consumeWelcome, hasSeenOnboarding, markOnboardingSeen } from '../components/WelcomeModal.jsx'
-import Robot3D from '../components/robot3d/Robot3D.jsx'
-import StateView from '../components/states/StateView.jsx'
-import { ACCENTS, Badge, Button, Card, Icon, IconTile, SectionTitle } from '../components/ui.jsx'
+import { ACCENTS, IconTile } from '../components/ui.jsx'
 import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
 import { browserMiningClient } from '../infrastructure/mining/browserMiningClient.ts'
 import { browserRobotClient } from '../infrastructure/robot/browserRobotClient.ts'
 import { atomicUnitsToDecimal } from '../domain/mining/metrics.ts'
-import MiningCyclePanel from '../components/mining/MiningCyclePanel.jsx'
 import { runtimeConfig } from '../lib/runtimeConfig.js'
-import { packageDefinition } from '../domain/robot/packages.ts'
+import { browserEcosystemClient } from '../infrastructure/ecosystem/browserEcosystemClient.ts'
+import WalletDashboard, { useDashboardLedger } from '../components/dashboard/WalletDashboard.jsx'
 
 const CATALOGUE = [
   { id: 'events', to: '/community', icon: 'event', label: 'Events', c: ACCENTS.indigo },
-  { id: 'data', to: '/data', icon: 'dataset', label: 'Add data', c: ACCENTS.teal },
   { id: 'referrals', to: '/referrals', icon: 'group_add', label: 'Referrals', c: ACCENTS.violet },
   { id: 'market', to: '/marketplace', icon: 'storefront', label: 'Market', c: ACCENTS.blue },
-  { id: 'wallet', to: '/wallet', icon: 'account_balance_wallet', label: 'Wallet', c: ACCENTS.green },
   { id: 'rewards', to: '/rewards', icon: 'workspace_premium', label: 'Rewards', c: ACCENTS.amber },
   { id: 'academy', to: '/academy', icon: 'school', label: 'Academy', c: ACCENTS.pink },
   { id: 'community', to: '/community', icon: 'groups', label: 'Community', c: ACCENTS.orange },
-  { id: 'passport', to: '/robot/passport', icon: 'badge', label: 'Passport', c: ACCENTS.slate },
-  { id: 'customize', to: '/robot/customize', icon: 'tune', label: 'Customise', c: ACCENTS.violet },
   { id: 'packages', to: '/packages', icon: 'inventory_2', label: 'Packages', c: ACCENTS.blue },
   { id: 'support', to: '/support', icon: 'help_outline', label: 'Support', c: ACCENTS.slate },
 ]
 
-const DEFAULT_IDS = ['events', 'data', 'referrals', 'market', 'wallet', 'rewards', 'passport', 'customize']
-const MAX_SHORTCUTS = 12
+const DEFAULT_IDS = ['events', 'referrals', 'market', 'rewards']
 const STORE_KEY = 'wrs.shortcuts'
 
 function greeting(displayName, date = new Date()) {
@@ -54,7 +46,7 @@ function formatRbc(balance, pendingAtomic = 0n) {
     )
     const [whole, fraction = ''] = amount.split('.')
     const groupedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-    const minimumFraction = fraction.padEnd(2, '0')
+    const minimumFraction = fraction.replace(/0+$/, '').padEnd(2, '0')
     return `${groupedWhole}${minimumFraction ? `.${minimumFraction}` : ''} RBC`
   } catch {
     return null
@@ -77,107 +69,13 @@ function accruedMiningAtomic(session, now) {
   return accrued
 }
 
-function formatMiningCycleAmount(snapshot) {
-  const session = snapshot?.session
-  const rate = snapshot?.rateBreakdown?.estimatedAtomicPerHour ?? session?.rule?.rateAtomicPerHour
-  const scale = snapshot?.rateBreakdown?.atomicUnitScale ?? session?.rule?.atomicUnitScale
-  if (rate === null || rate === undefined || scale === null || !Number.isInteger(scale) || scale < 0 || scale > 12) {
-    return null
-  }
-
-  const [whole = '', fraction = ''] = String(rate).split('.')
-  if (!/^\d+$/.test(whole) || (fraction && !/^\d+$/.test(fraction)) || scale + fraction.length > 18) {
-    return null
-  }
-
-  try {
-    const atomicAmount = BigInt(`${whole}${fraction}`) * 6n
-    const formatted = atomicUnitsToDecimal(atomicAmount.toString(), scale + fraction.length)
-    const [integer, decimal = ''] = formatted.split('.')
-    const trimmedDecimal = decimal.replace(/0+$/, '')
-    return `${integer}${trimmedDecimal ? `.${trimmedDecimal}` : ''} RBC`
-  } catch {
-    return null
-  }
-}
-
-const BALANCE_STATE_COPY = {
-  preview: 'Live account required',
-  signedOut: 'Sign in to view',
-  robot: 'Connect a robot to earn XP',
-  unavailable: 'Service unavailable',
-  empty: 'No verified balance',
-}
-
-function SummaryCard({ title, value, loading, state, icon, note }) {
-  const message = BALANCE_STATE_COPY[state] || BALANCE_STATE_COPY.unavailable
-  return (
-    <Card className="min-w-0 p-4">
-      <div className="flex items-center gap-2 text-on-surface-variant">
-        <Icon name={icon} className="text-tertiary" />
-        <h2 className="min-w-0 whitespace-normal break-words text-label-sm leading-tight sm:text-label-md">{title}</h2>
-      </div>
-      <p
-        className={`mt-3 flex min-h-9 items-center text-on-surface ${value !== null && !loading ? 'font-data text-headline-md' : 'text-body-sm'}`}
-        aria-live="polite"
-      >
-        {loading ? (
-          <span aria-label="Loading balance" className="h-7 w-24 animate-pulse rounded-md bg-white/10" />
-        ) : (
-          (value ?? message)
-        )}
-      </p>
-      {loading ? (
-        <span aria-hidden="true" className="mt-2 block h-4 w-full animate-pulse rounded bg-white/5" />
-      ) : (
-        note && <p className="mt-1 text-label-sm text-on-surface-variant">{note}</p>
-      )}
-    </Card>
-  )
-}
-
-function SettledMiningReport({ session }) {
-  if (!session) return null
-  let award = null
-  if (session.estimatedAwardAtomic !== null && session.rule?.atomicUnitScale !== undefined) {
-    try {
-      award = atomicUnitsToDecimal(session.estimatedAwardAtomic, session.rule.atomicUnitScale)
-    } catch {
-      award = null
-    }
-  }
-
-  return (
-    <Card className="p-4 sm:p-5" aria-label="Latest mining cycle report">
-      <div className="flex items-start gap-3">
-        <Icon name="task_alt" className="mt-0.5 text-tertiary" />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-title font-semibold text-on-surface">Your last mining cycle is complete</h2>
-            <Badge t="tertiary">Complete</Badge>
-          </div>
-          <p className="mt-1 text-body-sm text-on-surface-variant">Your robot finished its last round.</p>
-        </div>
-      </div>
-      <div className="mt-4 rounded-xl bg-surface-container px-4 py-3">
-        <p className="text-label-sm text-on-surface-variant">You earned</p>
-        <p className="tnum mt-1 text-title font-semibold text-tertiary">
-          {award === null ? 'Amount not available yet' : `+${award} RBC`}
-        </p>
-      </div>
-      <Button to="/deploy" full className="mt-4" icon="paid">
-        Continue mining
-      </Button>
-    </Card>
-  )
-}
-
 const loadShortcuts = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY))
     if (Array.isArray(saved) && saved.length) {
       const migrated = saved.map((id) => (id === 'training' ? 'events' : id === 'deploy' ? 'referrals' : id))
-      return [...new Set(migrated)].filter((id) => CATALOGUE.some((item) => item.id === id))
+      const available = [...new Set(migrated)].filter((id) => CATALOGUE.some((item) => item.id === id))
+      return available.length ? available : DEFAULT_IDS
     }
   } catch {
     // Use deterministic defaults when local preferences are unavailable.
@@ -190,9 +88,19 @@ export default function Home() {
   const auth = useAuth()
   const robotState = useRobot()
   const [welcome, setWelcome] = useState(false)
-  const [ids, setIds] = useState(loadShortcuts)
-  const [editing, setEditing] = useState(false)
+  const [ids] = useState(loadShortcuts)
   const [refreshCount, setRefreshCount] = useState(0)
+  const ledger = useDashboardLedger(!runtimeConfig.isDemo && Boolean(auth.session?.userId), refreshCount)
+  const [rewards, setRewards] = useState(null)
+  const [progress, setProgress] = useState(null)
+  const [rewardsError, setRewardsError] = useState('')
+  const [progressError, setProgressError] = useState('')
+  const [miningStarting, setMiningStarting] = useState(false)
+  const [miningActionError, setMiningActionError] = useState('')
+  const miningStartLock = useRef(false)
+  const miningStartAttempt = useRef(null)
+  const dailyClaim = useRef(null)
+  const summaryOwner = useRef(null)
   const [miningSnapshot, setMiningSnapshot] = useState(null)
   const [miningNow, setMiningNow] = useState(() => Date.now())
   const [miningRefreshing, setMiningRefreshing] = useState(false)
@@ -223,6 +131,8 @@ export default function Home() {
       queueMicrotask(() => {
         if (!active) return
         setMiningSnapshot(null)
+        setRewards(null)
+        setProgress(null)
         setDailyActivityMessage('')
         setSummary({ ...initial, loading: true })
       })
@@ -235,6 +145,8 @@ export default function Home() {
       queueMicrotask(() => {
         if (!active) return
         setMiningSnapshot(null)
+        setRewards(null)
+        setProgress(null)
         setDailyActivityMessage('')
         setSummary({ ...initial, xpState: state, rbcState: state })
       })
@@ -243,27 +155,51 @@ export default function Home() {
       }
     }
 
+    const ownerChanged = summaryOwner.current !== auth.session.userId
+    summaryOwner.current = auth.session.userId
     queueMicrotask(() => {
-      if (!active) return
+      if (!active || !ownerChanged) return
       setSummary({ ...initial, loading: true })
+      setRewards(null)
+      setProgress(null)
       setDailyActivityMessage('')
     })
     const accountRequest = runtimeConfig.services.identity
       ? browserAccountClient.snapshot()
       : Promise.reject(new Error('Account service is unavailable.'))
-    const dailyActivity = browserMiningClient.claimDailyActivity().catch(() => ({ status: 'unavailable' }))
-    dailyActivity.then((activity) => {
-      if (!active || activity?.status !== 'awarded' || !Number.isSafeInteger(activity.xp) || activity.xp <= 0) return
+    const claimKey = `${auth.session.userId}:${new Date().toISOString().slice(0, 10)}`
+    if (dailyClaim.current?.key !== claimKey) {
+      const claim = { key: claimKey, refreshed: false }
+      claim.promise = browserMiningClient.claimDailyActivity().catch(() => {
+        if (dailyClaim.current === claim) dailyClaim.current = null
+        return { status: 'unavailable' }
+      })
+      dailyClaim.current = claim
+    }
+    const claim = dailyClaim.current
+    claim.promise.then((activity) => {
+      if (!active) return
+      if (activity?.status === 'unavailable' && dailyClaim.current === claim) dailyClaim.current = null
+      if (activity?.status !== 'awarded' || !Number.isSafeInteger(activity.xp) || activity.xp <= 0) return
       setDailyActivityMessage(`Daily login reward: +${activity.xp} XP added.`)
+      if (!claim.refreshed) {
+        claim.refreshed = true
+        setRefreshCount((count) => count + 1)
+      }
     })
-    const miningRequest = dailyActivity.then(() => browserMiningClient.snapshot())
+    // Daily rewards are optional: a stalled claim must not block balances or mining.
+    const miningRequest = browserMiningClient.snapshot()
     const passportRequest =
       robotState.robot?.id && runtimeConfig.services.robots
-        ? dailyActivity.then(() => browserRobotClient.passport(robotState.robot.id))
+        ? browserRobotClient.passport(robotState.robot.id)
         : Promise.resolve(null)
 
-    Promise.allSettled([accountRequest, miningRequest, passportRequest]).then(
-      ([accountResult, miningResult, passportResult]) => {
+    const rewardsRequest = runtimeConfig.services.rewards
+      ? browserEcosystemClient.rewards()
+      : Promise.reject(new Error('Rewards unavailable'))
+    const progressRequest = browserMiningClient.progress()
+    Promise.allSettled([accountRequest, miningRequest, passportRequest, rewardsRequest, progressRequest]).then(
+      ([accountResult, miningResult, passportResult, rewardsResult, progressResult]) => {
         if (!active) return
         const profile = accountResult.status === 'fulfilled' ? accountResult.value?.profile : null
         const name = typeof profile?.fullName === 'string' && profile.fullName.trim() ? profile.fullName.trim() : null
@@ -271,10 +207,26 @@ export default function Home() {
           miningResult.status === 'fulfilled' && miningResult.value?.authoritative === true ? miningResult.value : null
         setMiningSnapshot(mining)
         const passport = passportResult.status === 'fulfilled' ? passportResult.value?.passport : null
-        const verifiedXp =
-          passport?.authoritative === true && Number.isSafeInteger(passport.totalXp) && passport.totalXp >= 0
-            ? passport.totalXp
+        const recordedRewards =
+          rewardsResult.status === 'fulfilled' && rewardsResult.value?.authoritative === true
+            ? rewardsResult.value
             : null
+        setRewards(recordedRewards)
+        setRewardsError(recordedRewards ? '' : 'XP and RoboCoin activity is temporarily unavailable.')
+        setProgress(
+          progressResult.status === 'fulfilled' && progressResult.value?.authoritative === true
+            ? progressResult.value
+            : null,
+        )
+        setProgressError(
+          progressResult.status === 'fulfilled' ? '' : 'Daily mining progress is temporarily unavailable.',
+        )
+        const verifiedXp =
+          Number.isSafeInteger(recordedRewards?.dashboard?.totalXp) && recordedRewards.dashboard.totalXp >= 0
+            ? recordedRewards.dashboard.totalXp
+            : passport?.authoritative === true && Number.isSafeInteger(passport.totalXp) && passport.totalXp >= 0
+              ? passport.totalXp
+              : null
         const xpState =
           verifiedXp !== null
             ? null
@@ -303,15 +255,17 @@ export default function Home() {
     if (miningRefreshLock.current) return
     miningRefreshLock.current = true
     setMiningRefreshing(true)
+    setMiningActionError('')
     try {
       const next = await browserMiningClient.snapshot()
       if (next?.authoritative === true) {
         setMiningSnapshot(next)
         const rbc = formatRbc(next.balance)
         setSummary((current) => ({ ...current, rbc, rbcState: rbc === null ? 'empty' : null }))
+        setRefreshCount((count) => count + 1)
       }
     } catch {
-      // The existing panel retains its last confirmed snapshot and lets the user retry.
+      setMiningActionError('Mining could not be refreshed. Please try again.')
     } finally {
       miningRefreshLock.current = false
       setMiningRefreshing(false)
@@ -357,21 +311,114 @@ export default function Home() {
     setWelcome(false)
   }, [auth.session?.userId])
 
-  const persist = (next) => {
-    setIds(next)
+  const startMining = async () => {
+    if (
+      miningStartLock.current ||
+      !miningSnapshot?.eligibility?.eligible ||
+      !miningSnapshot.issuanceEnabled ||
+      miningSnapshot.session
+    )
+      return
+    const robot =
+      miningSnapshot.robots.find((item) => item.robotId === robotState.robot?.id && item.unlocked) ||
+      miningSnapshot.robots.find((item) => item.unlocked)
+    const site = miningSnapshot.worksites.find(
+      (item) => item.available && item.name.trim().toLowerCase() === 'manufacturing',
+    )
+    if (!robot || !site) {
+      setMiningActionError('Choose an available robot and worksite from the Mine tab.')
+      return
+    }
+    const context = `${auth.session?.userId}:${robot.robotId}:${site.worksiteId}`
+    if (miningStartAttempt.current?.context !== context)
+      miningStartAttempt.current = {
+        context,
+        key: `home-mining:${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`,
+      }
+    miningStartLock.current = true
+    setMiningStarting(true)
+    setMiningActionError('')
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(next))
-    } catch {
-      // Shortcut preferences are non-authoritative UX state.
+      const next = await browserMiningClient.start({
+        robotId: robot.robotId,
+        worksiteId: site.worksiteId,
+        idempotencyKey: miningStartAttempt.current.key,
+      })
+      if (next?.authoritative !== true) throw new Error('Mining could not be confirmed. Please try again.')
+      setMiningSnapshot(next)
+      if (next.session) {
+        miningStartAttempt.current = null
+        setRefreshCount((count) => count + 1)
+      } else setMiningActionError('Mining is not currently available. Check the Mine tab for details.')
+    } catch (reason) {
+      setMiningActionError(reason instanceof Error ? reason.message : 'Mining could not be started. Please try again.')
+    } finally {
+      miningStartLock.current = false
+      setMiningStarting(false)
     }
   }
 
+  useEffect(() => {
+    if (runtimeConfig.isDemo || !auth.session?.userId) return undefined
+    const refresh = () => {
+      if (document.visibilityState === 'visible') setRefreshCount((count) => count + 1)
+    }
+    const timer = window.setInterval(refresh, 60000)
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [auth.session?.userId])
+
   const chosen = ids.map((id) => CATALOGUE.find((item) => item.id === id)).filter(Boolean)
-  const available = CATALOGUE.filter((item) => !ids.includes(item.id))
-  const full = ids.length >= MAX_SHORTCUTS
+
+  const shortcuts = (
+    <section className="dw-shortcuts" aria-label="More">
+      <h2 className="mb-3 font-headline-md text-headline-md text-on-surface">More</h2>
+      <ul className="grid grid-cols-4 gap-y-4">
+        {chosen.map((action) => (
+          <li key={action.id}>
+            <Link
+              to={action.to}
+              className="flex flex-col items-center gap-2 rounded-xl py-1 text-center active:scale-[.94]"
+            >
+              <IconTile icon={action.icon} accent={action.c} size={52} radius={16} iconSize={28} />
+              <span className="text-label-md leading-tight text-on-surface">{action.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
 
   return (
-    <AppShell title={greeting(summary.name)} brand lightTopBackdrop>
+    <AppShell title={greeting(summary.name)} brand variant="wallet">
+      <WalletDashboard
+        rbc={displayedRbc}
+        xp={summary.xp === null ? null : formatXp(summary.xp)}
+        mining={miningSnapshot}
+        robot={robotState.robot}
+        ledger={ledger}
+        loading={summary.loading}
+        balanceState={summary.rbcState}
+        pendingMining={hasPendingMining}
+        now={miningNow}
+        shortcuts={shortcuts}
+        rewards={rewards}
+        rewardsError={rewardsError}
+        progress={progress}
+        progressError={progressError}
+        onRefreshData={() => setRefreshCount((count) => count + 1)}
+        onStartMining={startMining}
+        miningStarting={miningStarting}
+        onRefreshMining={refreshMining}
+        miningRefreshing={miningRefreshing}
+        miningError={miningActionError}
+        robotLoading={robotState.loading}
+      />
       {location.state?.dailyXpAward > 0 && (
         <p
           role="status"
@@ -388,118 +435,6 @@ export default function Home() {
         </p>
       )}
 
-      {robotState.loading ? (
-        <StateView kind="loading" title="Loading your robot" desc="Reading the latest confirmed robot state." />
-      ) : robotState.isDemo || !robotState.robot ? (
-        <RobotSetupPanel robotState={robotState} />
-      ) : (
-        <section>
-          <Card className="overflow-hidden border-[#dfe6ed] bg-white p-4 shadow-[0_12px_32px_rgba(30,54,75,0.06)] sm:p-5">
-            <div className="flex items-start gap-4">
-              <Robot3D
-                size={96}
-                config={robotState.configuration || undefined}
-                className="shrink-0"
-                label={`${robotState.robot.name}, your robot`}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <h2 className="truncate font-headline-md text-headline-md text-on-surface">
-                      {robotState.robot.name}
-                    </h2>
-                    <p className="mt-1 text-body-sm text-on-surface-variant">
-                      {packageDefinition(robotState.robot.packageSlug).robotClass} · {robotState.robot.packageSlug}
-                    </p>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#b7e5d0] bg-[#e6f6ee] px-2.5 py-1 text-label-sm font-medium capitalize text-[#176b4c]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#1d9a68]" />
-                    {miningSnapshot?.session?.status === 'active' ? 'Mining' : robotState.robot.lifecycle}
-                  </span>
-                </div>
-                {!miningSnapshot?.session &&
-                miningSnapshot?.issuanceEnabled &&
-                miningSnapshot?.eligibility?.eligible ? (
-                  <Button to="/deploy" className="mt-4 font-bold" icon="bolt">
-                    Start mining
-                  </Button>
-                ) : !miningSnapshot?.session ? (
-                  <p className="mt-3 text-label-sm text-on-surface-variant">
-                    {summary.loading ? 'Checking mining…' : 'Mining unavailable'}
-                  </p>
-                ) : null}
-              </div>
-            </div>
-            {miningSnapshot?.session && miningSnapshot.session.status !== 'settled' ? (
-              <MiningCyclePanel
-                compact
-                session={miningSnapshot.session}
-                robotName={robotState.robot.name}
-                serverNow={miningSnapshot.serverNow}
-                onRefresh={refreshMining}
-                refreshing={miningRefreshing}
-              />
-            ) : (
-              <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[#e0e6ed] bg-[#f6f8fb] px-4 py-3.5">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#fff3cf] text-[#a66d00]">
-                  <Icon name="paid" className="text-[22px]" />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-label-sm text-[#586a79]">Amount per cycle</p>
-                  <p
-                    className="tnum mt-0.5 break-words font-data text-title font-bold text-on-surface"
-                    aria-live="polite"
-                  >
-                    {summary.loading ? (
-                      <span
-                        aria-label="Loading mining amount"
-                        className="mt-1 block h-6 w-36 animate-pulse rounded bg-white/10"
-                      />
-                    ) : (
-                      formatMiningCycleAmount(miningSnapshot) || 'Amount unavailable'
-                    )}
-                  </p>
-                </div>
-              </div>
-            )}
-          </Card>
-        </section>
-      )}
-
-      {!runtimeConfig.isDemo &&
-        miningSnapshot?.authoritative === true &&
-        (() => {
-          const session = miningSnapshot.session
-          const latestSettled = miningSnapshot.recentSessions.find((item) => item.status === 'settled')
-          return session?.status === 'settled' ? (
-            <SettledMiningReport session={session} />
-          ) : session ? null : latestSettled ? (
-            <SettledMiningReport session={latestSettled} />
-          ) : null
-        })()}
-
-      <section
-        aria-label="Member balances"
-        role={summary.loading ? 'status' : undefined}
-        aria-busy={summary.loading || undefined}
-        className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-3 sm:grid-cols-2"
-      >
-        <SummaryCard
-          title="XP balance"
-          icon="stars"
-          loading={summary.loading}
-          value={summary.xp === null ? null : formatXp(summary.xp)}
-          state={summary.xpState}
-        />
-        <SummaryCard
-          title="RoboCoin balance"
-          icon="paid"
-          loading={summary.loading}
-          value={displayedRbc}
-          state={summary.rbcState}
-          note={hasPendingMining ? 'Includes estimated earnings; award settles at cycle end' : undefined}
-        />
-      </section>
       {!runtimeConfig.isDemo &&
         auth.session?.userId &&
         (summary.xpState === 'unavailable' || summary.rbcState === 'unavailable') && (
@@ -511,70 +446,6 @@ export default function Home() {
             Refresh balances
           </button>
         )}
-
-      <section>
-        <div className="mb-3 flex items-baseline justify-between gap-4">
-          <h2 className="font-headline-md text-headline-md text-on-surface">Shortcuts</h2>
-          <button
-            type="button"
-            onClick={() => setEditing(!editing)}
-            className="shrink-0 text-label-md text-primary hover:underline"
-          >
-            {editing ? 'Done' : 'Edit'}
-          </button>
-        </div>
-
-        <ul className="grid grid-cols-4 gap-y-4">
-          {chosen.map((action) => (
-            <li key={action.id}>
-              {editing ? (
-                <div className="flex flex-col items-center gap-2 py-1 text-center">
-                  <span className="relative">
-                    <IconTile icon={action.icon} accent={action.c} size={52} radius={16} iconSize={28} />
-                    <button
-                      type="button"
-                      onClick={() => persist(ids.filter((id) => id !== action.id))}
-                      aria-label={`Remove ${action.label} from shortcuts`}
-                      className="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full border-2 border-background bg-error text-on-error"
-                    >
-                      <Icon name="remove" className="text-[16px]" />
-                    </button>
-                  </span>
-                  <span className="text-label-md leading-tight text-on-surface">{action.label}</span>
-                </div>
-              ) : (
-                <Link
-                  to={action.to}
-                  className="flex flex-col items-center gap-2 rounded-xl py-1 text-center active:scale-[.94]"
-                >
-                  <IconTile icon={action.icon} accent={action.c} size={52} radius={16} iconSize={28} />
-                  <span className="text-label-md leading-tight text-on-surface">{action.label}</span>
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-
-        {editing && (
-          <Card className="mt-5 p-4">
-            <SectionTitle action={`${ids.length}/${MAX_SHORTCUTS}`}>Add shortcut</SectionTitle>
-            <div className="flex flex-wrap gap-2">
-              {available.map((action) => (
-                <button
-                  type="button"
-                  key={action.id}
-                  disabled={full}
-                  onClick={() => !full && persist([...ids, action.id])}
-                  className="tap flex items-center gap-2 rounded-full border border-white/12 px-3 py-2 text-label-md text-on-surface disabled:opacity-45"
-                >
-                  <Icon name={action.icon} className="text-[18px]" /> {action.label}{' '}
-                  <Icon name="add" className="text-[16px] text-outline" />
-                </button>
-              ))}
-            </div>
-          </Card>
-        )}
-      </section>
     </AppShell>
   )
 }

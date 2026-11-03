@@ -1,20 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import AppShell from '../components/AppShell.jsx'
-import StateView, { LoadingView } from '../components/states/StateView.jsx'
-import { Button, Card, DataRow, Disclosure, SectionTitle } from '../components/ui.jsx'
+import { Button, Card, DataRow, SectionTitle } from '../components/ui.jsx'
 import { browserFinanceClient } from '../infrastructure/finance/browserFinanceClient.ts'
 import { getSensitiveActionPolicy } from '../lib/sensitiveActions.js'
+import { RoboCoinWallet } from '../components/dashboard/WalletDashboard.jsx'
+import DashboardIcon from '../components/dashboard/DashboardIcon.jsx'
+import { browserMiningClient } from '../infrastructure/mining/browserMiningClient.ts'
+import { atomicUnitsToDecimal } from '../domain/mining/metrics.ts'
+import { runtimeConfig } from '../lib/runtimeConfig.js'
+import { useAuth } from '../components/auth/AuthProvider.jsx'
 
 function formatMoney(amountMinor, currency) {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(amountMinor || 0) / 100)
 }
 
 function LiveWallet() {
+  const auth = useAuth()
+  const cashAvailable = auth.session?.kycStatus === 'verified'
   const withdrawPolicy = getSensitiveActionPolicy('wallet.withdraw')
   const depositPolicy = getSensitiveActionPolicy('wallet.deposit')
   const [wallet, setWallet] = useState(null)
   const [transactions, setTransactions] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(cashAvailable)
   const [error, setError] = useState('')
   const [historyError, setHistoryError] = useState('')
   const [message, setMessage] = useState('')
@@ -25,8 +32,53 @@ function LiveWallet() {
   const [amount, setAmount] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const currency = 'USD'
+  const payoutPanel = useRef(null)
+  const [mining, setMining] = useState(null)
+  const [miningLoading, setMiningLoading] = useState(!runtimeConfig.isDemo)
+
+  useEffect(() => {
+    if (runtimeConfig.isDemo) return undefined
+    let active = true
+    browserMiningClient
+      .snapshot()
+      .then((snapshot) => {
+        if (active && snapshot?.authoritative === true) setMining(snapshot)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setMiningLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const openWithdrawal = () => {
+    if (!payoutPanel.current) return
+    payoutPanel.current.open = true
+    payoutPanel.current.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+    payoutPanel.current.querySelector('input')?.focus({ preventScroll: true })
+  }
+
+  useEffect(() => {
+    if (window.location.hash === '#withdraw') openWithdrawal()
+  }, [])
+
+  let rbc = null
+  try {
+    if (mining?.balance?.availableAtomic !== null && Number.isInteger(mining?.balance?.atomicScale)) {
+      const [whole, fraction = ''] = atomicUnitsToDecimal(
+        mining.balance.availableAtomic,
+        mining.balance.atomicScale,
+      ).split('.')
+      rbc = `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction.replace(/0+$/, '').padEnd(2, '0')} RBC`
+    }
+  } catch {
+    /* Keep an unavailable balance distinct from zero. */
+  }
 
   const refresh = async () => {
+    if (!cashAvailable) return
     setLoading(true)
     setError('')
     const [walletResult, transactionResult] = await Promise.allSettled([
@@ -52,6 +104,7 @@ function LiveWallet() {
   }
 
   useEffect(() => {
+    if (!cashAvailable) return undefined
     let active = true
     Promise.allSettled([browserFinanceClient.wallet(currency), browserFinanceClient.transactions(currency)]).then(
       ([walletResult, transactionResult]) => {
@@ -77,9 +130,10 @@ function LiveWallet() {
     return () => {
       active = false
     }
-  }, [])
+  }, [cashAvailable])
 
   const createPayout = async () => {
+    if (!cashAvailable || !withdrawPolicy.authoritative) return
     setSubmitting(true)
     setError('')
     setMessage('')
@@ -104,6 +158,7 @@ function LiveWallet() {
   }
 
   const withdraw = async () => {
+    if (!cashAvailable || !withdrawPolicy.authoritative) return
     const amountMinor = Math.round(Number(amount) * 100)
     if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0) {
       setError('Enter a valid withdrawal amount.')
@@ -125,157 +180,122 @@ function LiveWallet() {
     }
   }
 
-  if (loading) {
-    return (
-      <AppShell title="Wallet" back avatar={false}>
-        <LoadingView
-          title="Loading wallet ledger"
-          desc="Calculating available and pending amounts from posted entries."
-        />
-      </AppShell>
-    )
-  }
-  if (error && !wallet) {
-    return (
-      <AppShell title="Wallet" back avatar={false}>
-        <StateView
-          kind="error"
-          title="Wallet unavailable"
-          desc={error}
-          action={<Button onClick={refresh}>Try again</Button>}
-        />
-      </AppShell>
-    )
-  }
-
   return (
-    <AppShell title="Wallet" subtitle="Ledger-derived balances" back avatar={false}>
-      <Disclosure icon="verified_user">
-        The wallet has no mutable balance field. Available and pending amounts are recalculated from immutable
-        double-entry ledger records on every request.
-      </Disclosure>
+    <AppShell title="RoboCoin (RBC) Wallet" back backTo="/home" avatar={false}>
+      <RoboCoinWallet
+        rbc={rbc}
+        mining={mining}
+        ledger={{ wallet, transactions, loading, historyError }}
+        loading={miningLoading}
+        onWithdraw={openWithdrawal}
+        cashAvailable={cashAvailable}
+      />
+      {error && !wallet && (
+        <div className="dw-ledger-error" role="status">
+          <span>Wallet unavailable: {error}</span>
+          <button type="button" onClick={refresh}>
+            Try again
+          </button>
+        </div>
+      )}
+      {cashAvailable && (
+        <details className="dw-payout-controls" ref={payoutPanel} id="withdraw">
+          <summary>
+            Withdraw & manage payout method
+            <DashboardIcon name="chevron" size={18} />
+          </summary>
+          <div className="dw-payout-content">
+            {wallet && (
+              <p className="text-body-sm text-on-surface-variant">
+                Pending withdrawals: {formatMoney(wallet.pendingWithdrawalMinor, wallet.currency || currency)}
+              </p>
+            )}
 
-      <Card className="p-card-padding">
-        <p className="text-label-md text-on-surface-variant">Available</p>
-        <p className="tnum mt-1 font-headline-lg text-headline-lg text-on-surface">
-          {formatMoney(wallet?.availableMinor, wallet?.currency || currency)}
-        </p>
-        <p className="mt-2 text-body-sm text-on-surface-variant">
-          Pending withdrawals: {formatMoney(wallet?.pendingWithdrawalMinor, wallet?.currency || currency)}
-        </p>
-      </Card>
+            <section>
+              <SectionTitle>Payout method</SectionTitle>
+              <Card className="space-y-3 p-card-padding">
+                <input
+                  value={accountName}
+                  onChange={(event) => setAccountName(event.target.value)}
+                  placeholder="Account name"
+                  aria-label="Payout account name"
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
+                />
+                <input
+                  value={accountNumber}
+                  onChange={(event) => setAccountNumber(event.target.value.replace(/\D/g, ''))}
+                  placeholder="Account number"
+                  inputMode="numeric"
+                  aria-label="Payout account number"
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
+                />
+                <input
+                  value={bankCode}
+                  onChange={(event) => setBankCode(event.target.value)}
+                  placeholder="Provider bank code"
+                  aria-label="Payout bank code"
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
+                />
+                <Button
+                  onClick={createPayout}
+                  loading={submitting}
+                  disabled={!withdrawPolicy.authoritative || !accountName || !accountNumber || !bankCode}
+                >
+                  Verify payout method
+                </Button>
+              </Card>
+            </section>
 
-      <section>
-        <SectionTitle>Payout method</SectionTitle>
-        <Card className="space-y-3 p-card-padding">
-          <input
-            value={accountName}
-            onChange={(event) => setAccountName(event.target.value)}
-            placeholder="Account name"
-            aria-label="Payout account name"
-            className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
-          />
-          <input
-            value={accountNumber}
-            onChange={(event) => setAccountNumber(event.target.value.replace(/\D/g, ''))}
-            placeholder="Account number"
-            inputMode="numeric"
-            aria-label="Payout account number"
-            className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
-          />
-          <input
-            value={bankCode}
-            onChange={(event) => setBankCode(event.target.value)}
-            placeholder="Provider bank code"
-            aria-label="Payout bank code"
-            className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
-          />
-          <Button
-            onClick={createPayout}
-            loading={submitting}
-            disabled={!withdrawPolicy.authoritative || !accountName || !accountNumber || !bankCode}
-          >
-            Verify payout method
-          </Button>
-        </Card>
-      </section>
-
-      <section>
-        <SectionTitle>Recent activity</SectionTitle>
-        {historyError ? (
-          <p role="status" className="rounded-xl border border-white/10 p-3 text-body-sm text-on-surface-variant">
-            Wallet activity unavailable: {historyError}
-          </p>
-        ) : transactions.length ? (
-          <Card className="divide-y divide-white/8">
-            {transactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-body-md text-on-surface">{transaction.kind}</p>
-                  <p className="text-label-sm text-outline">
-                    {new Date(transaction.createdAt).toLocaleDateString()} · {transaction.status}
-                  </p>
-                </div>
-                <p className="shrink-0 font-data text-data-sm text-on-surface">
-                  {transaction.direction === 'credit' ? '+' : '−'}
-                  {formatMoney(Math.abs(transaction.amountMinor), transaction.currency)}
+            <section>
+              <SectionTitle>Withdraw</SectionTitle>
+              <Card className="space-y-3 p-card-padding">
+                <input
+                  value={amount}
+                  onChange={(event) => setAmount(event.target.value)}
+                  placeholder="0.00"
+                  inputMode="decimal"
+                  aria-label="Withdrawal amount in USD"
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
+                />
+                <Button
+                  variant="tonal"
+                  onClick={withdraw}
+                  loading={submitting}
+                  disabled={!withdrawPolicy.authoritative || !payoutMethodId || !amount}
+                >
+                  Request withdrawal
+                </Button>
+                <p className="text-label-sm text-outline">
+                  Your identity, bank details and available balance are verified before every withdrawal.
                 </p>
-              </div>
-            ))}
-          </Card>
-        ) : (
-          <p className="text-body-sm text-outline">No ledger activity yet.</p>
-        )}
-      </section>
+              </Card>
+            </section>
 
-      <section>
-        <SectionTitle>Withdraw</SectionTitle>
-        <Card className="space-y-3 p-card-padding">
-          <input
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-            placeholder="0.00"
-            inputMode="decimal"
-            aria-label="Withdrawal amount in USD"
-            className="w-full rounded-xl border border-outline-variant bg-surface-container px-4 py-3 text-on-surface outline-none"
-          />
-          <Button
-            variant="tonal"
-            onClick={withdraw}
-            loading={submitting}
-            disabled={!withdrawPolicy.authoritative || !payoutMethodId || !amount}
-          >
-            Request withdrawal
-          </Button>
-          <p className="text-label-sm text-outline">
-            KYC, payout-method ownership and available balance are rechecked server-side under a serialized ledger
-            reservation.
-          </p>
-        </Card>
-      </section>
+            {error && (
+              <p role="alert" className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error">
+                {error}
+              </p>
+            )}
+            {message && (
+              <p
+                role="status"
+                className="rounded-xl border border-tertiary/30 bg-tertiary/10 p-3 text-label-sm text-on-surface"
+              >
+                {message}
+              </p>
+            )}
 
-      {error && (
-        <p role="alert" className="rounded-xl border border-error/30 bg-error/10 p-3 text-label-sm text-error">
-          {error}
-        </p>
+            <section>
+              <SectionTitle>Controls</SectionTitle>
+              <Card className="divide-y divide-white/8">
+                <DataRow label="Ledger currency" value={wallet?.currency || currency} />
+                <DataRow label="Deposits" value={depositPolicy.authoritative ? 'Available' : 'Not enabled'} />
+                <DataRow label="Withdrawal settlement" value="Provider verified" />
+              </Card>
+            </section>
+          </div>
+        </details>
       )}
-      {message && (
-        <p
-          role="status"
-          className="rounded-xl border border-tertiary/30 bg-tertiary/10 p-3 text-label-sm text-on-surface"
-        >
-          {message}
-        </p>
-      )}
-
-      <section>
-        <SectionTitle>Controls</SectionTitle>
-        <Card className="divide-y divide-white/8">
-          <DataRow label="Ledger currency" value={wallet?.currency || currency} />
-          <DataRow label="Deposits" value={depositPolicy.authoritative ? 'Available' : 'Not enabled'} />
-          <DataRow label="Withdrawal settlement" value="Provider verified" />
-        </Card>
-      </section>
     </AppShell>
   )
 }

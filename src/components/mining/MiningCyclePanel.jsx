@@ -53,7 +53,7 @@ export default function MiningCyclePanel({
 
   if (compact)
     return (
-      <Card className="mt-4 space-y-3 border-slate-200 bg-white p-3" aria-label="Current mining cycle">
+      <Card className="mt-4 space-y-3 border-white/10 bg-surface-container p-3" aria-label="Current mining cycle">
         <div className="flex items-center justify-between gap-3">
           <span className="flex items-center gap-2 text-label-sm text-on-surface-variant">
             <span className={`h-2 w-2 rounded-full ${isRunning ? 'bg-tertiary' : 'bg-[#f7c948]'}`} />
@@ -74,7 +74,7 @@ export default function MiningCyclePanel({
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progress)}
-            className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200"
+            className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-container-high"
           >
             <div className="h-full rounded-full bg-tertiary" style={{ width: `${progress}%` }} />
           </div>
@@ -90,10 +90,10 @@ export default function MiningCyclePanel({
 
   return (
     <Card className="overflow-hidden p-0" aria-label="Current mining cycle">
-      <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-amber-50 px-4 py-5 sm:px-5">
-        <div className="min-w-0">
-          <p className="text-label-sm font-medium text-on-surface-variant">{worksite.name}</p>
-          <p className="truncate text-title font-semibold text-on-surface">{worksite.task}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 bg-surface-container px-4 py-5 sm:px-5">
+        <div className="min-w-0 flex-1 basis-48">
+          <p className="text-title font-semibold text-on-surface">{worksite.name}</p>
+          <p className="mt-1 text-body-sm leading-relaxed text-on-surface-variant">{worksite.task}</p>
         </div>
         <Badge t={isRunning ? 'tertiary' : isPendingSettlement ? 'gold' : 'outline'}>
           {isRunning ? 'Working' : isPendingSettlement ? 'Cycle ended' : 'Complete'}

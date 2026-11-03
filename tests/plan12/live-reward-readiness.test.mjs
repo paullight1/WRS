@@ -4,12 +4,14 @@ import fs from 'node:fs'
 
 const read = (path) => fs.readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8')
 
-test('daily login XP is requested before the authoritative member snapshot', () => {
+test('daily login XP refreshes authoritative balances without blocking member snapshots', () => {
   const home = read('src/screens/Home.jsx')
   const api = read('server/routes/rewards/activity.js')
   const client = read('src/infrastructure/mining/browserMiningClient.ts')
   assert.match(home, /claimDailyActivity\(\)/)
-  assert.match(home, /dailyActivity\.then\(\(\) => browserMiningClient\.snapshot\(\)\)/)
+  assert.match(home, /const miningRequest = browserMiningClient\.snapshot\(\)/)
+  assert.match(home, /if \(!claim\.refreshed\)/)
+  assert.match(home, /setRefreshCount\(\(count\) => count \+ 1\)/)
   assert.match(client, /\/api\/rewards\/activity/)
   assert.match(api, /requireSession\(request, \{ verified: true \}\)/)
   assert.match(api, /wrs_award_member_milestones/)

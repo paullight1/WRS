@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="wallet" viewBox="0 0 24 24"><path d="M20 8V5a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v11H5a3 3 0 0 1-3-3V6M20 12h-5a2 2 0 0 0 0 4h5M16 14h.01M5 6h12"/></symbol>
+  <symbol id="home" viewBox="0 0 24 24"><path d="m3 10 9-8 9 8v11h-6v-7H9v7H3z"/></symbol>
+  <symbol id="mine" viewBox="0 0 24 24"><path d="m4 3 17 17M14 2l8 8M13 3l8 8M8 8 2 21l3 1 7-12M3 3c5-2 10-1 14 3"/></symbol>
+  <symbol id="train" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><path d="M8 11c-4 0-5 3-5 6v3h18v-3c0-3-1-6-5-6M8 15v5m8-5v5M12 8v4M1 10v4m22-4v4"/></symbol>
+  <symbol id="more" viewBox="0 0 24 24"><path d="M5 5h.01M12 5h.01M19 5h.01M5 12h.01M12 12h.01M19 12h.01M5 19h.01M12 19h.01M19 19h.01" stroke-width="3"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 8-3 8-3 10h18c0-2-3-2-3-10M10 22h4M12 2V1"/></symbol>
+  <symbol id="down" viewBox="0 0 24 24"><path d="M12 3v15m-6-6 6 6 6-6M3 13v8h18v-8"/></symbol>
+  <symbol id="up" viewBox="0 0 24 24"><path d="M12 20V5m-6 6 6-6 6 6M3 13v8h18v-8"/></symbol>
+  <symbol id="transfer" viewBox="0 0 24 24"><path d="M3 7h17l-4-4m5 14H4l4 4M3 7l4 4m14 6-4-4"/></symbol>
+  <symbol id="swap" viewBox="0 0 24 24"><path d="M4 7h16l-4-4M20 17H4l4 4M4 7l4 4m12 6-4-4"/></symbol>
+  <symbol id="send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4zM22 2 11 13"/></symbol>
+  <symbol id="receive" viewBox="0 0 24 24"><path d="M3 8V3h5m8 0h5v5M3 16v5h5m8 0h5v-5M7 7h3v3H7zm7 0h3v3h-3zM7 14h3v3H7zm7 0h3v3h-3z"/></symbol>
+  <symbol id="cart" viewBox="0 0 24 24"><path d="M2 3h3l3 13h11l3-9H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></symbol>
+  <symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="hidden" viewBox="0 0 24 24"><path d="m3 3 18 18M10 5h2c6 0 10 7 10 7a21 21 0 0 1-4 4M6 6a21 21 0 0 0-4 6s4 7 10 7a14 14 0 0 0 5-1"/></symbol>
+  <symbol id="chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+  <symbol id="back" viewBox="0 0 24 24"><path d="m12 4-8 8 8 8M4 12h17"/></symbol>
+  <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="layers" viewBox="0 0 24 24"><path d="m12 2 10 6-10 6L2 8zM2 12l10 6 10-6M2 17l10 5 10-5"/></symbol>
+  <symbol id="target" viewBox="0 0 24 24"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="m11 13 9-10m-4 0h4v4"/></symbol>
+  <symbol id="gift" viewBox="0 0 24 24"><path d="M3 10h18v4H3zm2 4v8h14v-8M12 10v12M12 10C1 10 6 0 10 5l2 5c11 0 6-10 2-5z"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="robot" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="14" rx="4"/><path d="M12 6V2m-10 9v5m20-5v5M8 16h8"/><circle cx="8.5" cy="11" r=".8"/><circle cx="15.5" cy="11" r=".8"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="m12 2 3 6 7 1-5 5 1 8-6-4-6 4 1-8-5-5 7-1z"/></symbol>
+  <symbol id="dollar" viewBox="0 0 24 24"><path d="M12 2v20M18 6c-6-5-13 1-8 5l4 2c6 3-1 10-8 5"/></symbol>
+  <symbol id="shield" viewBox="0 0 24 24"><path d="m12 2 9 4v6c0 6-9 10-9 10S3 18 3 12V6zM8 12l3 3 5-6"/></symbol>
+  <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/></symbol>
+</svg>

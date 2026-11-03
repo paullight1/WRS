@@ -4,6 +4,21 @@ import { useAuth } from './auth/AuthProvider.jsx'
 import { CoinMark, Icon } from './ui.jsx'
 import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
 import { runtimeConfig } from '../lib/runtimeConfig.js'
+import DashboardIcon from './dashboard/DashboardIcon.jsx'
+
+function DashboardBrand() {
+  return (
+    <Link to="/home" className="dw-brand" aria-label="World Robotic System home">
+      <span className="dw-brand-portrait">
+        <img src="/dashboard/wallet-robot.png" alt="" />
+      </span>
+      <span className="dw-brand-wordmark">
+        <strong>WRS</strong>
+        <small>WORLD ROBOTIC SYSTEM</small>
+      </span>
+    </Link>
+  )
+}
 
 /** Retired: the page background is a flat surface now. */
 export function Atmosphere() {
@@ -22,7 +37,18 @@ export function UserAvatar({ size = 40, className = '' }) {
   )
 }
 
-export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu, light = false }) {
+export function TopBar({
+  title,
+  back,
+  backTo,
+  subtitle,
+  right,
+  avatar,
+  brand,
+  onMenu,
+  light = false,
+  reference = false,
+}) {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(() => typeof window !== 'undefined' && window.scrollY > 4)
 
@@ -31,6 +57,50 @@ export function TopBar({ title, back, subtitle, right, avatar, brand, onMenu, li
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  if (reference)
+    return (
+      <header className="dw-topbar">
+        <div className="dw-topbar-inner">
+          {brand ? (
+            <>
+              <DashboardBrand />
+              <p className="dw-header-greeting">{title}</p>
+            </>
+          ) : (
+            <div className="dw-section-title">
+              {back && (
+                <button
+                  type="button"
+                  className="dw-icon-button"
+                  onClick={() => navigate(backTo || -1)}
+                  aria-label="Go back"
+                >
+                  <DashboardIcon name="back" />
+                </button>
+              )}
+              <div>
+                <h1>{title}</h1>
+                {subtitle && <p>{subtitle}</p>}
+              </div>
+            </div>
+          )}
+          <div className="dw-header-actions">
+            <span className="dw-header-network">
+              <span />
+              WRS Network
+            </span>
+            {right}
+            <Link to="/notifications" className="dw-icon-button dw-notification" aria-label="Notifications">
+              <DashboardIcon name="bell" size={25} />
+            </Link>
+            <button type="button" onClick={onMenu} className="dw-icon-button dw-mobile-menu" aria-label="Open menu">
+              <DashboardIcon name="more" />
+            </button>
+          </div>
+        </div>
+      </header>
+    )
 
   return (
     <header
@@ -108,7 +178,28 @@ const bottomNav = [
   { to: '/more', icon: 'more_horiz', label: 'More' },
 ]
 
-export function BottomNav() {
+export function BottomNav({ reference = false }) {
+  if (reference)
+    return (
+      <nav className="dw-bottom-nav" aria-label="Primary">
+        <ul>
+          {[
+            { to: '/home', icon: 'home', label: 'Home' },
+            { to: '/deploy', icon: 'mine', label: 'Mine' },
+            { to: '/training', icon: 'train', label: 'Train' },
+            { to: '/wallet', icon: 'wallet', label: 'Wallet' },
+            { to: '/more', icon: 'more', label: 'More' },
+          ].map((item) => (
+            <li key={item.to}>
+              <NavLink to={item.to} className={({ isActive }) => (isActive ? 'active' : '')}>
+                <DashboardIcon name={item.icon} size={23} />
+                <span>{item.label}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
   return (
     <nav
       aria-label="Primary"
@@ -185,7 +276,7 @@ function desktopViewport() {
     : false
 }
 
-export function Drawer({ open, onClose }) {
+export function Drawer({ open, onClose, reference = false }) {
   const location = useLocation()
   const navigate = useNavigate()
   const auth = useAuth()
@@ -281,6 +372,11 @@ export function Drawer({ open, onClose }) {
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
+        {reference && (
+          <div className="dw-drawer-brand">
+            <DashboardBrand />
+          </div>
+        )}
         <div className="px-4 pb-4 pt-[max(20px,env(safe-area-inset-top))]">
           <Link
             to="/profile"
@@ -346,12 +442,14 @@ export default function AppShell({
   title,
   subtitle,
   back,
+  backTo,
   right,
   avatar = true,
   brand = false,
   children,
   wide = false,
   lightTopBackdrop = false,
+  variant = 'wallet',
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
@@ -362,23 +460,29 @@ export default function AppShell({
   }, [location.pathname])
 
   return (
-    <div className="wrs-member-app min-h-screen">
-      <Drawer open={drawerOpen} onClose={closeDrawer} />
-      <div className="lg:pl-[288px]">
+    <div className={`wrs-member-app min-h-screen ${variant === 'wallet' ? 'reference-shell' : ''}`}>
+      <Drawer open={drawerOpen} onClose={closeDrawer} reference={variant === 'wallet'} />
+      <div className={variant === 'wallet' ? 'dw-shell-content' : 'lg:pl-[288px]'}>
         <TopBar
           title={title}
           subtitle={subtitle}
           back={back}
+          backTo={backTo}
           right={right}
           avatar={avatar}
           brand={brand}
           onMenu={() => setDrawerOpen(true)}
-          light={lightTopBackdrop}
+          light={variant !== 'wallet' && lightTopBackdrop}
+          reference={variant === 'wallet'}
         />
         <main
-          className={`relative isolate mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`}
+          className={
+            variant === 'wallet'
+              ? 'dw-shell-main relative isolate mx-auto w-full'
+              : `relative isolate mx-auto w-full px-margin-page pb-28 pt-4 lg:pb-16 ${wide ? 'max-w-[1080px]' : 'max-w-[720px]'}`
+          }
         >
-          {lightTopBackdrop && (
+          {variant !== 'wallet' && lightTopBackdrop && (
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-0 -top-4 z-0 h-[240px] rounded-b-[36px] bg-[#f7f8fc]"
@@ -387,7 +491,7 @@ export default function AppShell({
           <div className="relative z-10 space-y-7">{children}</div>
         </main>
       </div>
-      <BottomNav />
+      <BottomNav reference={variant === 'wallet'} />
     </div>
   )
 }

@@ -1,10 +1,12 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import More from '../../src/screens/More.jsx'
 import ProfileProduction from '../../src/screens/ProfileProduction.jsx'
 import Wallet from '../../src/screens/Wallet.jsx'
 import { browserAccountClient } from '../../src/infrastructure/account/browserAccountClient.ts'
 import { browserFinanceClient } from '../../src/infrastructure/finance/browserFinanceClient.ts'
+
+const walletActor = vi.hoisted(() => ({ kycStatus: 'verified' }))
 
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal()
@@ -22,7 +24,13 @@ vi.mock('../../src/components/AppShell.jsx', () => ({ default: ({ children }) =>
 vi.mock('../../src/components/auth/AuthProvider.jsx', () => ({
   useAuth: () => ({
     isDemo: true,
-    session: { userId: 'demo-user', emailVerified: true, phoneVerified: true, roles: [] },
+    session: {
+      userId: 'demo-user',
+      emailVerified: true,
+      phoneVerified: true,
+      roles: [],
+      kycStatus: walletActor.kycStatus,
+    },
     refresh: vi.fn(),
     logout: vi.fn(),
   }),
@@ -65,6 +73,7 @@ describe('member identity and wallet', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    walletActor.kycStatus = 'verified'
     browserAccountClient.snapshot.mockResolvedValue({ profile: { fullName: 'Ada Lovelace', email: 'ada@example.com' } })
     browserFinanceClient.wallet.mockResolvedValue({
       wallet: { currency: 'EUR', availableMinor: 12345, pendingWithdrawalMinor: 0 },
@@ -100,12 +109,29 @@ describe('member identity and wallet', () => {
     expect(await screen.findByText(/profile unavailable/i)).toBeInTheDocument()
   })
 
+  it('shows searchable country names and saves the selected ISO code with the profile', async () => {
+    const profile = { fullName: 'Ada Lovelace', countryCode: 'NG', email: 'ada@example.com', phone: '+2348012345678' }
+    browserAccountClient.snapshot.mockResolvedValue({ profile })
+    browserAccountClient.updateProfile.mockResolvedValue({ profile: { ...profile, countryCode: 'GH' }, challenges: [] })
+    render(<ProfileProduction />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Country Nigeria' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search country' }), { target: { value: 'Ghana' } })
+    expect(screen.queryByRole('button', { name: /Nigeria\s*NG/ })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Ghana\s*GH/ }))
+    expect(screen.getByRole('button', { name: 'Country Ghana' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile' }))
+    expect(browserAccountClient.updateProfile).toHaveBeenCalledWith({ ...profile, countryCode: 'GH' })
+    expect(await screen.findByRole('status')).toHaveTextContent('Profile changes saved')
+  })
+
   it('shows the ledger balance and recent activity using the returned fiat currency', async () => {
     render(<Wallet />)
-    expect(await screen.findByText('€123.45')).toBeInTheDocument()
+    expect(
+      await within(screen.getByRole('region', { name: 'Wallet balance' })).findByText('€123.45'),
+    ).toBeInTheDocument()
     expect(screen.getByText(/pending withdrawals: €0.00/i)).toBeInTheDocument()
-    expect(await screen.findByText('Recent activity')).toBeInTheDocument()
-    expect(screen.getByText(/€25.00/)).toBeInTheDocument()
+    expect(await screen.findByText('Recent Transactions')).toBeInTheDocument()
+    expect(screen.getAllByText(/€25.00/).length).toBeGreaterThan(0)
     expect(browserFinanceClient.wallet).toHaveBeenCalledWith('USD')
     expect(browserFinanceClient.transactions).toHaveBeenCalledWith('USD')
   })
@@ -115,11 +141,28 @@ describe('member identity and wallet', () => {
       wallet: { currency: 'EUR', availableMinor: 0, pendingWithdrawalMinor: 0 },
     })
     render(<Wallet />)
-    expect(await screen.findByText('€0.00')).toBeInTheDocument()
+    expect(await within(screen.getByRole('region', { name: 'Wallet balance' })).findByText('€0.00')).toBeInTheDocument()
     cleanup()
     browserFinanceClient.wallet.mockRejectedValueOnce(new Error('Ledger unavailable'))
     render(<Wallet />)
     expect(await screen.findByText(/wallet unavailable/i)).toBeInTheDocument()
     expect(screen.queryByText('$154.40')).not.toBeInTheDocument()
+  })
+
+  it('opens payout controls from the separate cash wallet section', async () => {
+    render(<Wallet />)
+    await within(screen.getByRole('region', { name: 'Wallet balance' })).findByText('€123.45')
+    fireEvent.click(screen.getByRole('button', { name: 'Withdraw', exact: true }))
+    expect(document.querySelector('#withdraw')).toHaveAttribute('open')
+  })
+
+  it('shows the RoboCoin wallet without exposing cash controls before identity verification', async () => {
+    walletActor.kycStatus = 'pending'
+    render(<Wallet />)
+    expect(await screen.findByText('Verify your identity to use the cash wallet.')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'RoboCoin wallet' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Payout account name' })).not.toBeInTheDocument()
+    expect(browserFinanceClient.wallet).not.toHaveBeenCalled()
+    expect(browserFinanceClient.transactions).not.toHaveBeenCalled()
   })
 })

@@ -1,6 +1,13 @@
 export type MiningSessionStatus = 'active' | 'ended' | 'settled' | 'cancelled'
 export type MiningLeaderboardPeriod = 'week' | 'all-time'
 
+export interface DailyMiningProgress {
+  authoritative: true
+  serverNow: string
+  timeZone: 'UTC'
+  days: Array<{ day: string; miningMilliseconds: number; completedCycles: number }>
+}
+
 export interface MiningRuleSnapshot {
   ruleId: string
   version: number

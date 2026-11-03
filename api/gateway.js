@@ -69,6 +69,7 @@ const routes = {
   '/api/marketplace/review': () => import('../server/routes/marketplace/review.js'),
   '/api/marketplace': () => import('../server/routes/marketplace.js'),
   '/api/mining/leaderboard': () => import('../server/routes/mining/leaderboard.js'),
+  '/api/mining/progress': () => import('../server/routes/mining/progress.js'),
   '/api/mining/start': () => import('../server/routes/mining/start.js'),
   '/api/mining': () => import('../server/routes/mining.js'),
   '/api/payments/initialize': () => import('../server/routes/payments/initialize.js'),

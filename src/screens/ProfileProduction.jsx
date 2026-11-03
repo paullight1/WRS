@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../components/auth/AuthProvider.jsx'
 import StateView from '../components/states/StateView.jsx'
-import { Badge, Button, Card, Field, SectionTitle } from '../components/ui.jsx'
+import { Badge, Button, Field, SectionTitle } from '../components/ui.jsx'
+import PreferencePicker from '../components/settings/PreferencePicker.jsx'
+import { countryOptions } from '../components/settings/preferenceOptions.js'
 import { browserAccountClient } from '../infrastructure/account/browserAccountClient.ts'
 
 function formFromProfile(profile) {
@@ -98,22 +100,22 @@ export default function ProfileProduction() {
 
   const profile = snapshot.profile
   return (
-    <AppShell title="Profile" subtitle="Authoritative account identity">
+    <AppShell title="Profile">
       <section>
         <SectionTitle>Identity</SectionTitle>
-        <Card className="space-y-4 p-card-padding">
+        <div className="space-y-4">
           <Field
             label="Full name"
             value={form.fullName}
             onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
           />
-          <Field
-            label="Country code"
+          <PreferencePicker
+            appearance="field"
+            label="Country"
             value={form.countryCode}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, countryCode: event.target.value.toUpperCase().slice(0, 2) }))
-            }
-            placeholder="NG"
+            options={countryOptions}
+            disabled={busy}
+            onChange={(countryCode) => setForm((current) => ({ ...current, countryCode }))}
           />
           <Field
             label="Email"
@@ -143,7 +145,7 @@ export default function ProfileProduction() {
             Changing email or phone requires a recent MFA step-up. New identifiers become unverified until their OTP
             challenge succeeds.
           </p>
-        </Card>
+        </div>
       </section>
       <Button to="/settings/security" variant="ghost" full>
         Account security &amp; MFA

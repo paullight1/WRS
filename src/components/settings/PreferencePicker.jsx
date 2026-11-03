@@ -1,6 +1,14 @@
 import { useId, useState } from 'react'
 
-export default function PreferencePicker({ label, value, options, onChange, disabled = false }) {
+export default function PreferencePicker({
+  label,
+  value,
+  options,
+  onChange,
+  disabled = false,
+  appearance = 'default',
+}) {
+  const field = appearance === 'field'
   const id = useId()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -10,7 +18,10 @@ export default function PreferencePicker({ label, value, options, onChange, disa
   )
   return (
     <div className="relative">
-      <span id={`${id}-label`} className="mb-2 block text-body-sm text-on-surface-variant">
+      <span
+        id={`${id}-label`}
+        className={`mb-2 block text-on-surface-variant ${field ? 'text-title font-semibold' : 'text-body-sm'}`}
+      >
         {label}
       </span>
       <button
@@ -23,7 +34,7 @@ export default function PreferencePicker({ label, value, options, onChange, disa
           setOpen(!open)
           setQuery('')
         }}
-        className="flex min-h-12 w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[.02] px-3 py-3 text-left text-on-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        className={`flex w-full items-center justify-between gap-3 rounded-xl border py-3 text-left text-on-surface transition-colors duration-fast focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${field ? 'min-h-[56px] border-white/12 bg-surface-container px-4 text-[18px] font-semibold leading-6 focus:border-primary' : 'min-h-12 border-white/10 bg-white/[.02] px-3'}`}
       >
         <span id={`${id}-value`}>{selected?.label || value || 'Choose a country'}</span>
         <svg
@@ -39,15 +50,11 @@ export default function PreferencePicker({ label, value, options, onChange, disa
         </svg>
       </button>
       {open && (
-        <div
-          id={`${id}-options`}
-          className="mt-2 rounded-xl border border-white/15 bg-surface p-2"
-          onKeyDown={(event) => {
-            if (event.key === 'Escape') setOpen(false)
-          }}
-        >
+        <div id={`${id}-options`} className="mt-2 rounded-xl border border-white/15 bg-surface p-2">
           <input
-            autoFocus
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') setOpen(false)
+            }}
             aria-label={`Search ${label.toLowerCase()}`}
             placeholder={`Search ${label.toLowerCase()}…`}
             value={query}
@@ -59,6 +66,9 @@ export default function PreferencePicker({ label, value, options, onChange, disa
               <button
                 key={option.value}
                 type="button"
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') setOpen(false)
+                }}
                 aria-pressed={value === option.value}
                 onClick={() => {
                   onChange(option.value)

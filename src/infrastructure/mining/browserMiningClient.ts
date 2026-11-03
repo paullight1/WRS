@@ -1,4 +1,9 @@
-import type { MiningLeaderboard, MiningLeaderboardPeriod, MiningSnapshot } from '../../domain/mining/types'
+import type {
+  DailyMiningProgress,
+  MiningLeaderboard,
+  MiningLeaderboardPeriod,
+  MiningSnapshot,
+} from '../../domain/mining/types'
 
 type Json = Record<string, unknown>
 
@@ -107,6 +112,32 @@ function validateLeaderboard(value: unknown, period: MiningLeaderboardPeriod): M
 }
 
 export const browserMiningClient = {
+  async progress(): Promise<DailyMiningProgress> {
+    const result = await request<DailyMiningProgress>('/api/mining/progress')
+    if (
+      result?.authoritative !== true ||
+      result.timeZone !== 'UTC' ||
+      !Number.isFinite(Date.parse(result.serverNow)) ||
+      !Array.isArray(result.days) ||
+      result.days.length !== 7 ||
+      !result.days.every(
+        (day, index) =>
+          day.day ===
+            new Date(Math.floor(Date.parse(result.serverNow) / 86400000) * 86400000 - (6 - index) * 86400000)
+              .toISOString()
+              .slice(0, 10) &&
+          /^\d{4}-\d{2}-\d{2}$/.test(day.day) &&
+          Number.isSafeInteger(day.miningMilliseconds) &&
+          day.miningMilliseconds >= 0 &&
+          day.miningMilliseconds <= 86400000 &&
+          Number.isSafeInteger(day.completedCycles) &&
+          day.completedCycles >= 0,
+      )
+    ) {
+      throw new Error('Daily mining progress could not be verified. Please retry.')
+    }
+    return result
+  },
   async claimDailyActivity(): Promise<Record<string, unknown>> {
     return request('/api/rewards/activity', { method: 'POST' })
   },

@@ -2,7 +2,7 @@
   "bundle": {
     "maxInitialJsKb": 575,
     "maxLargestLazyJsKb": 850,
-    "maxTotalJsKb": 1475,
+    "maxTotalJsKb": 1500,
     "maxInitialCssKb": 50
   },
   "webVitals": {

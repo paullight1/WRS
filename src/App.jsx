@@ -124,7 +124,7 @@ export default function App() {
                 <Route path="/deploy/active/:id" element={verified(<ActiveDeploymentScreen />)} />
                 <Route path="/deploy/:name" element={verified(<DeploymentDetailsScreen />)} />
 
-                <Route path="/wallet" element={kyc(<Wallet />)} />
+                <Route path="/wallet" element={verified(<Wallet />)} />
                 <Route path="/wallet/transactions" element={kyc(<Transactions />)} />
                 <Route path="/wallet/data-revenue" element={kyc(<DataRevenue />)} />
 
